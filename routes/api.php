@@ -79,7 +79,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/mis-calificaciones', [PasanteController::class, 'misCalificaciones']);
     });
     
-    // =========================================
+    // ==========================================
     // RUTAS DE GERENTE
     // =========================================
     Route::middleware('role:gerente')->prefix('gerente')->group(function () {
@@ -100,7 +100,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Asignaciones
         Route::post('/asignar-jefe', [GerenteController::class, 'asignarJefeAPasantes']);
         
-        // Listar pasantes de mi empresa
+        // Listar pasantes de mi empresa.
         Route::get('/pasantes', [GerenteController::class, 'listarPasantes']);
     });
     
