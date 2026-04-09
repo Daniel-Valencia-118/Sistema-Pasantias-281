@@ -1,0 +1,8 @@
+-- =====================================================
+-- SISTEMA DE GESTIÓN DE PASANTÍAS
+-- BASE DE DATOS POSTGRESQL 
+-- user server: postgres
+-- password sever: 123456
+-- data base name: bdpasantia
+-- port: 5432
+-- =====================================================
