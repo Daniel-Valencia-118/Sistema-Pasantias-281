@@ -25,7 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     
     // =========================================
-    // RUTAS DE ADMINISTRADOR
+    // RUTAS DE ADMINISTRADOR 
     // =========================================
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         // Pasantes
@@ -35,7 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/pasantes/{id}/estado', [AdminController::class, 'cambiarEstadoPasante']);
         Route::delete('/pasantes/{id}', [AdminController::class, 'eliminarPasante']);
         
-        // Gerentes
+        // Gerentes Gerentes 
         Route::get('/gerentes', [AdminController::class, 'listarGerentes']);
         Route::post('/gerentes', [AdminController::class, 'crearGerente']);
         Route::put('/gerentes/{id}', [AdminController::class, 'actualizarGerente']);
