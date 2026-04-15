@@ -49,16 +49,56 @@ class GerenteController extends Controller
     // CRUD de PASANTÍAS (ofertas)
     // =============================================
     
+    // listar Pasantias con sus actividades
     public function listarPasantias()
     {
         $user = Auth::user();
         $empresa = $user->gerente->empresa;
         
-        $pasantias = Pasantia::where('id_empresa', $empresa->id_empresa)->get();
+        $pasantias = Pasantia::with(['actividades', 'inscripciones.pasante.user', 'inscripciones.jefe.user'])
+            ->where('id_empresa', $empresa->id_empresa)
+            ->get()
+            ->map(function($pasantia) {
+                return [
+                    'id_pasantia' => $pasantia->id_pasantia,
+                    'nombre_pas' => $pasantia->nombre_pas,
+                    'estado' => $pasantia->estado,
+                    'mencion' => $pasantia->mencion,
+                    'fecha_ini' => $pasantia->fecha_ini,
+                    'fecha_fin' => $pasantia->fecha_fin,
+                    'cupos' => $pasantia->cupos,
+                    'cupos_disponibles' => $pasantia->cupos_disponibles,
+                    'turno' => $pasantia->turno,
+                    'actividades' => $pasantia->actividades->map(function($actividad) {
+                        return [
+                            'id_actividad' => $actividad->id_actividad,
+                            'nombre_act' => $actividad->nombre_act,
+                            'descripcion' => $actividad->descripcion,
+                            'fecha_ini' => $actividad->fecha_ini,
+                            'fecha_fin' => $actividad->fecha_fin,
+                        ];
+                    }),
+                    'inscripciones' => $pasantia->inscripciones->map(function($inscripcion) {
+                        return [
+                            'pasante' => [
+                                'id' => $inscripcion->pasante->idU_pasante,
+                                'nombre' => $inscripcion->pasante->user->nombre . ' ' . $inscripcion->pasante->user->ap_paterno,
+                                'ru' => $inscripcion->pasante->ru,
+                            ],
+                            'jefe_asignado' => $inscripcion->jefe ? [
+                                'id' => $inscripcion->jefe->idU_jefe,
+                                'nombre' => $inscripcion->jefe->user->nombre . ' ' . $inscripcion->jefe->user->ap_paterno,
+                                'cargo' => $inscripcion->jefe->cargo,
+                            ] : null,
+                            'estado' => $inscripcion->estado,
+                        ];
+                    }),
+                ];
+            });
         
         return response()->json(['data' => $pasantias]);
     }
-    
+        
     public function crearPasantia(Request $request)
     {
         $user = Auth::user();
@@ -103,7 +143,7 @@ class GerenteController extends Controller
             'fecha_fin' => 'sometimes|date|after:fecha_ini',
             'cupos' => 'sometimes|integer|min:1',
             'turno' => 'nullable|string|in:mañana,tarde,noche,tiempo completo',
-        ]);
+        ]); 
         
         $pasantia->update($request->only([
             'nombre_pas', 'estado', 'fecha_ini', 'fecha_fin', 'cupos', 'turno'
@@ -123,6 +163,82 @@ class GerenteController extends Controller
         return response()->json(['message' => 'Pasantía desactivada']);
     }
     
+
+
+    // =============================================
+    // CRUD de ACTIVIDADES (dentro de una pasantía)
+    // =============================================
+
+    // Crear actividad (asociada a una pasantía existente)
+    public function crearActividad(Request $request)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $request->validate([
+            'id_pasantia' => 'required|exists:pasantia,id_pasantia',
+            'nombre_act' => 'required|string|max:150',
+            'descripcion' => 'nullable|string',
+            'fecha_ini' => 'required|date',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_ini',
+            'tipo' => 'nullable|string|in:colectiva,individual',
+        ]);
+        
+        // Verificar que la pasantía pertenece a esta empresa
+        $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->findOrFail($request->id_pasantia);
+        
+        $actividad = Actividad::create([
+            'nombre_act' => $request->nombre_act,
+            'descripcion' => $request->descripcion,
+            'fecha_ini' => $request->fecha_ini,
+            'fecha_fin' => $request->fecha_fin,
+            'tipo' => $request->tipo,
+            'id_pasantia' => $pasantia->id_pasantia,
+        ]);
+        
+        return response()->json(['message' => 'Actividad creada', 'data' => $actividad], 201);
+    }
+
+    // Actualizar actividad
+    public function actualizarActividad(Request $request, $id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $actividad = Actividad::whereHas('pasantia', function($q) use ($empresa) {
+            $q->where('id_empresa', $empresa->id_empresa);
+        })->findOrFail($id);
+        
+        $request->validate([
+            'nombre_act' => 'sometimes|string|max:150',
+            'descripcion' => 'nullable|string',
+            'fecha_ini' => 'sometimes|date',
+            'fecha_fin' => 'sometimes|date|after_or_equal:fecha_ini',
+            'tipo' => 'nullable|string|in:colectiva,individual',
+        ]);
+        
+        $actividad->update($request->only(['nombre_act', 'descripcion', 'fecha_ini', 'fecha_fin', 'tipo']));
+        
+        return response()->json(['message' => 'Actividad actualizada', 'data' => $actividad]);
+    }
+
+    // Eliminar actividad (soft delete o desactivar)
+    public function eliminarActividad($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $actividad = Actividad::whereHas('pasantia', function($q) use ($empresa) {
+            $q->where('id_empresa', $empresa->id_empresa);
+        })->findOrFail($id);
+        
+        $actividad->delete();
+        
+        return response()->json(['message' => 'Actividad eliminada']);
+    } 
+
+
     // =============================================
     // CRUD de JEFES DE PASANTE
     // =============================================
@@ -193,31 +309,92 @@ class GerenteController extends Controller
             return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
+
+    // Deshabilitar/Habilitar jefe (PATCH)
+    public function cambiarEstadoJefe($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $jefe = JefePas::where('id_empresa', $empresa->id_empresa)
+            ->findOrFail($id);
+        
+        $nuevoEstado = !$jefe->user->estado_cuenta;
+        $jefe->user->update(['estado_cuenta' => $nuevoEstado]);
+        
+        $estado = $nuevoEstado ? 'habilitado' : 'deshabilitado';
+        return response()->json(['message' => "Jefe {$estado}"]);
+    }
+
+    // Eliminar jefe (DELETE) - solo si no tiene pasantes asignados activos
+    public function eliminarJefe($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $jefe = JefePas::where('id_empresa', $empresa->id_empresa)
+            ->findOrFail($id);
+        
+        // Verificar si tiene pasantes asignados con inscripciones activas
+        $tienePasantes = Inscripcion::where('idU_jefe', $jefe->idU_jefe)
+            ->whereIn('estado', ['inscrito', 'activo'])
+            ->exists();
+        
+        if ($tienePasantes) {
+            return response()->json([
+                'message' => 'No se puede eliminar el jefe porque tiene pasantes asignados activos'
+            ], 400);
+        }
+        
+        // Deshabilitar en lugar de eliminar
+        $jefe->user->update(['estado_cuenta' => false]);
+        
+        return response()->json(['message' => 'Jefe deshabilitado']);
+    }
+
     
     // =============================================
     // ASIGNAR JEFE A PASANTES
     // =============================================
-    
+    //asignación individual o masiva
     public function asignarJefeAPasantes(Request $request)
     {
         $user = Auth::user();
         $empresa = $user->gerente->empresa;
         
         $request->validate([
-            'id_pasantia' => 'required|exists:pasantia,id_pasantia',
-            'idU_jefe' => 'required|exists:jefe_pas,idU_jefe',
+            'asignaciones' => 'required|array',
+            'asignaciones.*.id_pasantia' => 'required|exists:pasantia,id_pasantia',
+            'asignaciones.*.idU_pasante' => 'required|exists:pasante,idU_pasante',
+            'asignaciones.*.idU_jefe' => 'required|exists:jefe_pas,idU_jefe',
         ]);
         
-        // Verificar que la pasantía pertenece a la empresa
-        $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
-            ->findOrFail($request->id_pasantia);
-        
-        // Asignar jefe a todos los pasantes de esa pasantía
-        Inscripcion::where('id_pasantia', $request->id_pasantia)
-            ->whereNull('idU_jefe')
-            ->update(['idU_jefe' => $request->idU_jefe]);
-        
-        return response()->json(['message' => 'Jefe asignado a los pasantes']);
+        try {
+            DB::beginTransaction();
+            
+            foreach ($request->asignaciones as $asignacion) {
+                // Verificar que la pasantía pertenece a la empresa
+                $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
+                    ->findOrFail($asignacion['id_pasantia']);
+                
+                // Verificar que el jefe pertenece a la empresa
+                $jefe = JefePas::where('id_empresa', $empresa->id_empresa)
+                    ->findOrFail($asignacion['idU_jefe']);
+                
+                // Actualizar la inscripción
+                Inscripcion::where('idU_pasante', $asignacion['idU_pasante'])
+                    ->where('id_pasantia', $asignacion['id_pasantia'])
+                    ->update(['idU_jefe' => $asignacion['idU_jefe']]);
+            }
+            
+            DB::commit();
+            
+            return response()->json(['message' => 'Jefes asignados correctamente']);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
+        }
     }
     
     // =============================================
@@ -229,12 +406,35 @@ class GerenteController extends Controller
         $user = Auth::user();
         $empresa = $user->gerente->empresa;
         
-        $pasantes = Inscripcion::with(['pasante.user', 'pasantia'])
+        $inscripciones = Inscripcion::with(['pasante.user', 'pasantia', 'jefe.user'])
             ->whereHas('pasantia', function($q) use ($empresa) {
                 $q->where('id_empresa', $empresa->id_empresa);
             })
-            ->get();
+            ->get()
+            ->map(function($inscripcion) {
+                return [
+                    'pasante' => [
+                        'id' => $inscripcion->pasante->idU_pasante,
+                        'nombre' => $inscripcion->pasante->user->nombre . ' ' . $inscripcion->pasante->user->ap_paterno,
+                        'ru' => $inscripcion->pasante->ru,
+                        'matricula' => $inscripcion->pasante->matricula,
+                        'semestre' => $inscripcion->pasante->semestre,
+                    ],
+                    'pasantia' => [
+                        'id' => $inscripcion->pasantia->id_pasantia,
+                        'nombre' => $inscripcion->pasantia->nombre_pas,
+                        'fecha_ini' => $inscripcion->pasantia->fecha_ini,
+                        'fecha_fin' => $inscripcion->pasantia->fecha_fin,
+                    ],
+                    'jefe_asignado' => $inscripcion->jefe ? [
+                        'id' => $inscripcion->jefe->idU_jefe,
+                        'nombre' => $inscripcion->jefe->user->nombre . ' ' . $inscripcion->jefe->user->ap_paterno,
+                        'cargo' => $inscripcion->jefe->cargo,
+                    ] : null,
+                    'estado_inscripcion' => $inscripcion->estado,
+                ];
+            });
         
-        return response()->json(['data' => $pasantes]);
+        return response()->json(['data' => $inscripciones]);
     }
 }

@@ -7,25 +7,53 @@ use App\Http\Controllers\Controller;
 use App\Models\Pasante;
 use App\Models\BitacoraEva;
 use App\Models\InformeFin;
+use App\Models\Inscripcion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TutorController extends Controller
 {
-    // Ver mis pasantes asignados
+    // Ver mis pasantes asignados (con detalles de pasantía)
     public function misPasantes()
     {
         $user = Auth::user();
         $tutor = $user->tutorAca;
         
-        $pasantes = Pasante::with('user')
+        $pasantes = Pasante::with(['user', 'inscripciones.pasantia.empresa', 'inscripciones.jefe.user'])
             ->where('idU_tutor', $tutor->idU_tutor)
-            ->get();
+            ->get()
+            ->map(function($pasante) {
+                return [
+                    'pasante' => [
+                        'id' => $pasante->idU_pasante,
+                        'nombre' => $pasante->user->nombre . ' ' . $pasante->user->ap_paterno,
+                        'ru' => $pasante->ru,
+                        'matricula' => $pasante->matricula,
+                    ],
+                    'inscripciones' => $pasante->inscripciones->map(function($inscripcion) {
+                        return [
+                            'id_inscripcion' => $inscripcion->id_inscripcion,
+                            'estado' => $inscripcion->estado,
+                            'pasantia' => [
+                                'id' => $inscripcion->pasantia->id_pasantia,
+                                'nombre' => $inscripcion->pasantia->nombre_pas,
+                                'fecha_ini' => $inscripcion->pasantia->fecha_ini,
+                                'fecha_fin' => $inscripcion->pasantia->fecha_fin,
+                                'empresa' => $inscripcion->pasantia->empresa->nombre,
+                            ],
+                            'jefe_asignado' => $inscripcion->jefe ? [
+                                'nombre' => $inscripcion->jefe->user->nombre . ' ' . $inscripcion->jefe->user->ap_paterno,
+                                'cargo' => $inscripcion->jefe->cargo,
+                            ] : null,
+                        ];
+                    }),
+                ];
+            });
         
         return response()->json(['data' => $pasantes]);
     }
     
-    // Ver bitácora de un pasante (solo lectura)
+    // Ver bitácora de un pasante (agrupada por actividad)
     public function verBitacoraPasante($idPasante)
     {
         $user = Auth::user();
@@ -36,69 +64,83 @@ class TutorController extends Controller
             ->where('idU_tutor', $tutor->idU_tutor)
             ->firstOrFail();
         
-        $bitacora = BitacoraEva::with(['actividad', 'jefe.user'])
+        $bitacora = BitacoraEva::with(['actividad.pasantia'])
             ->where('idU_pasante', $idPasante)
-            ->get();
+            ->get()
+            ->groupBy('id_actividad')
+            ->map(function($items, $actividadId) {
+                $actividad = $items->first()->actividad;
+                return [
+                    'actividad' => [
+                        'id' => $actividad->id_actividad,
+                        'nombre' => $actividad->nombre_act,
+                        'descripcion' => $actividad->descripcion,
+                    ],
+                    'subactividades' => $items->map(function($item) {
+                        return [
+                            'id_bitacora' => $item->id_bitacora,
+                            'descripcion' => $item->descripcion,
+                            'nota' => $item->nota,
+                            'observacion' => $item->observacion,
+                            'recomendacion' => $item->recomendacion,
+                            'fecha' => $item->fecha,
+                        ];
+                    }),
+                    'promedio_actividad' => round($items->avg('nota'), 2),
+                ];
+            });
         
         return response()->json(['data' => $bitacora]);
     }
     
-    // Ver informe final de un pasante
+    // Ver informe final
     public function verInformeFinal($idPasante)
     {
         $user = Auth::user();
         $tutor = $user->tutorAca;
         
+        // Verificar que el pasante está asignado a este tutor
         $pasante = Pasante::where('idU_pasante', $idPasante)
             ->where('idU_tutor', $tutor->idU_tutor)
             ->firstOrFail();
         
-        $informe = InformeFin::whereHas('inscripcion', function($q) use ($idPasante) {
-            $q->where('idU_pasante', $idPasante);
-        })->first();
+        $inscripcion = Inscripcion::where('idU_pasante', $idPasante)
+            ->where('estado', 'finalizado')
+            ->first();
+        
+        if (!$inscripcion) {
+            return response()->json(['message' => 'El pasante no tiene una pasantía finalizada'], 404);
+        }
+        
+        $informe = InformeFin::where('id_inscripcion', $inscripcion->id_inscripcion)->first();
+        
+        if (!$informe) {
+            return response()->json(['message' => 'Informe no generado aún por el jefe'], 404);
+        }
         
         return response()->json(['data' => $informe]);
     }
     
-    // Generar informe final (el tutor también puede hacerlo)
-    public function generarInformeFinal(Request $request)
+    // Modificar resultado del informe final (solo el tutor puede)
+    public function modificarResultadoInforme(Request $request, $idInforme)
     {
         $user = Auth::user();
         $tutor = $user->tutorAca;
         
+        $informe = InformeFin::with('inscripcion.pasante')
+            ->findOrFail($idInforme);
+        
+        // Verificar que el pasante está asignado a este tutor
+        if ($informe->inscripcion->pasante->idU_tutor != $tutor->idU_tutor) {
+            return response()->json(['message' => 'No autorizado'], 403);
+        }
+        
         $request->validate([
-            'idU_pasante' => 'required|exists:pasante,idU_pasante',
+            'resultado' => 'required|string|in:aprobado,reprobado,aprobado_con_merito',
         ]);
         
-        $pasante = Pasante::where('idU_pasante', $request->idU_pasante)
-            ->where('idU_tutor', $tutor->idU_tutor)
-            ->firstOrFail();
+        $informe->update(['resultado' => $request->resultado]);
         
-        $promedio = BitacoraEva::where('idU_pasante', $request->idU_pasante)
-            ->whereNotNull('nota')
-            ->avg('nota');
-        
-        $resultado = $promedio >= 60 ? 'aprobado' : 'reprobado';
-        
-        $informe = InformeFin::updateOrCreate(
-            ['id_inscripcion' => $this->getInscripcionId($request->idU_pasante)],
-            [
-                'promedio' => $promedio,
-                'resultado' => $resultado,
-                'fecha' => now()->toDateString(),
-                'idU_jefe' => null,
-            ]
-        );
-        
-        return response()->json(['message' => 'Informe final generado', 'data' => $informe]);
-    }
-    
-    private function getInscripcionId($idPasante)
-    {
-        $inscripcion = \App\Models\Inscripcion::where('idU_pasante', $idPasante)
-            ->where('estado', 'activo')
-            ->first();
-        
-        return $inscripcion ? $inscripcion->id_inscripcion : null;
+        return response()->json(['message' => 'Resultado actualizado', 'data' => $informe]);
     }
 }

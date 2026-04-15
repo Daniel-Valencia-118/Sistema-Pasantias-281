@@ -49,7 +49,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // Obtener usuario actual
+    // Obtener usuario actual - ver datos
     public function me(Request $request)
     {
         $user = $request->user();
@@ -85,7 +85,7 @@ class AuthController extends Controller
         return response()->json($userData);
     }
 
-    // Logout
+    // Logout - cerrar sesion
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

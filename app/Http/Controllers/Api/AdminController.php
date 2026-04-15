@@ -187,7 +187,7 @@ class AdminController extends Controller
             DB::commit();
             
             return response()->json([
-                'message' => 'Gerente y empresa creados',
+                'message' => 'Gerente y Empresa creado',
                 'data' => ['user' => $user, 'gerente' => $gerente, 'empresa' => $empresa]
             ], 201);
             
@@ -218,14 +218,40 @@ class AdminController extends Controller
         return response()->json(['message' => 'Gerente actualizado']);
     }
     
+    //al inactivar la cuenta de un gerente tambien de desactiva la cuenta de los pasantes de esa empresa
     public function cambiarEstadoGerente($id)
     {
         $gerente = Gerente::findOrFail($id);
-        $gerente->user->update(['estado_cuenta' => !$gerente->user->estado_cuenta]);
+        $nuevoEstado = !$gerente->user->estado_cuenta;
         
-        $estado = $gerente->user->estado_cuenta ? 'habilitado' : 'deshabilitado';
-        return response()->json(['message' => "Gerente {$estado}"]);
-    }
+        try {
+            DB::beginTransaction();
+            
+            // Cambiar estado del gerente
+            $gerente->user->update(['estado_cuenta' => $nuevoEstado]);
+            
+            // Si se está deshabilitando al gerente, deshabilitar también a todos sus jefes
+            if (!$nuevoEstado) {
+                $empresa = $gerente->empresa;
+                if ($empresa) {
+                    // Obtener todos los jefes de esta empresa
+                    $jefes = JefePas::where('id_empresa', $empresa->id_empresa)->get();
+                    foreach ($jefes as $jefe) {
+                        $jefe->user->update(['estado_cuenta' => false]);
+                    }
+                }
+            }
+            
+            DB::commit();
+            
+            $estado = $nuevoEstado ? 'habilitado' : 'deshabilitado (incluyendo sus jefes)';
+            return response()->json(['message' => "Gerente {$estado}"]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }    
     
     // =============================================
     // CRUD de TUTORES
