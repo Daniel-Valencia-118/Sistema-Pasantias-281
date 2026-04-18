@@ -8,6 +8,7 @@ use App\Models\Pasante;
 use App\Models\BitacoraEva;
 use App\Models\InformeFin;
 use App\Models\Inscripcion;
+use App\Models\Pasantia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -52,7 +53,59 @@ class TutorController extends Controller
         
         return response()->json(['data' => $pasantes]);
     }
+
+    // =============================================
+    // VER DATOS DE UN PASANTE ESPECÍFICO
+    // =============================================
+    public function verPasante($idPasante)
+    {
+        $user = Auth::user();
+        $tutor = $user->tutorAca;
+        
+        $pasante = Pasante::with(['user', 'inscripciones.pasantia.actividades', 'inscripciones.jefe.user'])
+            ->where('idU_tutor', $tutor->idU_tutor)
+            ->findOrFail($idPasante);
+        
+        return response()->json([
+            'data' => [
+                'pasante' => [
+                    'id' => $pasante->idU_pasante,
+                    'nombre' => $pasante->user->nombre . ' ' . $pasante->user->ap_paterno,
+                    'correo' => $pasante->user->correo,
+                    'ci' => $pasante->user->ci,
+                    'ru' => $pasante->ru,
+                    'matricula' => $pasante->matricula,
+                    'semestre' => $pasante->semestre,
+                    'mencion' => $pasante->mencion,
+                ],
+                'inscripciones' => $pasante->inscripciones->map(function($inscripcion) {
+                    return [
+                        'id_inscripcion' => $inscripcion->id_inscripcion,
+                        'estado' => $inscripcion->estado,
+                        'pasantia' => [
+                            'id' => $inscripcion->pasantia->id_pasantia,
+                            'nombre' => $inscripcion->pasantia->nombre_pas,
+                            'fecha_ini' => $inscripcion->pasantia->fecha_ini,
+                            'fecha_fin' => $inscripcion->pasantia->fecha_fin,
+                            'actividades' => $inscripcion->pasantia->actividades->map(function($actividad) {
+                                return [
+                                    'id' => $actividad->id_actividad,
+                                    'nombre' => $actividad->nombre_act,
+                                    'descripcion' => $actividad->descripcion,
+                                ];
+                            }),
+                        ],
+                        'jefe' => $inscripcion->jefe ? [
+                            'nombre' => $inscripcion->jefe->user->nombre . ' ' . $inscripcion->jefe->user->ap_paterno,
+                            'cargo' => $inscripcion->jefe->cargo,
+                        ] : null,
+                    ];
+                }),
+            ]
+        ]);
+    }
     
+
     // Ver bitácora de un pasante (agrupada por actividad)
     public function verBitacoraPasante($idPasante)
     {
@@ -92,43 +145,40 @@ class TutorController extends Controller
         
         return response()->json(['data' => $bitacora]);
     }
-    
-    // Ver informe final
-    public function verInformeFinal($idPasante)
+
+    // =============================================
+    // OBTENER ESTADO DE UNA PASANTÍA
+    // =============================================
+    public function obtenerEstadoPasantia(Request $request)
     {
         $user = Auth::user();
         $tutor = $user->tutorAca;
         
-        // Verificar que el pasante está asignado a este tutor
-        $pasante = Pasante::where('idU_pasante', $idPasante)
-            ->where('idU_tutor', $tutor->idU_tutor)
-            ->firstOrFail();
+        $request->validate([
+            'id_pasantia' => 'required|exists:pasantia,id_pasantia',
+        ]);
         
-        $inscripcion = Inscripcion::where('idU_pasante', $idPasante)
-            ->where('estado', 'finalizado')
-            ->first();
+        $pasantia = Pasantia::findOrFail($request->id_pasantia);
         
-        if (!$inscripcion) {
-            return response()->json(['message' => 'El pasante no tiene una pasantía finalizada'], 404);
-        }
-        
-        $informe = InformeFin::where('id_inscripcion', $inscripcion->id_inscripcion)->first();
-        
-        if (!$informe) {
-            return response()->json(['message' => 'Informe no generado aún por el jefe'], 404);
-        }
-        
-        return response()->json(['data' => $informe]);
-    }
+        return response()->json([
+            'data' => [
+                'id_pasantia' => $pasantia->id_pasantia,
+                'estado' => $pasantia->estado,
+            ]
+        ]);
+    }    
     
-    // Modificar resultado del informe final (solo el tutor puede)
-    public function modificarResultadoInforme(Request $request, $idInforme)
+    // =============================================
+    // MODIFICAR RESULTADO DEL INFORME POR ID_INSCRIPCION
+    // =============================================
+    public function modificarResultadoInformePorInscripcion(Request $request, $idInscripcion)
     {
         $user = Auth::user();
         $tutor = $user->tutorAca;
         
         $informe = InformeFin::with('inscripcion.pasante')
-            ->findOrFail($idInforme);
+            ->where('id_inscripcion', $idInscripcion)
+            ->firstOrFail();
         
         // Verificar que el pasante está asignado a este tutor
         if ($informe->inscripcion->pasante->idU_tutor != $tutor->idU_tutor) {
@@ -143,4 +193,5 @@ class TutorController extends Controller
         
         return response()->json(['message' => 'Resultado actualizado', 'data' => $informe]);
     }
+
 }

@@ -9,13 +9,93 @@ use App\Models\Pasantia;
 use App\Models\JefePas;
 use App\Models\User;
 use App\Models\Inscripcion;
+use App\Models\InformeFin;
+use App\Models\Actividad;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SolicitudRegistroMail;
+use App\Mail\RegistroAprobadoMail;
+use App\Mail\RegistroRechazadoMail;
 
 class GerenteController extends Controller
 {
+    // =============================================
+    // LISTAR SOLICITUDES DE JEFES PENDIENTES
+    // =============================================
+    public function listarSolicitudesJefes()
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $solicitudes = User::where('estado_aprobacion', 'pendiente')
+            ->whereHas('jefePas', function($q) use ($empresa) {
+                $q->where('id_empresa', $empresa->id_empresa);
+            })
+            ->with('jefePas')
+            ->get()
+            ->map(function($user) {
+                return [
+                    'id' => $user->idUser,
+                    'nombre_user' => $user->nombre_user,
+                    'nombre' => $user->nombre,
+                    'correo' => $user->correo,
+                    'cargo' => $user->jefePas->cargo,
+                    'area' => $user->jefePas->area,
+                    'estado_aprobacion' => $user->estado_aprobacion,
+                ];
+            });
+        
+        return response()->json(['data' => $solicitudes]);
+    }
+
+    // =============================================
+    // APROBAR SOLICITUD DE JEFE
+    // =============================================
+    public function aprobarJefe($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $jefeSolicitante = User::where('estado_aprobacion', 'pendiente')
+            ->whereHas('jefePas', function($q) use ($empresa) {
+                $q->where('id_empresa', $empresa->id_empresa);
+            })
+            ->findOrFail($id);
+        
+        $user->update([
+            'estado_cuenta' => true,  // Activar cuenta
+            'estado_aprobacion' => 'aprobado',
+        ]);
+        
+        // Enviar correo de aprobación
+        Mail::to($jefeSolicitante->correo)->send(new RegistroAprobadoMail($jefeSolicitante, 'jefe'));
+        
+        return response()->json(['message' => 'Jefe aprobado correctamente']);
+    }
+
+    // =============================================
+    // RECHAZAR SOLICITUD DE JEFE
+    // =============================================
+    public function rechazarJefe($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $jefeSolicitante = User::where('estado_aprobacion', 'pendiente')
+            ->whereHas('jefePas', function($q) use ($empresa) {
+                $q->where('id_empresa', $empresa->id_empresa);
+            })
+            ->findOrFail($id);
+        
+        $user->update([
+            'estado_aprobacion' => 'rechazado',
+        ]);
+        
+        return response()->json(['message' => 'Solicitud de jefe rechazada']);
+    }
     // =============================================
     // CRUD de MI EMPRESA
     // =============================================
@@ -98,7 +178,56 @@ class GerenteController extends Controller
         
         return response()->json(['data' => $pasantias]);
     }
+ 
+    // Ver una pasantía específica con actividades e inscripciones
+    public function verPasantia($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
         
+        $pasantia = Pasantia::with(['actividades', 'inscripciones.pasante.user', 'inscripciones.jefe.user'])
+            ->where('id_empresa', $empresa->id_empresa)
+            ->findOrFail($id);
+        
+        return response()->json([
+            'data' => [
+                'id_pasantia' => $pasantia->id_pasantia,
+                'nombre_pas' => $pasantia->nombre_pas,
+                'estado' => $pasantia->estado,
+                'mencion' => $pasantia->mencion,
+                'fecha_ini' => $pasantia->fecha_ini,
+                'fecha_fin' => $pasantia->fecha_fin,
+                'cupos' => $pasantia->cupos,
+                'cupos_disponibles' => $pasantia->cupos_disponibles,
+                'turno' => $pasantia->turno,
+                'actividades' => $pasantia->actividades->map(function($actividad) {
+                    return [
+                        'id_actividad' => $actividad->id_actividad,
+                        'nombre_act' => $actividad->nombre_act,
+                        'descripcion' => $actividad->descripcion,
+                        'fecha_ini' => $actividad->fecha_ini,
+                        'fecha_fin' => $actividad->fecha_fin,
+                    ];
+                }),
+                'inscripciones' => $pasantia->inscripciones->map(function($inscripcion) {
+                    return [
+                        'pasante' => [
+                            'id' => $inscripcion->pasante->idU_pasante,
+                            'nombre' => $inscripcion->pasante->user->nombre . ' ' . $inscripcion->pasante->user->ap_paterno,
+                            'ru' => $inscripcion->pasante->ru,
+                        ],
+                        'jefe_asignado' => $inscripcion->jefe ? [
+                            'id' => $inscripcion->jefe->idU_jefe,
+                            'nombre' => $inscripcion->jefe->user->nombre . ' ' . $inscripcion->jefe->user->ap_paterno,
+                            'cargo' => $inscripcion->jefe->cargo,
+                        ] : null,
+                        'estado' => $inscripcion->estado,
+                    ];
+                }),
+            ]
+        ]);
+    }    
+
     public function crearPasantia(Request $request)
     {
         $user = Auth::user();
@@ -112,6 +241,7 @@ class GerenteController extends Controller
             'cupos' => 'required|integer|min:1',
             'carga_horaria' => 'nullable|integer',
             'turno' => 'nullable|string|in:mañana,tarde,noche,tiempo completo',
+            'estado' => 'required|string|in:activo,inactivo,finalizado,cancelado',
         ]);
         
         $pasantia = Pasantia::create([
@@ -138,7 +268,6 @@ class GerenteController extends Controller
         
         $request->validate([
             'nombre_pas' => 'sometimes|string|max:150',
-            'estado' => 'sometimes|string|in:activo,inactivo,completado',
             'fecha_ini' => 'sometimes|date',
             'fecha_fin' => 'sometimes|date|after:fecha_ini',
             'cupos' => 'sometimes|integer|min:1',
@@ -146,12 +275,39 @@ class GerenteController extends Controller
         ]); 
         
         $pasantia->update($request->only([
-            'nombre_pas', 'estado', 'fecha_ini', 'fecha_fin', 'cupos', 'turno'
+            'nombre_pas','fecha_ini', 'fecha_fin', 'cupos', 'turno'
         ]));
         
         return response()->json(['message' => 'Pasantía actualizada', 'data' => $pasantia]);
     }
-    
+  
+    // =============================================
+    // CAMBIAR ESTADO DE UNA PASANTÍA (GERENTE) - VERSIÓN CON ID EN URL
+    // =============================================
+    public function cambiarEstadoPasantia(Request $request, $id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $request->validate([
+            'estado' => 'required|string|in:activo,inactivo,finalizado,cancelado',
+        ]);
+        
+        // Verificar que la pasantía pertenece a su empresa
+        $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->findOrFail($id);
+        
+        $pasantia->update(['estado' => $request->estado]);
+        
+        return response()->json([
+            'message' => 'Estado de la pasantía actualizado',
+            'data' => [
+                'id_pasantia' => $pasantia->id_pasantia,
+                'estado' => $pasantia->estado
+            ]
+        ]);
+    }    
+
     public function eliminarPasantia($id)
     {
         $user = Auth::user();
@@ -163,7 +319,28 @@ class GerenteController extends Controller
         return response()->json(['message' => 'Pasantía desactivada']);
     }
     
-
+    // Obtener estado de una pasantía
+    public function obtenerEstadoPasantia(Request $request)
+    {
+        $request->validate([
+            'id_pasantia' => 'required|exists:pasantia,id_pasantia',
+        ]);
+        
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->findOrFail($request->id_pasantia);
+        
+        return response()->json([
+            'data' => [
+                'id_pasantia' => $pasantia->id_pasantia,
+                'estado' => $pasantia->estado,
+                'fecha_ini' => $pasantia->fecha_ini,
+                'fecha_fin' => $pasantia->fecha_fin,
+            ]
+        ]);
+    }
 
     // =============================================
     // CRUD de ACTIVIDADES (dentro de una pasantía)
@@ -254,7 +431,34 @@ class GerenteController extends Controller
         
         return response()->json(['data' => $jefes]);
     }
-    
+
+    // Ver un jefe específico
+    public function verJefe($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $jefe = JefePas::with('user')
+            ->where('id_empresa', $empresa->id_empresa)
+            ->findOrFail($id);
+        
+        return response()->json([
+            'data' => [
+                'id' => $jefe->idU_jefe,
+                'nombre' => $jefe->user->nombre,
+                'ap_paterno' => $jefe->user->ap_paterno,
+                'ap_materno' => $jefe->user->ap_materno,
+                'nombre_user' => $jefe->user->nombre_user,
+                'correo' => $jefe->user->correo,
+                'numero_cel' => $jefe->user->numero_cel,
+                'ci' => $jefe->user->ci,
+                'estado_cuenta' => $jefe->user->estado_cuenta,
+                'cargo' => $jefe->cargo,
+                'area' => $jefe->area,
+            ]
+        ]);
+    }
+
     public function crearJefe(Request $request)
     {
         $user = Auth::user();
@@ -288,6 +492,7 @@ class GerenteController extends Controller
                 'ap_materno' => $request->ap_materno,
                 'fecha_nac' => $request->fecha_nac,
                 'estado_cuenta' => true,
+                'estado_aprobacion' => 'aprobado',
             ]);
             
             $jefe = JefePas::create([

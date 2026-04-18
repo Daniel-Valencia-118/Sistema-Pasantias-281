@@ -35,6 +35,7 @@ class User extends Authenticatable
         'ap_materno',
         'fecha_nac',
         'estado_cuenta',
+        'estado_aprobacion',  //nuevo
     ];
     
     // 6. Campos ocultos (no se muestran en JSON)
