@@ -15,7 +15,7 @@ class Gerente extends Model
         'idU_gerente',
         'nro_secun',
     ];
-    
+        
     public function user()
     {
         return $this->belongsTo(User::class, 'idU_gerente', 'idUser');

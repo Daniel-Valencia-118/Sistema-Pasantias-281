@@ -48,11 +48,11 @@ class Pasantia extends Model
         return $this->hasMany(Comentario::class, 'id_pasantia', 'id_pasantia');
     }
     
-    // Scope para pasantías activas
-    public function scopeActivas($query)
-    {
-        return $query->where('estado', 'activo')
-                     ->where('fecha_ini', '<=', now())
-                     ->where('fecha_fin', '>=', now());
-    }
+    // // Scope para pasantías activas
+    // public function scopeActivas($query)
+    // {
+    //     return $query->where('estado', 'activo')
+    //                  ->where('fecha_ini', '<=', now())
+    //                  ->where('fecha_fin', '>=', now());
+    // }
 }

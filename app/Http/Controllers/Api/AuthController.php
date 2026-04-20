@@ -10,29 +10,38 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    // Login para cualquier rol
+        // Login para cualquier rol
     public function login(Request $request)
     {
         $request->validate([
-            'nombre_user' => 'required|string',
+            'login' => 'required|string',  //correo o usuario
             'password' => 'required|string',
         ]);
 
-        $user = User::where('nombre_user', $request->nombre_user)
-                    ->orWhere('correo', $request->nombre_user)
-                    ->first();
+        // Buscar por nombre_user O por correo
+        $user = User::where('nombre_user', $request->login)
+            ->orWhere('correo', $request->login)
+            ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Credenciales incorrectas'], 401);
         }
 
-        if (!$user->estado_cuenta) {
-            return response()->json(['message' => 'Cuenta deshabilitada'], 403);
+        // Verificar estado de aprobación
+        if ($user->estado_aprobacion != 'aprobado') {
+            $mensaje = $user->estado_aprobacion == 'pendiente' 
+                ? 'Tu cuenta está pendiente de aprobación por el administrador.'
+                : 'Tu cuenta fue rechazada. Motivo: ' . $user->motivo_rechazo;
+            return response()->json(['message' => $mensaje], 403);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Verificar si la cuenta está activa (habilitada/deshabilitada por admin)
+        if (!$user->estado_cuenta) {
+            return response()->json(['message' => 'Cuenta deshabilitada por el administrador'], 403);
+        }
         
-        // Determinar rol
+        // ... generar token ...
+        $token = $user->createToken('auth_token')->plainTextToken;
         $role = $this->getUserRole($user);
 
         return response()->json([
@@ -49,7 +58,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // Obtener usuario actual
+    // Obtener usuario actual - ver datos
     public function me(Request $request)
     {
         $user = $request->user();
@@ -85,7 +94,7 @@ class AuthController extends Controller
         return response()->json($userData);
     }
 
-    // Logout
+    // Logout - cerrar sesion
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

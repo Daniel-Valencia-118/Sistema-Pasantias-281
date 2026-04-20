@@ -12,19 +12,143 @@ use App\Models\Administrador;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SolicitudRegistroMail;
+use App\Mail\RegistroRechazadoMail;
+
 
 class AdminController extends Controller
 {
+    // =============================================
+    // LISTAR SOLICITUDES PENDIENTES
+    // =============================================
+    public function listarSolicitudes()
+    {
+        $solicitudes = User::where('estado_aprobacion', 'pendiente')
+            ->with(['pasante', 'gerente.empresa', 'tutorAca', 'jefePas.empresa'])
+            ->get()
+            ->map(function($user) {
+                return [
+                    'id' => $user->idUser,
+                    'nombre_user' => $user->nombre_user,
+                    'nombre' => $user->nombre,
+                    'correo' => $user->correo,
+                    'estado_aprobacion' => $user->estado_aprobacion,
+                    'rol' => $this->getUserRole($user),
+                ];
+            });
+        
+        return response()->json(['data' => $solicitudes]);
+    }
+
+    // =============================================
+    // APROBAR SOLICITUD
+    // =============================================
+    public function aprobarSolicitud($id)
+    {
+        $user = User::findOrFail($id);
+        
+        if ($user->estado_aprobacion != 'pendiente') {
+            return response()->json(['message' => 'Esta solicitud ya fue procesada'], 400);
+        }
+        
+        $user->update([
+            'estado_cuenta' => true,  // Activar cuenta
+            'estado_aprobacion' => 'aprobado',
+        ]);
+        
+        $rol = $this->getUserRole($user);
+        
+        // Enviar correo de aprobación
+        Mail::to($user->correo)->send(new RegistroAprobadoMail($user, $rol));
+        
+        return response()->json(['message' => 'Solicitud aprobada. Se envió correo al usuario.']);
+    }
+
+    // =============================================
+    // RECHAZAR SOLICITUD
+    // =============================================
+    public function rechazarSolicitud($id)
+    {
+        $user = User::findOrFail($id);
+        
+        if ($user->estado_aprobacion != 'pendiente') {
+            return response()->json(['message' => 'Esta solicitud ya fue procesada'], 400);
+        }
+        $user->update([
+            'estado_aprobacion' => 'rechazado',
+        ]);
+        
+        // Opcional: enviar correo de rechazo
+        Mail::to($user->correo)->send(new RegistroRechazadoMail($user, $request->motivo));
+        
+        return response()->json(['message' => 'Solicitud rechazada']);
+    }
+
     // =============================================
     // CRUD de PASANTES (Estudiantes)
     // =============================================
     
     public function listarPasantes(Request $request)
     {
-        $pasantes = Pasante::with('user')->get();
+        $pasantes = Pasante::with(['user', 'tutor.user'])
+            ->get()
+            ->map(function($pasante) {
+                return [
+                    'id' => $pasante->idU_pasante,
+                    'nombre' => $pasante->user->nombre . ' ' . $pasante->user->ap_paterno,
+                    'nombre_user' => $pasante->user->nombre_user,
+                    'correo' => $pasante->user->correo,
+                    'ru' => $pasante->ru,
+                    'matricula' => $pasante->matricula,
+                    'semestre' => $pasante->semestre,
+                    'mencion' => $pasante->mencion,
+                    'estado_cuenta' => $pasante->user->estado_cuenta,
+                    'tutor' => $pasante->tutor ? [
+                        'id' => $pasante->tutor->idU_tutor,
+                        'nombre' => $pasante->tutor->user->nombre . ' ' . $pasante->tutor->user->ap_paterno,
+                        'especialidad' => $pasante->tutor->especialidad,
+                    ] : null,
+                ];
+            });
+        
         return response()->json(['data' => $pasantes]);
-    }
-    
+    } 
+
+    // Ver un pasante específico con datos de su tutor
+    public function verPasante($id)
+    {
+        $pasante = Pasante::with(['user', 'tutor.user'])
+            ->findOrFail($id);
+        
+        return response()->json([
+            'data' => [
+                'pasante' => [
+                    'id' => $pasante->idU_pasante,
+                    'nombre' => $pasante->user->nombre,
+                    'ap_paterno' => $pasante->user->ap_paterno,
+                    'ap_materno' => $pasante->user->ap_materno,
+                    'nombre_user' => $pasante->user->nombre_user,
+                    'correo' => $pasante->user->correo,
+                    'numero_cel' => $pasante->user->numero_cel,
+                    'ci' => $pasante->user->ci,
+                    'fecha_nac' => $pasante->user->fecha_nac,
+                    'estado_cuenta' => $pasante->user->estado_cuenta,
+                    'ru' => $pasante->ru,
+                    'matricula' => $pasante->matricula,
+                    'semestre' => $pasante->semestre,
+                    'mencion' => $pasante->mencion,
+                ],
+                'tutor' => $pasante->tutor ? [
+                    'id' => $pasante->tutor->idU_tutor,
+                    'nombre' => $pasante->tutor->user->nombre . ' ' . $pasante->tutor->user->ap_paterno,
+                    'correo' => $pasante->tutor->user->correo,
+                    'especialidad' => $pasante->tutor->especialidad,
+                    'grado_aca' => $pasante->tutor->grado_aca,
+                ] : null,
+            ]
+        ]);
+    }    
     public function crearPasante(Request $request)
     {
         $request->validate([
@@ -57,6 +181,7 @@ class AdminController extends Controller
                 'ap_materno' => $request->ap_materno,
                 'fecha_nac' => $request->fecha_nac,
                 'estado_cuenta' => true,
+                'estado_aprobacion' => 'aprobado',
             ]);
             
             $pasante = Pasante::create([
@@ -168,6 +293,7 @@ class AdminController extends Controller
                 'ap_materno' => $request->ap_materno,
                 'fecha_nac' => $request->fecha_nac,
                 'estado_cuenta' => true,
+                'estado_aprobacion' => 'aprobado',
             ]);
             
             $gerente = Gerente::create([
@@ -187,7 +313,7 @@ class AdminController extends Controller
             DB::commit();
             
             return response()->json([
-                'message' => 'Gerente y empresa creados',
+                'message' => 'Gerente y Empresa creado',
                 'data' => ['user' => $user, 'gerente' => $gerente, 'empresa' => $empresa]
             ], 201);
             
@@ -197,6 +323,39 @@ class AdminController extends Controller
         }
     }
     
+    // Ver un gerente específico con su empresa
+    public function verGerente($id)
+    {
+        $gerente = Gerente::with(['user', 'empresa'])
+            ->findOrFail($id);
+        
+        return response()->json([
+            'data' => [
+                'gerente' => [
+                    'id' => $gerente->idU_gerente,
+                    'nombre' => $gerente->user->nombre,
+                    'ap_paterno' => $gerente->user->ap_paterno,
+                    'ap_materno' => $gerente->user->ap_materno,
+                    'nombre_user' => $gerente->user->nombre_user,
+                    'correo' => $gerente->user->correo,
+                    'numero_cel' => $gerente->user->numero_cel,
+                    'ci' => $gerente->user->ci,
+                    'fecha_nac' => $gerente->user->fecha_nac,
+                    'estado_cuenta' => $gerente->user->estado_cuenta,
+                    'nro_secun' => $gerente->nro_secun,
+                ],
+                'empresa' => $gerente->empresa ? [
+                    'id' => $gerente->empresa->id_empresa,
+                    'nombre' => $gerente->empresa->nombre,
+                    'direccion' => $gerente->empresa->direccion,
+                    'email' => $gerente->empresa->email,
+                    'nit' => $gerente->empresa->nit,
+                    'telefono' => $gerente->empresa->telefono,
+                ] : null,
+            ]
+        ]);
+    }
+
     public function actualizarGerente(Request $request, $id)
     {
         $gerente = Gerente::findOrFail($id);
@@ -218,14 +377,40 @@ class AdminController extends Controller
         return response()->json(['message' => 'Gerente actualizado']);
     }
     
+    //al inactivar la cuenta de un gerente tambien de desactiva la cuenta de los pasantes de esa empresa
     public function cambiarEstadoGerente($id)
     {
         $gerente = Gerente::findOrFail($id);
-        $gerente->user->update(['estado_cuenta' => !$gerente->user->estado_cuenta]);
+        $nuevoEstado = !$gerente->user->estado_cuenta;
         
-        $estado = $gerente->user->estado_cuenta ? 'habilitado' : 'deshabilitado';
-        return response()->json(['message' => "Gerente {$estado}"]);
-    }
+        try {
+            DB::beginTransaction();
+            
+            // Cambiar estado del gerente
+            $gerente->user->update(['estado_cuenta' => $nuevoEstado]);
+            
+            // Si se está deshabilitando al gerente, deshabilitar también a todos sus jefes
+            if (!$nuevoEstado) {
+                $empresa = $gerente->empresa;
+                if ($empresa) {
+                    // Obtener todos los jefes de esta empresa
+                    $jefes = JefePas::where('id_empresa', $empresa->id_empresa)->get();
+                    foreach ($jefes as $jefe) {
+                        $jefe->user->update(['estado_cuenta' => false]);
+                    }
+                }
+            }
+            
+            DB::commit();
+            
+            $estado = $nuevoEstado ? 'habilitado' : 'deshabilitado (incluyendo sus jefes)';
+            return response()->json(['message' => "Gerente {$estado}"]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }    
     
     // =============================================
     // CRUD de TUTORES
@@ -236,7 +421,31 @@ class AdminController extends Controller
         $tutores = TutorAca::with('user')->get();
         return response()->json(['data' => $tutores]);
     }
-    
+
+    // Ver un tutor específico
+    public function verTutor($id)
+    {
+        $tutor = TutorAca::with('user')
+            ->findOrFail($id);
+        
+        return response()->json([
+            'data' => [
+                'id' => $tutor->idU_tutor,
+                'nombre' => $tutor->user->nombre,
+                'ap_paterno' => $tutor->user->ap_paterno,
+                'ap_materno' => $tutor->user->ap_materno,
+                'nombre_user' => $tutor->user->nombre_user,
+                'correo' => $tutor->user->correo,
+                'numero_cel' => $tutor->user->numero_cel,
+                'ci' => $tutor->user->ci,
+                'fecha_nac' => $tutor->user->fecha_nac,
+                'estado_cuenta' => $tutor->user->estado_cuenta,
+                'especialidad' => $tutor->especialidad,
+                'grado_aca' => $tutor->grado_aca,
+            ]
+        ]);
+    }
+
     public function crearTutor(Request $request)
     {
         $request->validate([
@@ -267,6 +476,7 @@ class AdminController extends Controller
                 'ap_materno' => $request->ap_materno,
                 'fecha_nac' => $request->fecha_nac,
                 'estado_cuenta' => true,
+                'estado_aprobacion' => 'aprobado',
             ]);
             
             $tutor = TutorAca::create([
@@ -358,6 +568,7 @@ class AdminController extends Controller
                 'ap_materno' => $request->ap_materno,
                 'fecha_nac' => $request->fecha_nac,
                 'estado_cuenta' => true,
+                'estado_aprobacion' => 'aprobado',
             ]);
             
             $admin = Administrador::create([
@@ -377,7 +588,29 @@ class AdminController extends Controller
             return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
-    
+ 
+    // Ver un administrador específico
+    public function verAdministrador($id)
+    {
+        $admin = Administrador::with('user')
+            ->findOrFail($id);
+        
+        return response()->json([
+            'data' => [
+                'id' => $admin->idU_admi,
+                'nombre' => $admin->user->nombre,
+                'ap_paterno' => $admin->user->ap_paterno,
+                'ap_materno' => $admin->user->ap_materno,
+                'nombre_user' => $admin->user->nombre_user,
+                'correo' => $admin->user->correo,
+                'numero_cel' => $admin->user->numero_cel,
+                'ci' => $admin->user->ci,
+                'fecha_nac' => $admin->user->fecha_nac,
+                'estado_cuenta' => $admin->user->estado_cuenta,
+                'correo_secundario' => $admin->correo_secundario,
+            ]
+        ]);
+    }    
     public function cambiarEstadoAdministrador(Request $request, $id)
     {
         $currentUser = $request->user();
