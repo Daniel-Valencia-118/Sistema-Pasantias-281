@@ -39,7 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/gerentes', [AdminController::class, 'listarGerentes']);
         Route::post('/gerentes', [AdminController::class, 'crearGerente']);
         Route::put('/gerentes/{id}', [AdminController::class, 'actualizarGerente']);
-        Route::patch('/gerentes/{id}/estado', [AdminController::class, 'cambiarEstadoGerente']);
+        Route::patch('/gerentes/{id}/estado', [AdminController::class, 'cambiarEstadoGerente']); //deshabilita también jefes
         
         // Tutores
         Route::get('/tutores', [AdminController::class, 'listarTutores']);
@@ -57,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Listar todos los usuarios
         Route::get('/usuarios', [AdminController::class, 'listarTodosUsuarios']);
+        
     });
     
     // =========================================
@@ -73,10 +74,11 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Bitácora (solo lectura)
         Route::get('/bitacora', [PasanteController::class, 'verBitacora']);
+        Route::get('/bitacora/{idActividad}', [PasanteController::class, 'verBitacora']);             
         
         // Calificaciones
         Route::post('/calificar', [PasanteController::class, 'calificarPasantia']);
-        Route::get('/mis-calificaciones', [PasanteController::class, 'misCalificaciones']);
+        
     });
     
     // ==========================================
@@ -88,40 +90,62 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/mi-empresa', [GerenteController::class, 'actualizarEmpresa']);
         
         // Pasantías
-        Route::get('/pasantias', [GerenteController::class, 'listarPasantias']);
+        Route::get('/pasantias', [GerenteController::class, 'listarPasantias']); //incluye actividades e inscripciones
         Route::post('/pasantias', [GerenteController::class, 'crearPasantia']);
         Route::put('/pasantias/{id}', [GerenteController::class, 'actualizarPasantia']);
         Route::delete('/pasantias/{id}', [GerenteController::class, 'eliminarPasantia']);
         
+
+        //actividades
+        Route::post('/actividades', [GerenteController::class, 'crearActividad']);
+        Route::put('/actividades/{id}', [GerenteController::class, 'actualizarActividad']);
+        Route::delete('/actividades/{id}', [GerenteController::class, 'eliminarActividad']);
+
+
         // Jefes
         Route::get('/jefes', [GerenteController::class, 'listarJefes']);
         Route::post('/jefes', [GerenteController::class, 'crearJefe']);
-        
+        Route::patch('/jefes/{id}/estado', [GerenteController::class, 'cambiarEstadoJefe']); 
+        Route::delete('/jefes/{id}', [GerenteController::class, 'eliminarJefe']); 
+    
         // Asignaciones
-        Route::post('/asignar-jefe', [GerenteController::class, 'asignarJefeAPasantes']);
+        Route::post('/asignar-jefe', [GerenteController::class, 'asignarJefeAPasantes']); //asignación uno o múltiple  
         
         // Listar pasantes de mi empresa.
-        Route::get('/pasantes', [GerenteController::class, 'listarPasantes']);
+        Route::get('/pasantes', [GerenteController::class, 'listarPasantes']); //incluye pasantía y jefe
     });
     
     // =========================================
     // RUTAS DE JEFE DE PASANTE
     // =========================================
-    Route::middleware('role:jefe')->prefix('jefe')->group(function () {
+     Route::middleware('role:jefe')->prefix('jefe')->group(function () {
         Route::get('/mis-pasantes', [JefeController::class, 'misPasantes']);
+        Route::get('/pasante/{idPasante}', [JefeController::class, 'verPasante']); // ver datos específicos de 1 pasante
         Route::get('/bitacora/{idPasante}', [JefeController::class, 'verBitacoraPasante']);
-        Route::post('/evaluar', [JefeController::class, 'evaluarActividad']);
+        
+        // Evaluaciones (subactividades)
+        Route::post('/evaluar', [JefeController::class, 'evaluarSubactividad']);
+        Route::put('/evaluar/{idBitacora}', [JefeController::class, 'actualizarEvaluacion']);
+        
         Route::post('/mensaje', [JefeController::class, 'enviarMensaje']);
+        
+        // Informe final
         Route::post('/informe-final', [JefeController::class, 'generarInformeFinal']);
+        Route::get('/informe-final/{idPasante}', [JefeController::class, 'verInformeFinal']);
     });
-    
     // =========================================
     // RUTAS DE TUTOR
     // =========================================
     Route::middleware('role:tutor')->prefix('tutor')->group(function () {
-        Route::get('/mis-pasantes', [TutorController::class, 'misPasantes']);
+        Route::get('/mis-pasantes', [TutorController::class, 'misPasantes']); // incluye detalles de pasantía
         Route::get('/bitacora/{idPasante}', [TutorController::class, 'verBitacoraPasante']);
         Route::get('/informe/{idPasante}', [TutorController::class, 'verInformeFinal']);
-        Route::post('/informe-final', [TutorController::class, 'generarInformeFinal']);
+        Route::put('/informe/{idInforme}/resultado', [TutorController::class, 'modificarResultadoInforme']); // solo modificar resultado
     });
+
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::put('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+
 });
