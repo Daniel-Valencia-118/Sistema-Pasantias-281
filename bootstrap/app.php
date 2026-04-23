@@ -5,6 +5,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\RoleMiddleware;
 
+use App\Http\Middleware\HandleInertiaRequests;
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -16,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Registrar middleware con alias
         $middleware->alias([
             'role' => RoleMiddleware::class,  //roles
+        ]);
+        $middleware->web(append: [
+            HandleInertiaRequests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\JefeController;
 use App\Http\Controllers\Api\TutorController;
 use App\Http\Controllers\Api\InformeFinalController;
 use App\Http\Controllers\Api\RegistroPublicoController;
+use App\Http\Controllers\Api\PresentacionController;
 
 // =============================================
 // RUTAS PÚBLICAS
@@ -37,7 +38,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // =========================================
     // RUTAS DE ADMINISTRADOR 
     // =========================================
+
+    Route::get('/presentacion', [PresentacionController::class, 'show']);
+
     Route::middleware('role:admin')->prefix('admin')->group(function () {
+        // mision, vision, logo, nombre sistema, descripción corta
+        Route::put('/admin/presentacion', [PresentacionController::class, 'update']);
         // Solicitudes
         Route::get('/solicitudes', [AdminController::class, 'listarSolicitudes']);
         Route::post('/solicitudes/{id}/aprobar', [AdminController::class, 'aprobarSolicitud']);

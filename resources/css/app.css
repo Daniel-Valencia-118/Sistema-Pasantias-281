@@ -1,11 +1,45 @@
-@import 'tailwindcss';
-
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+/* @import "tailwindcss";
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-sora: "Sora", sans-serif;
+  --font-inter: "Inter", sans-serif;
+  
+  --color-navy: #172534;
+  --color-slate: #293A4E;
+  --color-blue: #2A5A8D;
+  --color-sky-blue: #3890BB;
+  --color-teal: #3C9087;
+  --color-mint-green: #6DBB98;
+}
+
+@layer base {
+  body {
+    @apply font-inter text-slate antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sora font-semibold;
+  }
+} */
+
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  
+  --color-primary-navy: #172534;
+  --color-primary-slate: #293A4E;
+  --color-primary-blue: #2A5A8D;
+  --color-primary-sky-blue: #3890BB;
+  --color-secondary-teal: #3C9087;
+  --color-accent-mint: #6DBB98;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-body);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
 }
