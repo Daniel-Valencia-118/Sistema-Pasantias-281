@@ -1,19 +1,19 @@
-import React, { useEffect } from 'react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import AuthLayout from '@/Components/Layout/AuthLayout';
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import TextInput from '@/Components/TextInput';
-import InputLabel from '@/Components/InputLabel';
-import InputError from '@/Components/InputError';
-import Checkbox from '@/Components/Checkbox';
-import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
-import GoogleButton from '@/Components/GoogleButton';
+import React, { useEffect } from "react";
+import { Head, Link, useForm, usePage } from "@inertiajs/react";
+import AuthLayout from "@/Components/Layout/AuthLayout";
+import ApplicationLogo from "@/Components/ApplicationLogo";
+import TextInput from "@/Components/TextInput";
+import InputLabel from "@/Components/InputLabel";
+import InputError from "@/Components/InputError";
+import Checkbox from "@/Components/Checkbox";
+import PrimaryButton from "@/Components/PrimaryButton";
+import SecondaryButton from "@/Components/SecondaryButton";
+import GoogleButton from "@/Components/GoogleButton";
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
-        login: '', // Puede ser username o correo
-        password: '',
+        login: "", // Puede ser username o correo
+        password: "",
         remember: false,
     });
 
@@ -21,19 +21,19 @@ export default function Login({ status, canResetPassword }) {
 
     useEffect(() => {
         return () => {
-            reset('password');
+            reset("password");
         };
     }, []);
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('login'), {
-            onFinish: () => reset('password'),
+        post(route("login.store"), {
+            onFinish: () => reset("password"),
         });
     };
 
     const handleGoogleLogin = () => {
-        window.location.href = route('google.login');
+        window.location.href = route("google.login");
     };
 
     return (
@@ -45,7 +45,7 @@ export default function Login({ status, canResetPassword }) {
                 <div className="flex justify-center mb-6">
                     <ApplicationLogo className="scale-150" />
                 </div>
-                
+
                 <h2 className="text-2xl font-bold text-center text-primary-navy mb-2">
                     Bienvenido de nuevo
                 </h2>
@@ -59,7 +59,7 @@ export default function Login({ status, canResetPassword }) {
                         {status}
                     </div>
                 )}
-                
+
                 {flash?.error && (
                     <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                         {flash.error}
@@ -75,7 +75,10 @@ export default function Login({ status, canResetPassword }) {
                 {/* Formulario */}
                 <form onSubmit={submit} className="space-y-6">
                     <div>
-                        <InputLabel htmlFor="login" value="Usuario o Correo electrónico" />
+                        <InputLabel
+                            htmlFor="login"
+                            value="Usuario o Correo electrónico"
+                        />
                         <TextInput
                             id="login"
                             type="text"
@@ -84,7 +87,7 @@ export default function Login({ status, canResetPassword }) {
                             className="mt-1 block w-full"
                             autoComplete="username"
                             isFocused={true}
-                            onChange={(e) => setData('login', e.target.value)}
+                            onChange={(e) => setData("login", e.target.value)}
                             required
                         />
                         <InputError message={errors.login} className="mt-1" />
@@ -99,10 +102,15 @@ export default function Login({ status, canResetPassword }) {
                             value={data.password}
                             className="mt-1 block w-full"
                             autoComplete="current-password"
-                            onChange={(e) => setData('password', e.target.value)}
+                            onChange={(e) =>
+                                setData("password", e.target.value)
+                            }
                             required
                         />
-                        <InputError message={errors.password} className="mt-1" />
+                        <InputError
+                            message={errors.password}
+                            className="mt-1"
+                        />
                     </div>
 
                     <div className="flex items-center justify-between">
@@ -110,14 +118,18 @@ export default function Login({ status, canResetPassword }) {
                             <Checkbox
                                 name="remember"
                                 checked={data.remember}
-                                onChange={(e) => setData('remember', e.target.checked)}
+                                onChange={(e) =>
+                                    setData("remember", e.target.checked)
+                                }
                             />
-                            <span className="ml-2 text-sm text-gray-600">Recordarme</span>
+                            <span className="ml-2 text-sm text-gray-600">
+                                Recordarme
+                            </span>
                         </label>
 
                         {canResetPassword && (
                             <Link
-                                href={route('password.request')}
+                                href={route("password.request")}
                                 className="text-sm text-primary-blue hover:text-primary-sky-blue transition underline-offset-2 hover:underline"
                             >
                                 ¿Olvidó su contraseña?
@@ -127,7 +139,9 @@ export default function Login({ status, canResetPassword }) {
 
                     <div className="pt-2">
                         <PrimaryButton className="w-full" disabled={processing}>
-                            {processing ? 'Iniciando sesión...' : 'Iniciar sesión'}
+                            {processing
+                                ? "Iniciando sesión..."
+                                : "Iniciar sesión"}
                         </PrimaryButton>
                     </div>
                 </form>
@@ -138,7 +152,9 @@ export default function Login({ status, canResetPassword }) {
                         <div className="w-full border-t border-gray-200"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
-                        <span className="bg-white px-4 text-gray-500">o continúa con</span>
+                        <span className="bg-white px-4 text-gray-500">
+                            o continúa con
+                        </span>
                     </div>
                 </div>
 
@@ -148,9 +164,9 @@ export default function Login({ status, canResetPassword }) {
                 {/* Link a Registro */}
                 <div className="mt-6 text-center">
                     <p className="text-sm text-gray-600">
-                        ¿No tienes una cuenta?{' '}
+                        ¿No tienes una cuenta?{" "}
                         <Link
-                            href={route('register')}
+                            href={route("register")}
                             className="font-medium text-primary-blue hover:text-primary-sky-blue transition underline-offset-2 hover:underline"
                         >
                             Regístrate aquí
