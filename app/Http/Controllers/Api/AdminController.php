@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SolicitudRegistroMail;
 use App\Mail\RegistroRechazadoMail;
+// importar inertia render
+use Inertia\Inertia;
 
 
 class AdminController extends Controller
@@ -657,6 +659,8 @@ class AdminController extends Controller
                     'id' => $user->idUser,
                     'nombre_user' => $user->nombre_user,
                     'nombre' => $user->nombre,
+                    'ap_paterno' => $user->ap_paterno,
+                    'ap_materno' => $user->ap_materno,
                     'correo' => $user->correo,
                     'estado' => $user->estado_cuenta,
                     'rol' => $this->getUserRole($user),
@@ -664,7 +668,8 @@ class AdminController extends Controller
                 ];
             });
         
-        return response()->json(['data' => $usuarios]);
+        // return response()->json(['data' => $usuarios]);
+        return Inertia::render('Admin/Usuarios/Index', ['usuarios' => $usuarios]);
     }
     
     private function getUserRole($user)

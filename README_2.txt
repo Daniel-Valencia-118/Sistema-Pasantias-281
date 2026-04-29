@@ -6,3 +6,4 @@
 -- data base name: bdpasantia
 -- port: 5432
 -- =====================================================
+php artisan db:seed --class=AdminUserSeeder

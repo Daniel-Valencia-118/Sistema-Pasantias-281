@@ -18,10 +18,10 @@ class AdminUserSeeder extends Seeder
         if (!$exists) {
             $user = User::create([
                 'nombre_user' => 'superadmin',
-                'password' => Hash::make('admin123456'),
+                'password' => Hash::make('12345678'),
                 'numero_cel' => '00000000',
                 'ci' => '9999999',
-                'correo' => 'superadmin@sistemapasantias.com',
+                'correo' => 'dvalenciat@fcpn.edu.bo',
                 'nombre' => 'Super',
                 'ap_paterno' => 'Administrador',
                 'ap_materno' => 'Sistema',
@@ -31,12 +31,12 @@ class AdminUserSeeder extends Seeder
             
             Administrador::create([
                 'idU_admi' => $user->idUser,
-                'correo_secundario' => 'admin.backup@sistemapasantias.com',
+                'correo_secundario' => 'dvalenciat@fcpn.edu.bo',
             ]);
             
             $this->command->info('Administrador creado:');
             $this->command->info('Usuario: superadmin');
-            $this->command->info('Contraseña: admin123456');
+            $this->command->info('Contraseña: 12345678');
         }
     }
 }
