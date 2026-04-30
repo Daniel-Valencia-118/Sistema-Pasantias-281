@@ -49,27 +49,6 @@ export default function GerenteLayout({ children, auth }) {
             single: true,
         },
         {
-            name: "Jefe de Pasantes",
-            icon: Users,
-            submenus: [
-                {
-                    name: "Jefes de Pasantes",
-                    href: "/gerente/jefes",
-                    icon: Users,
-                },
-                {
-                    name: "Registrar jefe",
-                    href: "/gerente/jefes/crear",
-                    icon: UserPlus,
-                },
-                {
-                    name: "Solicitudes de registro",
-                    href: "/gerente/jefes/solicitudes",
-                    icon: ClipboardList,
-                },
-            ],
-        },
-        {
             name: "Pasantías",
             icon: Briefcase,
             submenus: [
@@ -87,6 +66,27 @@ export default function GerenteLayout({ children, auth }) {
                     name: "Pasantías Activas",
                     href: "/gerente/pasantias/activas",
                     icon: Play,
+                },
+            ],
+        },
+        {
+            name: "Jefe de Pasantes",
+            icon: Users,
+            submenus: [
+                {
+                    name: "Jefes de Pasantes",
+                    href: "/gerente/jefes",
+                    icon: Users,
+                },
+                {
+                    name: "Registrar jefe",
+                    href: "/gerente/jefes/crear",
+                    icon: UserPlus,
+                },
+                {
+                    name: "Solicitudes de registro",
+                    href: "/gerente/jefes/solicitudes",
+                    icon: ClipboardList,
                 },
             ],
         },
