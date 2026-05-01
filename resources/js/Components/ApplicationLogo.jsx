@@ -20,7 +20,7 @@ export default function ApplicationLogo({ className = "", showText = false }) {
             />
 
             {showText && (
-                <span className="font-display text-2xl font-bold text-primary-navy tracking-tight">
+                <span className="font-display text-lg font-bold text-primary-navy tracking-tight">
                     SISTEMA DE GESTIÓN DE PASANTÍAS
                 </span>
             )}

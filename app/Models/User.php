@@ -77,7 +77,7 @@ class User extends Authenticatable
     }
     
     // Método para obtener el rol del usuario
-    public function getRoleAttribute()
+    public function getRolAttribute()
     {
         if ($this->administrador) return 'admin';
         if ($this->gerente) return 'gerente';

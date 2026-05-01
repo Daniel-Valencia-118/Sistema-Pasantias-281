@@ -1,6 +1,5 @@
-// resources/js/Components/Sidebar.jsx
 import React, { useState } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import {
     LayoutDashboard,
@@ -19,10 +18,10 @@ import {
     MessageSquare,
     Star,
     ChevronDown,
+    ChevronRight,
     Settings,
     LogOut,
-    ChevronLeft,
-    ChevronRight,
+    X
 } from 'lucide-react';
 
 const menuConfig = {
@@ -85,8 +84,6 @@ const menuConfig = {
 };
 
 export default function Sidebar({ user, onClose }) {
-    const [collapsed, setCollapsed] = useState(false);
-    const [expandedUser, setExpandedUser] = useState(false);
     const { url } = usePage();
     const role = user?.rol || 'admin';
     const menu = menuConfig[role] || [];
@@ -94,46 +91,34 @@ export default function Sidebar({ user, onClose }) {
         return url.startsWith(route(routeName, [], false));
     };
 
+    const [expandedUser, setExpandedUser] = useState(false);
+
     const handleLogout = () => {
         router.post(route("logout"));
         // document.getElementById('logout-form').submit();
     };
 
-    // Obtener iniciales
-    const initials = user ? (user.nombre?.charAt(0) + user.ap_paterno?.charAt(0)).toUpperCase() : 'U';
-
     return (
-        <div className={`flex flex-col h-full bg-white border-r border-gray-200 shadow-sm transition-all duration-300 ${collapsed ? 'w-20' : 'w-72'}`}>
+        <div className="flex flex-col h-full w-72 bg-white border-r border-gray-200 shadow-sm">
             {/* HEADER */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                {!collapsed && (
-                    <div className="flex items-center gap-3">
-                        <ApplicationLogo showText={true} />
-                    </div>
-                )}
-                <button
-                    onClick={() => setCollapsed(!collapsed)}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors ml-auto"
-                    title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
-                >
-                    {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-                </button>
-                {onClose && !collapsed && (
+                <div className="flex items-center gap-3">
+                    <ApplicationLogo showText={true} />
+                </div>
+                {onClose && (
                     <button onClick={onClose} className="lg:hidden text-gray-500">
                         <X className="h-5 w-5" />
                     </button>
                 )}
             </div>
 
-            {/* BODY - Scroll independiente */}
+            {/* BODY - Navegación */}
             <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-8">
                 {menu.map((section, idx) => (
                     <div key={idx}>
-                        {!collapsed && (
-                            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
-                                {section.title}
-                            </h3>
-                        )}
+                        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
+                            {section.title}
+                        </h3>
                         <ul className="space-y-1">
                             {section.items.map((item) => {
                                 const active = isActive(item.route);
@@ -146,11 +131,10 @@ export default function Sidebar({ user, onClose }) {
                                                 ${active
                                                     ? 'bg-primary-blue/10 text-primary-blue'
                                                     : 'text-gray-600 hover:bg-gray-50 hover:text-primary-navy'
-                                                } ${collapsed ? 'justify-center' : ''}`}
-                                            title={collapsed ? item.label : undefined}
+                                                }`}
                                         >
                                             {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
-                                            {!collapsed && <span>{item.label}</span>}
+                                            <span>{item.label}</span>
                                         </Link>
                                     </li>
                                 );
@@ -167,26 +151,22 @@ export default function Sidebar({ user, onClose }) {
                         onClick={() => setExpandedUser(!expandedUser)}
                         className="flex items-center w-full gap-3 px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                        <div className="h-9 w-9 rounded-full bg-primary-blue flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                            {initials}
+                        <div className="h-9 w-9 rounded-full bg-primary-blue flex items-center justify-center text-white font-semibold text-sm">
+                            {(user?.nombre?.charAt(0) || '') + (user?.ap_paterno?.charAt(0) || '')}
                         </div>
-                        {!collapsed && (
-                            <>
-                                <div className="flex-1 text-left">
-                                    <p className="text-sm font-medium text-gray-700 truncate">
-                                        {user?.nombre} {user?.ap_paterno}
-                                    </p>
-                                    <p className="text-xs text-gray-400 truncate">{user?.correo}</p>
-                                </div>
-                                <ChevronDown className="h-4 w-4 text-gray-400" />
-                            </>
-                        )}
+                        <div className="flex-1 text-left">
+                            <p className="text-sm font-medium text-gray-700 truncate">
+                                {user?.nombre} {user?.ap_paterno}
+                            </p>
+                            <p className="text-xs text-gray-400 truncate">{user?.correo}</p>
+                        </div>
+                        <ChevronDown className="h-4 w-4 text-gray-400" />
                     </button>
 
                     {expandedUser && (
-                        <div className={`absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg p-1 ${collapsed ? 'left-1/2 -translate-x-1/2 w-48' : ''}`}>
+                        <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg p-1">
                             <Link
-                                // href={route('profile.edit')}
+                                // href={route('')}
                                 className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
                             >
                                 <Settings className="h-4 w-4" />
@@ -203,7 +183,7 @@ export default function Sidebar({ user, onClose }) {
                     )}
                 </div>
                 <form id="logout-form" method="POST" action={route('logout')} className="hidden">
-                    <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.content} />
+                    <input type="hidden" name="_token" value={usePage().props.csrf_token} />
                 </form>
             </div>
         </div>

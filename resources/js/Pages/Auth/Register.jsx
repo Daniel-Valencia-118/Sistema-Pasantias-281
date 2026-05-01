@@ -218,6 +218,7 @@ export default function Register() {
                                         id="nombre_user"
                                         value={data.nombre_user}
                                         onChange={(e) => setData('nombre_user', e.target.value)}
+                                        placeholder="Nombre de usuario"
                                         required
                                     />
                                     <InputError message={errors.nombre_user} />
@@ -229,6 +230,7 @@ export default function Register() {
                                         type="email"
                                         value={data.correo}
                                         onChange={(e) => setData('correo', e.target.value)}
+                                        placeholder="Correo electrónico"
                                         required
                                     />
                                     <InputError message={errors.correo} />
@@ -240,6 +242,7 @@ export default function Register() {
                                         type="password"
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
+                                        placeholder="Contraseña"
                                         required
                                     />
                                     <InputError message={errors.password} />
@@ -251,6 +254,7 @@ export default function Register() {
                                         type="password"
                                         value={data.password_confirmation}
                                         onChange={(e) => setData('password_confirmation', e.target.value)}
+                                        placeholder="Confirmar contraseña"
                                         required
                                     />
                                 </div>
@@ -260,6 +264,7 @@ export default function Register() {
                                         id="nombre"
                                         value={data.nombre}
                                         onChange={(e) => setData('nombre', e.target.value)}
+                                        placeholder="Nombre"
                                         required
                                     />
                                     <InputError message={errors.nombre} />
@@ -270,6 +275,7 @@ export default function Register() {
                                         id="ap_paterno"
                                         value={data.ap_paterno}
                                         onChange={(e) => setData('ap_paterno', e.target.value)}
+                                        placeholder="Apellido Paterno"
                                         required
                                     />
                                     <InputError message={errors.ap_paterno} />
@@ -280,6 +286,7 @@ export default function Register() {
                                         id="ap_materno"
                                         value={data.ap_materno}
                                         onChange={(e) => setData('ap_materno', e.target.value)}
+                                        placeholder="Apellido Materno"
                                         required
                                     />
                                     <InputError message={errors.ap_materno} />
@@ -290,6 +297,7 @@ export default function Register() {
                                         id="ci"
                                         value={data.ci}
                                         onChange={(e) => setData('ci', e.target.value)}
+                                        placeholder="Carnet de Identidad"
                                         required
                                     />
                                     <InputError message={errors.ci} />
@@ -300,6 +308,7 @@ export default function Register() {
                                         id="numero_cel"
                                         value={data.numero_cel}
                                         onChange={(e) => setData('numero_cel', e.target.value)}
+                                        placeholder="Número de Celular"
                                         required
                                     />
                                     <InputError message={errors.numero_cel} />
@@ -310,6 +319,7 @@ export default function Register() {
                                         id="fecha_nac"
                                         value={data.fecha_nac}
                                         onChange={(e) => setData('fecha_nac', e.target.value)}
+                                        placeholder="Fecha de Nacimiento"
                                         required
                                     />
                                     <InputError message={errors.fecha_nac} />
@@ -347,6 +357,7 @@ export default function Register() {
                                             value={data.ru}
                                             onChange={(e) => setData('ru', e.target.value)}
                                             required
+                                            placeholder="Número de Registro Universitario"
                                         />
                                     </div>
                                     <div>
@@ -355,6 +366,7 @@ export default function Register() {
                                             id="matricula"
                                             value={data.matricula}
                                             onChange={(e) => setData('matricula', e.target.value)}
+                                            placeholder="Matrícula"
                                             required
                                         />
                                     </div>
@@ -364,6 +376,7 @@ export default function Register() {
                                             id="semestre"
                                             value={data.semestre}
                                             onChange={(e) => setData('semestre', e.target.value)}
+                                            placeholder="Semestre"
                                             required
                                         >
                                             <option value="">Seleccionar</option>
@@ -378,6 +391,7 @@ export default function Register() {
                                             id="mencion"
                                             value={data.mencion}
                                             onChange={(e) => setData('mencion', e.target.value)}
+                                            placeholder="Mención"
                                             required
                                         >
                                             <option value="">Seleccionar</option>
@@ -397,6 +411,7 @@ export default function Register() {
                                             id="cargo"
                                             value={data.cargo}
                                             onChange={(e) => setData('cargo', e.target.value)}
+                                            placeholder="Cargo"
                                             required
                                         />
                                     </div>
@@ -406,6 +421,7 @@ export default function Register() {
                                             id="area"
                                             value={data.area}
                                             onChange={(e) => setData('area', e.target.value)}
+                                            placeholder="Área"
                                             required
                                         />
                                     </div>
@@ -420,6 +436,7 @@ export default function Register() {
                                             id="especialidad"
                                             value={data.especialidad}
                                             onChange={(e) => setData('especialidad', e.target.value)}
+                                            placeholder="Especialidad"
                                             required
                                         />
                                     </div>
@@ -429,6 +446,7 @@ export default function Register() {
                                             id="grado_aca"
                                             value={data.grado_aca}
                                             onChange={(e) => setData('grado_aca', e.target.value)}
+                                            placeholder="Grado Académico"
                                             required
                                         >
                                             <option value="">Seleccionar</option>
@@ -451,6 +469,7 @@ export default function Register() {
                                                     id="nro_secun"
                                                     value={data.nro_secun}
                                                     onChange={(e) => setData('nro_secun', e.target.value)}
+                                                    placeholder="Número de Celular Secundario (opcional)"
                                                 />
                                             </div>
                                         </div>
@@ -465,6 +484,7 @@ export default function Register() {
                                                     id="empresa_nombre"
                                                     value={data.empresa_nombre}
                                                     onChange={(e) => setData('empresa_nombre', e.target.value)}
+                                                    placeholder="Nombre de la Empresa"
                                                     required
                                                 />
                                             </div>
@@ -474,6 +494,7 @@ export default function Register() {
                                                     id="empresa_direccion"
                                                     value={data.empresa_direccion}
                                                     onChange={(e) => setData('empresa_direccion', e.target.value)}
+                                                    placeholder="Dirección"
                                                 />
                                             </div>
                                             <div>
@@ -483,6 +504,7 @@ export default function Register() {
                                                     type="email"
                                                     value={data.empresa_email}
                                                     onChange={(e) => setData('empresa_email', e.target.value)}
+                                                    placeholder="Email de Empresa"
                                                     required
                                                 />
                                             </div>
@@ -492,6 +514,7 @@ export default function Register() {
                                                     id="empresa_telefono"
                                                     value={data.empresa_telefono}
                                                     onChange={(e) => setData('empresa_telefono', e.target.value)}
+                                                    placeholder="Teléfono"
                                                 />
                                             </div>
                                             <div>
@@ -500,6 +523,7 @@ export default function Register() {
                                                     id="empresa_nit"
                                                     value={data.empresa_nit}
                                                     onChange={(e) => setData('empresa_nit', e.target.value)}
+                                                    placeholder="NIT"
                                                     required
                                                 />
                                             </div>
