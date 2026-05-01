@@ -1,6 +1,6 @@
 // resources/js/Components/Sidebar.jsx
 import React, { useState } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import {
     LayoutDashboard,

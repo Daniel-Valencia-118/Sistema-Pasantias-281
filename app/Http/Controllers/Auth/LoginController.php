@@ -45,6 +45,7 @@ class LoginController extends Controller
         // Iniciar sesión
         Auth::login($user, $request->remember ?? false);
 
+<<<<<<< HEAD
         // Regenerar sesión por seguridad (Previene fijación de sesión)
         $request->session()->regenerate();
 
@@ -52,6 +53,12 @@ class LoginController extends Controller
         $role = $this->getUserRole($user);
         
         return redirect()->intended($this->redirectTo($role));
+=======
+        // Redirigir según el rol
+        $role = $this->getUserRole($user);
+        
+        return redirect($this->redirectTo($role));
+>>>>>>> yooy33
     }
 
     private function getUserRole($user)
@@ -67,7 +74,11 @@ class LoginController extends Controller
     private function redirectTo($role)
     {
         return match($role) {
+<<<<<<< HEAD
             'admin' => '/admin' ,
+=======
+            'admin' => '/admin',
+>>>>>>> yooy33
             'gerente' => '/gerente',
             'jefe' => '/jefe',
             'pasante' => '/pasante',
