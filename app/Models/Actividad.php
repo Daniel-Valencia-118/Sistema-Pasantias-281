@@ -18,12 +18,7 @@ class Actividad extends Model
         'descripcion',
         'id_pasantia',
     ];
-    
-    protected $casts = [
-        'fecha_ini' => 'date',
-        'fecha_fin' => 'date',
-    ];
-    
+  
     public function pasantia()
     {
         return $this->belongsTo(Pasantia::class, 'id_pasantia', 'id_pasantia');

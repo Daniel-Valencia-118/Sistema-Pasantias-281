@@ -22,12 +22,7 @@ class Pasantia extends Model
         'turno',
         'id_empresa',
     ];
-    
-    protected $casts = [
-        'fecha_ini' => 'date',
-        'fecha_fin' => 'date',
-    ];
-    
+
     public function empresa()
     {
         return $this->belongsTo(Empresa::class, 'id_empresa', 'id_empresa');

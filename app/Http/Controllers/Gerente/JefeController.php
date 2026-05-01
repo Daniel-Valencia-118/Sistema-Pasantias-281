@@ -193,8 +193,8 @@ class JefeController extends Controller
                 'pasantia_id' => $inscripcion->pasantia->id_pasantia,
                 'pasantia_nombre' => $inscripcion->pasantia->nombre_pas,
                 'pasantia_estado' => $inscripcion->pasantia->estado,
-                'fecha_ini' => $inscripcion->pasantia->fecha_ini ? $inscripcion->pasantia->fecha_ini->format('Y-m-d') : null,
-                'fecha_fin' => $inscripcion->pasantia->fecha_fin ? $inscripcion->pasantia->fecha_fin->format('Y-m-d') : null,
+                'fecha_ini' => $inscripcion->pasantia->fecha_ini ? \Carbon\Carbon::parse($inscripcion->pasantia->fecha_ini)->format('Y-m-d') : null,
+                'fecha_fin' => $inscripcion->pasantia->fecha_fin ? \Carbon\Carbon::parse($inscripcion->pasantia->fecha_fin)->format('Y-m-d') : null,
                 'jefe_asignado_id' => $inscripcion->idU_jefe,
             ];
             
