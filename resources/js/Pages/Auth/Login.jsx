@@ -27,13 +27,8 @@ export default function Login({ status, canResetPassword }) {
 
     const submit = (e) => {
         e.preventDefault();
-<<<<<<< HEAD
         post(route('login.store'), {
             onFinish: () => reset('password'),
-=======
-        post(route("login.store"), {
-            onFinish: () => reset("password"),
->>>>>>> yooy33
         });
     };
 
@@ -92,12 +87,8 @@ export default function Login({ status, canResetPassword }) {
                             className="mt-1 block w-full"
                             autoComplete="username"
                             isFocused={true}
-<<<<<<< HEAD
                             onChange={(e) => setData('login', e.target.value)}
                             placeholder="Usuario o Correo electrónico"
-=======
-                            onChange={(e) => setData("login", e.target.value)}
->>>>>>> yooy33
                             required
                         />
                         <InputError message={errors.login} className="mt-1" />
@@ -112,14 +103,8 @@ export default function Login({ status, canResetPassword }) {
                             value={data.password}
                             className="mt-1 block w-full"
                             autoComplete="current-password"
-<<<<<<< HEAD
                             onChange={(e) => setData('password', e.target.value)}
                             placeholder="Contraseña"
-=======
-                            onChange={(e) =>
-                                setData("password", e.target.value)
-                            }
->>>>>>> yooy33
                             required
                         />
                         <InputError
