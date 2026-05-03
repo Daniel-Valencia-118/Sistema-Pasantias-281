@@ -245,7 +245,7 @@ class JefeController extends Controller
         }
         
         // Verificar que la pasantía permite asignaciones (no FINALIZADO ni CANCELADO)
-        if (in_array($inscripcion->pasantia->estado, ['FINALIZADO', 'CANCELADO'])) {
+        if (!(in_array($inscripcion->pasantia->estado, ['ABIERTA']))) {
             return response()->json(['message' => 'No se puede asignar. La pasantía está ' . $inscripcion->pasantia->estado], 400);
         }
         

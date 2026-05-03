@@ -153,7 +153,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
             router.post("/gerente/pasantias", dataToSend, {
                 onSuccess: () => {
                     alert("¡Pasantía publicada exitosamente!");
-                    router.visit("/gerente/pasantias/crear"); // /gerente/pasantias
+                    router.visit("/gerente/pasantias"); // /gerente/pasantias
                 },
                 onError: (error) => {
                     console.error("Error:", error);
@@ -541,6 +541,8 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                         : null
                 }
                 tiposActividad={tiposActividad}
+                fechaDefectoIni={form.fecha_ini} //m1
+                fechaDefectoFin={form.fecha_fin} //m1
             />
         </GerenteLayout>
     );

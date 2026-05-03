@@ -20,6 +20,7 @@ export default function ModalPerfil({
     onClose,
     usuario,
     tipo,
+    readOnly,
     onUpdate,
 }) {
     const [isEditing, setIsEditing] = useState(false);
@@ -319,47 +320,52 @@ export default function ModalPerfil({
                                 </div>
                             )}
 
-                            {/* Datos de cuenta */}
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <h4 className="font-semibold text-primary-navy mb-4 flex items-center gap-2 border-b pb-2">
-                                    <Mail
-                                        size={18}
-                                        className="text-primary-blue"
-                                    />
-                                    Datos de Cuenta
-                                </h4>
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">
-                                            Nombre de Usuario
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="nombre_user"
-                                            value={
-                                                displayData.nombre_user || ""
-                                            }
-                                            onChange={handleChange}
-                                            disabled={!isEditing}
-                                            className="w-full rounded-lg border-gray-200 px-3 py-2 text-sm focus:border-primary-blue focus:ring-1 focus:ring-primary-blue/20 disabled:bg-gray-100 disabled:text-gray-500 transition-all cursor-pointer"
+                            {/* Datos de cuenta - SOLO si NO es readonly */}
+                            {!readOnly && (
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                    <h4 className="font-semibold text-primary-navy mb-4 flex items-center gap-2 border-b pb-2">
+                                        <Mail
+                                            size={18}
+                                            className="text-primary-blue"
                                         />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">
-                                            Fecha de Registro
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={usuario.fecha_registro || ""}
-                                            disabled
-                                            className="w-full rounded-lg border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500 cursor-not-allowed"
-                                        />
+                                        Datos de Cuenta
+                                    </h4>
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                Nombre de Usuario
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="nombre_user"
+                                                value={
+                                                    displayData.nombre_user ||
+                                                    ""
+                                                }
+                                                onChange={handleChange}
+                                                disabled={!isEditing}
+                                                className="w-full rounded-lg border-gray-200 px-3 py-2 text-sm focus:border-primary-blue focus:ring-1 focus:ring-primary-blue/20 disabled:bg-gray-100 disabled:text-gray-500 transition-all cursor-pointer"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                Fecha de Registro
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={
+                                                    usuario.fecha_registro || ""
+                                                }
+                                                disabled
+                                                className="w-full rounded-lg border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500 cursor-not-allowed"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
 
-                            {/* Cambio de contraseña (solo edición) */}
-                            {isEditing && tipo === "jefe" && (
+                            {/* Cambio de contraseña - SOLO si NO es readonly y está en edición */}
+                            {!readOnly && isEditing && tipo === "jefe" && (
                                 <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                                     <h4 className="font-semibold text-yellow-800 mb-4 flex items-center gap-2">
                                         <Key size={18} />
@@ -398,39 +404,41 @@ export default function ModalPerfil({
                             )}
                         </div>
 
-                        {/* Botones de acción */}
-                        <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-                            {!isEditing ? (
-                                <button
-                                    type="button"
-                                    onClick={() => setIsEditing(true)}
-                                    className="flex items-center gap-2 bg-primary-blue text-white px-5 py-2.5 rounded-lg hover:bg-primary-sky-blue transition-all cursor-pointer shadow-sm hover:shadow-md"
-                                >
-                                    <Edit size={18} />
-                                    Editar Perfil
-                                </button>
-                            ) : (
-                                <>
+                        {/* Botones de acción - SOLO si NO es readonly */}
+                        {!readOnly && (
+                            <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+                                {!isEditing ? (
                                     <button
                                         type="button"
-                                        onClick={handleCancelEdit}
-                                        className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
+                                        onClick={() => setIsEditing(true)}
+                                        className="flex items-center gap-2 bg-primary-blue text-white px-5 py-2.5 rounded-lg hover:bg-primary-sky-blue transition-all cursor-pointer shadow-sm hover:shadow-md"
                                     >
-                                        Cancelar
+                                        <Edit size={18} />
+                                        Editar Perfil
                                     </button>
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 transition-all cursor-pointer disabled:opacity-50 shadow-sm hover:shadow-md"
-                                    >
-                                        <Save size={18} />
-                                        {loading
-                                            ? "Guardando..."
-                                            : "Guardar cambios"}
-                                    </button>
-                                </>
-                            )}
-                        </div>
+                                ) : (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={handleCancelEdit}
+                                            className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 transition-all cursor-pointer disabled:opacity-50 shadow-sm hover:shadow-md"
+                                        >
+                                            <Save size={18} />
+                                            {loading
+                                                ? "Guardando..."
+                                                : "Guardar cambios"}
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </form>
                 </div>
             </div>

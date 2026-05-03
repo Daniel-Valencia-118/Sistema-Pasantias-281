@@ -98,18 +98,29 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         Route::get('/gerente/jefes/solicitudes', [App\Http\Controllers\Gerente\JefeController::class, 'solicitudes'])->name('gerente.jefes.solicitudes');
         
         Route::get('/gerente/pasantias/crear', [App\Http\Controllers\Gerente\PasantiaController::class, 'create'])->name('gerente.pasantias.create');
-        //Route::get('/gerente/pasantias', [App\Http\Controllers\Gerente\PasantiaController::class, 'index'])->name('gerente.pasantias');
+        Route::get('/gerente/pasantias', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'index'])->name('gerente.pasantias');
         Route::post('/gerente/pasantias', [App\Http\Controllers\Gerente\PasantiaController::class, 'store'])->name('gerente.pasantias.store');
-        //id
-        Route::get('/gerente/jefes/{id}', [App\Http\Controllers\Gerente\JefeController::class, 'show'])->name('gerente.jefes.show');
-        Route::put('/gerente/jefes/{id}', [App\Http\Controllers\Gerente\JefeController::class, 'update'])->name('gerente.jefes.update');
+        
+        Route::get('/gerente/pasantias/jefes-disponibles', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'getJefesDisponibles'])->name('gerente.pasantias.jefes-disponibles');   
+        
+        //------> id
         Route::get('/gerente/jefes/{id}/pasantes', [App\Http\Controllers\Gerente\JefeController::class, 'getPasantesAsignacion'])->name('gerente.jefes.pasantes');
         Route::patch('/gerente/jefes/{id}/toggle-estado', [App\Http\Controllers\Gerente\JefeController::class, 'toggleEstado'])->name('gerente.jefes.toggle-estado');
+        Route::get('/gerente/jefes/{id}', [App\Http\Controllers\Gerente\JefeController::class, 'show'])->name('gerente.jefes.show');
+        Route::put('/gerente/jefes/{id}', [App\Http\Controllers\Gerente\JefeController::class, 'update'])->name('gerente.jefes.update');
         Route::patch('/gerente/jefes/solicitudes/{id}/aprobar', [App\Http\Controllers\Gerente\JefeController::class, 'aprobarSolicitud'])->name('gerente.jefes.aprobar');
         Route::patch('/gerente/jefes/solicitudes/{id}/rechazar', [App\Http\Controllers\Gerente\JefeController::class, 'rechazarSolicitud'])->name('gerente.jefes.rechazar');
-    
+        
+        Route::get('/gerente/pasantias/{id}/inscritos', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'getInscritos'])->name('gerente.pasantias.inscritos');
 
+        Route::get('/gerente/pasantias/{id}/actividades', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'getActividades'])->name('gerente.pasantias.actividades');
+        Route::post('/gerente/pasantias/{id}/actividades', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'storeActividad'])->name('gerente.pasantias.actividades.store');
+        Route::put('/gerente/pasantias/actividades/{id}', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'updateActividad'])->name('gerente.pasantias.actividades.update');
+        Route::delete('/gerente/pasantias/actividades/{id}', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'destroyActividad'])->name('gerente.pasantias.actividades.destroy');
+        Route::patch('/gerente/pasantias/{id}/cupos', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'updateCupos'])->name('gerente.pasantias.cupos');
 
+        Route::patch('/gerente/pasantias/{idPasantia}/asignar-jefe/{idPasante}', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'asignarJefePasante'])->name('gerente.pasantias.asignar-jefe');
+        Route::patch('/gerente/pasantias/{idPasantia}/designar-jefe/{idPasante}', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'designarJefePasante'])->name('gerente.pasantias.designar-jefe');
 
     //no usadas
     //Route::get('/gerente/empresa', [App\Http\Controllers\Gerente\EmpresaController::class, 'index'])->name('gerente.empresa');

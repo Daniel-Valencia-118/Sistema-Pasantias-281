@@ -7,6 +7,8 @@ export default function ModalActividad({
     onSave,
     actividad,
     tiposActividad,
+    fechaDefectoIni, // Nueva prop
+    fechaDefectoFin, // Nueva prop
 }) {
     const [form, setForm] = useState({
         nombre_act: "",
@@ -20,6 +22,7 @@ export default function ModalActividad({
 
     useEffect(() => {
         if (actividad) {
+            // Prioridad 1: Datos de la actividad existente
             setForm({
                 nombre_act: actividad.nombre_act || "",
                 tipo: actividad.tipo || "",
@@ -28,16 +31,18 @@ export default function ModalActividad({
                 fecha_fin: actividad.fecha_fin || "",
             });
         } else {
+            // Prioridad 2: Fechas del formulario padre
+            // Prioridad 3: String vacío (por defecto si no hay nada)
             setForm({
                 nombre_act: "",
                 tipo: "",
                 descripcion: "",
-                fecha_ini: "",
-                fecha_fin: "",
+                fecha_ini: fechaDefectoIni || "",
+                fecha_fin: fechaDefectoFin || "",
             });
         }
         setErrors({});
-    }, [actividad, isOpen]);
+    }, [actividad, isOpen, fechaDefectoIni, fechaDefectoFin]);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
