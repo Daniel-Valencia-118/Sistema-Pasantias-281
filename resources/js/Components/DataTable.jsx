@@ -7,14 +7,14 @@ export default function DataTable({ columns, data, actionsRender }) {
         <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gradient-to-r from-primary-navy to-primary-slate sticky top-0">
                         <tr>
                             {columns.map(col => (
-                                <th key={col.key} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th key={col.key} className="px-6 py-3 text-left text-white text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     {col.label}
                                 </th>
                             ))}
-                            {actionsRender && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>}
+                            {actionsRender && <th className="px-6 py-3 text-right text-white text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>}
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">

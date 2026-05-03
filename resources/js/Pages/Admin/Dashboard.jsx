@@ -2,7 +2,7 @@ import { Head } from '@inertiajs/react';
 import DashboardLayout from '@/Components/Layout/DashboardLayout';
 import { Users, Briefcase, GraduationCap, ClipboardList } from 'lucide-react';
 
-export default function Dashboard({ stats }) {
+export default function Dashboard({ stats, auth }) {
     const cards = [
         { label: 'Usuarios', value: stats.usuarios, icon: Users, color: 'bg-blue-500' },
         { label: 'Pasantes', value: stats.pasantes, icon: GraduationCap, color: 'bg-green-500' },
@@ -11,7 +11,7 @@ export default function Dashboard({ stats }) {
     ];
 
     return (
-        <DashboardLayout>
+        <DashboardLayout auth={auth}>
             <Head title="Dashboard" />
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-primary-navy">Dashboard</h1>

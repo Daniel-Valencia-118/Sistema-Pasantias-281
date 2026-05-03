@@ -1,211 +1,152 @@
 // resources/js/Components/Sidebar.jsx
 import React, { useState } from 'react';
-import { Link, usePage, router } from '@inertiajs/react';
-import ApplicationLogo from '@/Components/ApplicationLogo';
+import { Link, router, usePage } from '@inertiajs/react';
+import { menuConfig } from '@/Config/menuConfig';
 import {
-    LayoutDashboard,
-    Users,
-    UserCheck,
-    Shield,
-    Briefcase,
-    Bell,
-    UserCog,
-    GraduationCap,
-    School,
-    Building2,
-    ClipboardList,
-    BookOpen,
-    FileText,
-    MessageSquare,
-    Star,
-    ChevronDown,
-    Settings,
-    LogOut,
     ChevronLeft,
     ChevronRight,
 } from 'lucide-react';
 
-const menuConfig = {
-    admin: [
-        {
-            title: 'DASHBOARD',
-            items: [
-                { label: 'Resumen Estadístico', route: 'admin', icon: LayoutDashboard },
-                { label: 'Alertas del Sistema', route: 'admin.alertas', icon: Bell },
-            ]
-        },
-        {
-            title: 'GESTIÓN DE USUARIOS',
-            items: [
-                { label: 'Todos los Usuarios', route: 'admin.usuarios.index', icon: Users },
-                { label: 'Solicitudes de usuario', route: 'admin.solicitudes.index', icon: UserCheck },
-                { label: 'Administradores', route: 'admin.administradores.index', icon: Shield },
-                { label: 'Gerentes', route: 'admin.gerentes.index', icon: Briefcase },
-                { label: 'Jefes de Pasantía', route: 'admin.jefes.index', icon: UserCog },
-                { label: 'Tutores Académicos', route: 'admin.tutores.index', icon: GraduationCap },
-                { label: 'Pasantes', route: 'admin.pasantes.index', icon: School },
-            ]
-        },
-        {
-            title: 'EMPRESAS',
-            items: [
-                { label: 'Todas las empresas', route: 'admin.empresas.index', icon: Building2 },
-            ]
-        },
-        {
-            title: 'PROGRAMA DE PASANTÍAS',
-            items: [
-                { label: 'Ofertas Publicadas', route: 'admin.pasantias.index', icon: ClipboardList },
-            ]
-        },
-        {
-            title: 'MONITOREO ACADÉMICO',
-            items: [
-                { label: 'Registro de Actividades', route: 'admin.actividades.index', icon: BookOpen },
-                { label: 'Bitácoras de Evaluación', route: 'admin.bitacoras.index', icon: FileText },
-                { label: 'Informes Finales', route: 'admin.informes.index', icon: FileText },
-            ]
-        },
-        {
-            title: 'COMUNICACIÓN',
-            items: [
-                { label: 'Mensajes Internos', route: 'admin.mensajes.index', icon: MessageSquare },
-                { label: 'Muro de Comentarios', route: 'admin.comentarios.index', icon: Star },
-            ]
-        }
-    ],
-    // Puedes agregar configuraciones para otros roles aquí
-    gerente: [
-        { title: 'DASHBOARD', items: [
-            { label: 'Resumen', route: 'gerente.dashboard', icon: LayoutDashboard }
-        ]},
-        // ... más según endpoints
-    ],
-    // ...
-};
-
-export default function Sidebar({ user, onClose }) {
+export default function Sidebar({ auth, onClose }) {
     const [collapsed, setCollapsed] = useState(false);
-    const [expandedUser, setExpandedUser] = useState(false);
-    const { url } = usePage();
-    const role = user?.rol || 'admin';
-    const menu = menuConfig[role] || [];
-    const isActive = (routeName) => {
-        return url.startsWith(route(routeName, [], false));
+    const [openMenus, setOpenMenus] = useState({});
+
+    const role = auth?.user?.rol || 'administrador';
+    const menuItems = menuConfig[role] || [];
+
+    const toggleMenu = (menuName) => {
+        setOpenMenus((prev) => ({ ...prev, [menuName]: !prev[menuName] }));
     };
 
     const handleLogout = () => {
-        router.post(route("logout"));
-        // document.getElementById('logout-form').submit();
+        router.post(route('logout'));
     };
 
-    // Obtener iniciales
-    const initials = user ? (user.nombre?.charAt(0) + user.ap_paterno?.charAt(0)).toUpperCase() : 'U';
+    const renderMenuItem = (item) => {
+        const Icon = item.icon;
+        const isOpen = openMenus[item.name];
 
-    return (
-        <div className={`flex flex-col h-full bg-white border-r border-gray-200 shadow-sm transition-all duration-300 ${collapsed ? 'w-20' : 'w-72'}`}>
-            {/* HEADER */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                {!collapsed && (
-                    <div className="flex items-center gap-3">
-                        <ApplicationLogo showText={true} />
-                    </div>
-                )}
-                <button
-                    onClick={() => setCollapsed(!collapsed)}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors ml-auto"
-                    title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+        if (item.single) {
+            return (
+                <Link
+                    href={item.href}
+                    className="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-primary-blue/20 hover:text-white rounded-lg transition-colors"
                 >
-                    {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-                </button>
-                {onClose && !collapsed && (
-                    <button onClick={onClose} className="lg:hidden text-gray-500">
-                        <X className="h-5 w-5" />
-                    </button>
-                )}
-            </div>
+                    <Icon size={20} />
+                    {!collapsed && <span>{item.name}</span>}
+                </Link>
+            );
+        }
 
-            {/* BODY - Scroll independiente */}
-            <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-8">
-                {menu.map((section, idx) => (
-                    <div key={idx}>
-                        {!collapsed && (
-                            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
-                                {section.title}
-                            </h3>
-                        )}
-                        <ul className="space-y-1">
-                            {section.items.map((item) => {
-                                const active = isActive(item.route);
-                                const Icon = item.icon;
-                                return (
-                                    <li key={item.route}>
-                                        <Link
-                                            href={route(item.route)}
-                                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                                                ${active
-                                                    ? 'bg-primary-blue/10 text-primary-blue'
-                                                    : 'text-gray-600 hover:bg-gray-50 hover:text-primary-navy'
-                                                } ${collapsed ? 'justify-center' : ''}`}
-                                            title={collapsed ? item.label : undefined}
-                                        >
-                                            {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
-                                            {!collapsed && <span>{item.label}</span>}
-                                        </Link>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </div>
-                ))}
-            </nav>
-
-            {/* FOOTER - Usuario */}
-            <div className="border-t border-gray-100 p-4">
-                <div className="relative">
+        if (item.submenus) {
+            return (
+                <div>
                     <button
-                        onClick={() => setExpandedUser(!expandedUser)}
-                        className="flex items-center w-full gap-3 px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                        onClick={() => toggleMenu(item.name)}
+                        className="w-full flex items-center justify-between px-4 py-3 text-gray-300 hover:bg-primary-blue/20 hover:text-white rounded-lg transition-colors"
                     >
-                        <div className="h-9 w-9 rounded-full bg-primary-blue flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                            {initials}
+                        <div className="flex items-center gap-3">
+                            <Icon size={20} />
+                            {!collapsed && <span>{item.name}</span>}
                         </div>
                         {!collapsed && (
-                            <>
-                                <div className="flex-1 text-left">
-                                    <p className="text-sm font-medium text-gray-700 truncate">
-                                        {user?.nombre} {user?.ap_paterno}
-                                    </p>
-                                    <p className="text-xs text-gray-400 truncate">{user?.correo}</p>
-                                </div>
-                                <ChevronDown className="h-4 w-4 text-gray-400" />
-                            </>
+                            <ChevronRight
+                                size={16}
+                                className={`transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                            />
                         )}
                     </button>
 
-                    {expandedUser && (
-                        <div className={`absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg p-1 ${collapsed ? 'left-1/2 -translate-x-1/2 w-48' : ''}`}>
-                            <Link
-                                // href={route('profile.edit')}
-                                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
-                            >
-                                <Settings className="h-4 w-4" />
-                                Configuración
-                            </Link>
-                            <button
-                                onClick={handleLogout}
-                                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md"
-                            >
-                                <LogOut className="h-4 w-4" />
-                                Cerrar sesión
-                            </button>
+                    {!collapsed && isOpen && (
+                        <div className="ml-8 mt-1 space-y-1">
+                            {item.submenus.map((sub, idx) => {
+                                const SubIcon = sub.icon;
+                                if (sub.action === 'logout') {
+                                    return (
+                                        <button
+                                            key={idx}
+                                            onClick={handleLogout}
+                                            className="w-full flex items-center gap-3 px-4 py-2 text-gray-400 hover:bg-red-500/20 hover:text-red-400 rounded-lg transition-colors"
+                                        >
+                                            <SubIcon size={16} />
+                                            <span className="text-sm">{sub.name}</span>
+                                        </button>
+                                    );
+                                }
+                                return (
+                                    <Link
+                                        key={idx}
+                                        href={sub.href}
+                                        className="flex items-center gap-3 px-4 py-2 text-gray-400 hover:bg-primary-blue/20 hover:text-white rounded-lg transition-colors"
+                                    >
+                                        <SubIcon size={16} />
+                                        <span className="text-sm">{sub.name}</span>
+                                    </Link>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
-                <form id="logout-form" method="POST" action={route('logout')} className="hidden">
-                    <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.content} />
-                </form>
+            );
+        }
+        return null;
+    };
+
+    return (
+        <aside
+            className={`bg-primary-navy min-h-screen transition-all duration-300 ${
+                collapsed ? 'w-20' : 'w-64'
+            }`}
+        >
+            <div className="flex flex-col h-full">
+                {/* HEADER */}
+                <div className="flex items-center justify-between p-5 border-b border-primary-slate">
+                    {!collapsed && (
+                        <div className="flex items-center gap-3">
+                            <img
+                                src="/images/logo.png"
+                                alt="Logo"
+                                className="h-12 w-auto rounded-full"
+                            />
+                            <div className="flex flex-col items-center leading-tight">
+                                <h3 className="text-white font-bold text-lg">SGP</h3>
+                                <span className="text-white font-bold text-lg uppercase">
+                                    {role.replace('_', ' ')}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                    {collapsed && (
+                        <img
+                            src="/images/logo.png"
+                            alt="Logo"
+                            className="h-7 w-auto mx-auto rounded-full"
+                        />
+                    )}
+                    <button
+                        onClick={() => setCollapsed(!collapsed)}
+                        className="p-1 rounded-lg hover:bg-primary-blue/20 text-gray-300"
+                    >
+                        {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                    </button>
+                </div>
+
+                {/* NAV (scroll interno) */}
+                <nav className="flex-1 py-4 space-y-1 overflow-y-auto">
+                    {menuItems.map((item, idx) => (
+                        <div key={idx}>{renderMenuItem(item)}</div>
+                    ))}
+                </nav>
+
+                {/* FOOTER */}
+                {!collapsed && (
+                    <div className="p-4 border-t border-primary-slate">
+                        <p className="text-gray-400 text-sm">Conectado como</p>
+                        <p className="text-white font-medium">{auth?.user?.nombre_user}</p>
+                        <p className="text-primary-sky-blue text-xs capitalize">{role}</p>
+                    </div>
+                )}
             </div>
-        </div>
+        </aside>
     );
 }

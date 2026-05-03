@@ -13,7 +13,7 @@ import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
 import { Search, Edit, ToggleLeft, ToggleRight, UserPlus } from 'lucide-react';
 
-export default function Index({ usuarios }) {
+export default function Index({ usuarios, auth}) {
     const { errors: pageErrors } = usePage().props;
     const [search, setSearch] = useState('');
     const [showModal, setShowModal] = useState(false);
@@ -168,7 +168,7 @@ export default function Index({ usuarios }) {
     // Volvemos a DataTable y permitimos `actionsRender` prop.
 
     return (
-        <DashboardLayout>
+        <DashboardLayout auth={auth}>
             <Head title="Todos los Usuarios" />
             <Breadcrumbs items={breadcrumbs} />
 
