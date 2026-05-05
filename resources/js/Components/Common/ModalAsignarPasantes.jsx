@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import ModalConfirmacion from "./ModalConfirmacion";
-import ModalPerfilPasante from "./ModalPerfilPasante";
+import ModalPerfil from "./ModalPerfil";
+//import ModalPerfilPasante from "./ModalPerfilPasante";
 import BadgeEstado from "./BadgeEstado";
 
 export default function ModalAsignarPasantes({
@@ -36,16 +37,21 @@ export default function ModalAsignarPasantes({
     const [sortDirectionAsig, setSortDirectionAsig] = useState("asc");
     const [sortFieldSin, setSortFieldSin] = useState("ap_paterno");
     const [sortDirectionSin, setSortDirectionSin] = useState("asc");
+    const [modalPerfil, setModalPerfil] = useState({
+        isOpen: false,
+        usuario: null,
+        tipo: "pasante",
+    });
     const [modalConfirm, setModalConfirm] = useState({
         isOpen: false,
         id: null,
         accion: "",
         pasante: null,
     });
-    const [modalPerfil, setModalPerfil] = useState({
-        isOpen: false,
-        pasante: null,
-    });
+    // const [modalPerfil, setModalPerfil] = useState({
+    //     isOpen: false,
+    //     pasante: null,
+    // });
 
     useEffect(() => {
         if (isOpen && jefeId) {
@@ -77,6 +83,7 @@ export default function ModalAsignarPasantes({
                 {
                     idJefe: jefeId,
                     idPasante: idPasante,
+
                     accion: accion,
                 },
             );
@@ -87,6 +94,7 @@ export default function ModalAsignarPasantes({
                 if (onUpdate) onUpdate();
                 // Mostrar pequeño mensaje de éxito (opcional)
                 // Podrías agregar un toast o notificación
+                // Esto cierra el submodal, no el principal
             }
         } catch (error) {
             alert(
@@ -372,12 +380,14 @@ export default function ModalAsignarPasantes({
                                     <td className="px-3 py-3 text-gray-900">
                                         {pasante.nombre}
                                     </td>
+
                                     <td className="px-3 py-3 text-center">
                                         <button
                                             onClick={() =>
                                                 setModalPerfil({
                                                     isOpen: true,
-                                                    pasante: pasante,
+                                                    usuario: pasante,
+                                                    tipo: "pasante",
                                                 })
                                             }
                                             className="text-primary-blue hover:text-primary-sky-blue transition-colors cursor-pointer"
@@ -589,10 +599,23 @@ export default function ModalAsignarPasantes({
             />
 
             {/* Modal de perfil del pasante */}
-            <ModalPerfilPasante
+            {/* <ModalPerfilPasante
                 isOpen={modalPerfil.isOpen}
                 onClose={() => setModalPerfil({ isOpen: false, pasante: null })}
                 pasante={modalPerfil.pasante}
+            /> */}
+            <ModalPerfil
+                isOpen={modalPerfil.isOpen}
+                onClose={() =>
+                    setModalPerfil({
+                        isOpen: false,
+                        usuario: null,
+                        tipo: "pasante",
+                    })
+                }
+                usuario={modalPerfil.usuario}
+                tipo={modalPerfil.tipo}
+                readOnly={true}
             />
         </>
     );

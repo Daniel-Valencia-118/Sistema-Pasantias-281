@@ -338,9 +338,14 @@ export default function Index({ auth, jefes }) {
                 jefeId={modalAsignar.jefeId}
                 jefeNombre={modalAsignar.jefeNombre}
                 onUpdate={() => {
-                    // Recargar la lista de jefes
-                    window.location.reload();
+                    // En lugar de recargar la página, no hagas nada aquí
+                    // o actualiza solo el estado local si necesitas reflejar cambios en la tabla
                 }}
+
+                // onUpdate={() => {
+                //     // Recargar la lista de jefes
+                //     window.location.reload();
+                // }}
             />
         </GerenteLayout>
     );

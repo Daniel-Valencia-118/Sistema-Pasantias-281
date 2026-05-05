@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { GraduationCap } from "lucide-react";
 import {
     X,
     User,
@@ -169,7 +170,7 @@ export default function ModalPerfil({
                                         size={18}
                                         className="text-primary-blue"
                                     />
-                                    Datos Personales
+                                    Nombre Completo
                                 </h4>
                                 <div className="grid md:grid-cols-3 gap-4">
                                     <div>
@@ -213,6 +214,99 @@ export default function ModalPerfil({
                                     </div>
                                 </div>
                             </div>
+                            {/* Datos Académicos (solo para pasante) */}
+                            {tipo === "pasante" && (
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                    <h4 className="font-semibold text-primary-navy mb-4 flex items-center gap-2 border-b pb-2">
+                                        <GraduationCap
+                                            size={18}
+                                            className="text-primary-blue"
+                                        />
+                                        Datos Académicos
+                                    </h4>
+                                    <div className="grid md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                Semestre
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={
+                                                    displayData.semestre || "-"
+                                                }
+                                                disabled
+                                                className="w-full rounded-lg border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-700 cursor-not-allowed"
+                                            />
+                                        </div>
+                                        <div className="md:col-span-1">
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                Mención
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={
+                                                    displayData.mencion || "-"
+                                                }
+                                                disabled
+                                                className="w-full rounded-lg border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-700 cursor-not-allowed"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                Matrícula
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={
+                                                    displayData.matricula || "-"
+                                                }
+                                                disabled
+                                                className="w-full rounded-lg border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-700 cursor-not-allowed"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {/* Datos laborales (solo para jefe) */}
+                            {tipo === "jefe" && (
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                    <h4 className="font-semibold text-primary-navy mb-4 flex items-center gap-2 border-b pb-2">
+                                        <Briefcase
+                                            size={18}
+                                            className="text-primary-blue"
+                                        />
+                                        Datos Laborales
+                                    </h4>
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                Área de Trabajo
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="area"
+                                                value={displayData.area || ""}
+                                                onChange={handleChange}
+                                                disabled={!isEditing}
+                                                className="w-full rounded-lg border-gray-200 px-3 py-2 text-sm focus:border-primary-blue focus:ring-1 focus:ring-primary-blue/20 disabled:bg-gray-100 disabled:text-gray-500 transition-all cursor-pointer"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                Cargo
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="cargo"
+                                                value={displayData.cargo || ""}
+                                                onChange={handleChange}
+                                                disabled={!isEditing}
+                                                className="w-full rounded-lg border-gray-200 px-3 py-2 text-sm focus:border-primary-blue focus:ring-1 focus:ring-primary-blue/20 disabled:bg-gray-100 disabled:text-gray-500 transition-all cursor-pointer"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Documentos y contacto */}
                             <div className="bg-gray-50 rounded-lg p-4">
@@ -226,7 +320,7 @@ export default function ModalPerfil({
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-medium text-gray-500 mb-1">
-                                            Carnet de Identidad
+                                            CI
                                         </label>
                                         <input
                                             type="text"
@@ -278,47 +372,6 @@ export default function ModalPerfil({
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Datos laborales (solo para jefe) */}
-                            {tipo === "jefe" && (
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <h4 className="font-semibold text-primary-navy mb-4 flex items-center gap-2 border-b pb-2">
-                                        <Briefcase
-                                            size={18}
-                                            className="text-primary-blue"
-                                        />
-                                        Datos Laborales
-                                    </h4>
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-medium text-gray-500 mb-1">
-                                                Área de Trabajo
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="area"
-                                                value={displayData.area || ""}
-                                                onChange={handleChange}
-                                                disabled={!isEditing}
-                                                className="w-full rounded-lg border-gray-200 px-3 py-2 text-sm focus:border-primary-blue focus:ring-1 focus:ring-primary-blue/20 disabled:bg-gray-100 disabled:text-gray-500 transition-all cursor-pointer"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-medium text-gray-500 mb-1">
-                                                Cargo
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="cargo"
-                                                value={displayData.cargo || ""}
-                                                onChange={handleChange}
-                                                disabled={!isEditing}
-                                                className="w-full rounded-lg border-gray-200 px-3 py-2 text-sm focus:border-primary-blue focus:ring-1 focus:ring-primary-blue/20 disabled:bg-gray-100 disabled:text-gray-500 transition-all cursor-pointer"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
 
                             {/* Datos de cuenta - SOLO si NO es readonly */}
                             {!readOnly && (

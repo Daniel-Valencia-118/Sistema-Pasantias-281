@@ -216,6 +216,7 @@ class PasantiaPublicadaController extends Controller
             'pasantia' => [
                 'id' => $pasantia->id_pasantia,
                 'nombre' => $pasantia->nombre_pas,
+                
             ],
             'inscritos' => $inscritos
         ]);
