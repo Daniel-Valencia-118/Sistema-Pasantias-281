@@ -53,9 +53,9 @@ export default function GerenteLayout({ children, auth }) {
             icon: Briefcase,
             submenus: [
                 {
-                    name: "Publicar Pasantía",
-                    href: "/gerente/pasantias/crear",
-                    icon: FileText,
+                    name: "Pasantías Iniciadas",
+                    href: "/gerente/pasantias/activas",
+                    icon: Play,
                 },
                 {
                     name: "Pasantías Publicadas",
@@ -63,9 +63,14 @@ export default function GerenteLayout({ children, auth }) {
                     icon: ClipboardList,
                 },
                 {
-                    name: "Pasantías Activas",
-                    href: "/gerente/pasantias/activas",
-                    icon: Play,
+                    name: "Publicar Pasantía",
+                    href: "/gerente/pasantias/crear",
+                    icon: FileText,
+                },
+                {
+                    name: "Pasantías Finalizadas",
+                    href: "/gerente/pasantias/finalizadas",
+                    icon: CheckCircle,
                 },
             ],
         },

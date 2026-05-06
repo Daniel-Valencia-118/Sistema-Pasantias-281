@@ -114,6 +114,8 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         Route::patch('/gerente/jefes/solicitudes/{id}/rechazar', [App\Http\Controllers\Gerente\JefeController::class, 'rechazarSolicitud'])->name('gerente.jefes.rechazar');
         
         Route::get('/gerente/pasantias/{id}/inscritos', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'getInscritos'])->name('gerente.pasantias.inscritos');
+        
+        Route::get('/gerente/pasantias/finalizadas', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'index'])->name('gerente.pasantias.finalizadas');
 
         Route::get('/gerente/pasantias/{id}/actividades', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'getActividades'])->name('gerente.pasantias.actividades');
         Route::post('/gerente/pasantias/{id}/actividades', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'storeActividad'])->name('gerente.pasantias.actividades.store');
@@ -126,11 +128,9 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         
         Route::get('/gerente/pasantias-activas/{id}/inscritos', [App\Http\Controllers\Gerente\PasantiaActivaController::class, 'getInscritosConEvaluaciones'])->name('gerente.pasantias.activas.inscritos');
     
-        //no usadas
-    //Route::get('/gerente/empresa', [App\Http\Controllers\Gerente\EmpresaController::class, 'index'])->name('gerente.empresa');
-    //Route::get('/gerente/jefes', [App\Http\Controllers\Gerente\JefeController::class, 'index'])->name('gerente.jefes');
-    //Route::get('/gerente/jefes/crear', [App\Http\Controllers\Gerente\JefeController::class, 'create'])->name('gerente.jefes.create');
-    //Route::get('/gerente/pasantias/crear', [App\Http\Controllers\Gerente\PasantiaController::class, 'create'])->name('gerente.pasantias.create');
-    //Route::get('/gerente/pasantias/activas', [App\Http\Controllers\Gerente\PasantiaController::class, 'activas'])->name('gerente.pasantias.activas');
+        Route::get('/gerente/pasantias/{id}/actividades-realizados', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'getActividadesConRealizados'])->name('gerente.pasantias.actividades-realizados');
+        Route::get('/gerente/pasantias/{id}/pasantes-promedio', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'getPasantesConPromedio'])->name('gerente.pasantias.pasantes-promedio');
+        Route::get('/gerente/pasantias/{id}/calificaciones', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'getCalificaciones'])->name('gerente.pasantias.calificaciones');
+    
 });
 

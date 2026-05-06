@@ -331,13 +331,18 @@ export default function ModalInscritosActivos({
                                                                             },
                                                                         )
                                                                     }
-                                                                    className="text-primary-blue hover:text-primary-sky-blue transition-all text-xs"
+                                                                    className="text-primary-blue hover:text-primary-sky-blue transition-all text-sm"
                                                                     title="Ver perfil del jefe"
                                                                 >
                                                                     {
                                                                         inscrito
                                                                             .jefe
                                                                             .ap_paterno
+                                                                    }{" "}
+                                                                    {
+                                                                        inscrito
+                                                                            .jefe
+                                                                            .ap_materno
                                                                     }{" "}
                                                                     {
                                                                         inscrito
@@ -356,7 +361,7 @@ export default function ModalInscritosActivos({
                                                                 >
                                                                     <UserX
                                                                         size={
-                                                                            14
+                                                                            18
                                                                         }
                                                                     />
                                                                 </button>
@@ -368,10 +373,10 @@ export default function ModalInscritosActivos({
                                                                         inscrito,
                                                                     )
                                                                 }
-                                                                className="flex items-center gap-1 px-2 py-1 bg-primary-blue text-white text-xs rounded hover:bg-primary-sky-blue transition-all"
+                                                                className="inline-flex items-center gap-1 px-2 py-1 bg-primary-blue text-white text-xs rounded hover:bg-primary-sky-blue transition-all"
                                                             >
                                                                 <UserCheck
-                                                                    size={12}
+                                                                    size={15}
                                                                 />
                                                                 Asignar
                                                             </button>

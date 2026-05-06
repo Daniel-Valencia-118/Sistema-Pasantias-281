@@ -303,14 +303,24 @@ export default function ModalInscritos({
                                                                             },
                                                                         )
                                                                     }
-                                                                    className="text-primary-blue hover:text-primary-sky-blue transition-all"
+                                                                    className="text-primary-blue hover:text-primary-sky-blue transition-all text-sm"
                                                                     title="Ver perfil del jefe"
                                                                 >
-                                                                    <Eye
-                                                                        size={
-                                                                            16
-                                                                        }
-                                                                    />
+                                                                    {
+                                                                        inscrito
+                                                                            .jefe
+                                                                            .ap_paterno
+                                                                    }{" "}
+                                                                    {
+                                                                        inscrito
+                                                                            .jefe
+                                                                            .ap_materno
+                                                                    }{" "}
+                                                                    {
+                                                                        inscrito
+                                                                            .jefe
+                                                                            .nombre
+                                                                    }
                                                                 </button>
                                                                 <button
                                                                     onClick={() =>
@@ -321,7 +331,11 @@ export default function ModalInscritos({
                                                                     className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-all"
                                                                     title="Desasignar jefe"
                                                                 >
-                                                                    DESIGNAR
+                                                                    <UserX
+                                                                        size={
+                                                                            18
+                                                                        }
+                                                                    />
                                                                 </button>
                                                             </div>
                                                         ) : (
@@ -331,9 +345,12 @@ export default function ModalInscritos({
                                                                         inscrito,
                                                                     )
                                                                 }
-                                                                className="px-2 py-1 bg-primary-blue text-white text-xs rounded hover:bg-primary-sky-blue transition-all"
+                                                                className="inline-flex items-center gap-1 px-2 py-1 bg-primary-blue text-white text-xs rounded hover:bg-primary-sky-blue transition-all"
                                                             >
-                                                                ASIGNAR
+                                                                <UserCheck
+                                                                    size={15}
+                                                                />
+                                                                Asignar
                                                             </button>
                                                         )}
                                                     </td>

@@ -90,7 +90,7 @@ export default function ModalDetallesPasantia({ isOpen, onClose, pasantia }) {
                             Inscritos
                         </label>
                         <p className="text-gray-900 font-medium">
-                            {pasantia.inscritos} estudiantes
+                            {pasantia.inscritos} pasantes
                         </p>
                     </div>
                 </div>
