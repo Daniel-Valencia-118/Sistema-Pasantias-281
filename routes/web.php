@@ -78,7 +78,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     })->name('dashboard');
 });
 
-
 // ROL GERENTE: 
 Route::middleware(['auth', 'role:gerente'])->group(function () {
     Route::get('/gerente', function () {
@@ -131,6 +130,7 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         Route::get('/gerente/pasantias/{id}/actividades-realizados', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'getActividadesConRealizados'])->name('gerente.pasantias.actividades-realizados');
         Route::get('/gerente/pasantias/{id}/pasantes-promedio', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'getPasantesConPromedio'])->name('gerente.pasantias.pasantes-promedio');
         Route::get('/gerente/pasantias/{id}/calificaciones', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'getCalificaciones'])->name('gerente.pasantias.calificaciones');
-    
+
 });
+
 
