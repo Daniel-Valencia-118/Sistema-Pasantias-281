@@ -131,6 +131,9 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         Route::get('/gerente/pasantias/{id}/pasantes-promedio', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'getPasantesConPromedio'])->name('gerente.pasantias.pasantes-promedio');
         Route::get('/gerente/pasantias/{id}/calificaciones', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'getCalificaciones'])->name('gerente.pasantias.calificaciones');
 
+        Route::get('/gerente/cuenta', [App\Http\Controllers\Gerente\CuentaController::class, 'index'])->name('gerente.cuenta');
+        Route::put('/gerente/cuenta', [App\Http\Controllers\Gerente\CuentaController::class, 'update'])->name('gerente.cuenta.update');
+
 });
 
 

@@ -10,19 +10,30 @@ import {
     CheckCircle,
     Users,
     UserPlus,
+    Home,
+    Bell,
+    BarChart3,
+    Settings,
 } from "lucide-react";
 
 export const menuGerente = [
     {
+        name: "Home",
+        icon: Home,
+        href: "/gerente",
+        single: true,
+    },
+    {
         name: "Perfil",
         icon: UserCircle,
         submenus: [
-            { name: "Ver Perfil", href: "/gerente/perfil", icon: Eye },
+            { name: "Perfil", href: "/gerente/perfil", icon: Eye },
+            { name: "Cuenta", href: "/gerente/cuenta", icon: Settings },
             { name: "Cerrar Sesión", action: "logout", icon: LogOut },
         ],
     },
     {
-        name: "Mi empresa",
+        name: "Mi Empresa",
         icon: Building2,
         href: "/gerente/empresa",
         single: true,
@@ -32,7 +43,7 @@ export const menuGerente = [
         icon: Briefcase,
         submenus: [
             {
-                name: "Pasantías Activas",
+                name: "Pasantías Iniciadas",
                 href: "/gerente/pasantias/activas",
                 icon: Play,
             },
@@ -59,15 +70,21 @@ export const menuGerente = [
         submenus: [
             { name: "Jefes de Pasantes", href: "/gerente/jefes", icon: Users },
             {
-                name: "Registrar jefe",
+                name: "Registrar Jefe",
                 href: "/gerente/jefes/crear",
                 icon: UserPlus,
             },
             {
-                name: "Solicitudes de registro",
+                name: "Solicitudes de Registro",
                 href: "/gerente/jefes/solicitudes",
                 icon: ClipboardList,
             },
         ],
+    },
+    {
+        name: "Estadísticas",
+        icon: BarChart3,
+        href: "/gerente/estadisticas",
+        single: true,
     },
 ];
