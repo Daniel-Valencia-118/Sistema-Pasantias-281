@@ -134,6 +134,7 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         Route::get('/gerente/cuenta', [App\Http\Controllers\Gerente\CuentaController::class, 'index'])->name('gerente.cuenta');
         Route::put('/gerente/cuenta', [App\Http\Controllers\Gerente\CuentaController::class, 'update'])->name('gerente.cuenta.update');
 
+        Route::get('/gerente/estadisticas', [App\Http\Controllers\Gerente\EstadisticaController::class, 'index'])->name('gerente.estadisticas');
 });
 
 
