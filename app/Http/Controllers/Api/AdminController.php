@@ -8,6 +8,7 @@ use App\Models\Pasante;
 use App\Models\Gerente;
 use App\Models\Empresa;
 use App\Models\TutorAca;
+use App\Models\JefePas;
 use App\Models\Administrador;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -40,7 +41,8 @@ class AdminController extends Controller
                 ];
             });
         
-        return response()->json(['data' => $solicitudes]);
+        // return response()->json(['data' => $solicitudes]);
+        return Inertia::render('Admin/Usuarios/Solicitudes', ['usuarios' => $solicitudes]);
     }
 
     // =============================================
@@ -114,7 +116,8 @@ class AdminController extends Controller
                 ];
             });
         
-        return response()->json(['data' => $pasantes]);
+        // return response()->json(['data' => $pasantes]);
+        return Inertia::render('Admin/Usuarios/Pasantes', ['pasantes' => $pasantes]);
     } 
 
     // Ver un pasante específico con datos de su tutor
@@ -249,7 +252,173 @@ class AdminController extends Controller
         
         return response()->json(['message' => 'Pasante deshabilitado']);
     }
-    
+    // =============================================
+    // CRUD de JEFES DE PASANTIAS
+    // =============================================
+
+    // FUNCION PARA LISTAR TODOS LOS JEFES DE PASANTIAS
+    public function listarJefes(Request $request)
+    {
+        // traer jefes como lo gerentes
+        $jefes = JefePas::with(['user', 'empresa'])->get();
+        return Inertia::render('Admin/Usuarios/JefesPas', ['jefes' => $jefes]);
+    }
+
+    // FUNCION PARA CREAR UN JEFE DE PASANTIAS
+    public function crearJefe(Request $request)
+    {
+        $request->validate([
+            'nombre_user' => 'required|string|unique:usuario,nombre_user',
+            'password' => 'required|string|min:6',
+            'numero_cel' => 'required|string',
+            'ci' => 'required|string|unique:usuario,ci',
+            'correo' => 'required|email|unique:usuario,correo',
+            'nombre' => 'required|string',
+            'ap_paterno' => 'required|string',
+            'ap_materno' => 'required|string',
+            'fecha_nac' => 'required|date',
+            'cargo' => 'required|string',
+            'area' => 'nullable|string',
+            // El Admin debe especificar a qué empresa pertenece este jefe
+            'id_empresa' => 'required|exists:empresa,id_empresa', 
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Crear el Usuario
+            $nuevoUser = User::create([
+                'nombre_user' => $request->nombre_user,
+                'password' => Hash::make($request->password),
+                'numero_cel' => $request->numero_cel,
+                'ci' => $request->ci,
+                'correo' => $request->correo,
+                'nombre' => $request->nombre,
+                'ap_paterno' => $request->ap_paterno,
+                'ap_materno' => $request->ap_materno,
+                'fecha_nac' => $request->fecha_nac,
+                'estado_cuenta' => true,
+                'estado_aprobacion' => 'aprobado',
+            ]);
+
+            // 2. Crear el JefePas asociado a la empresa enviada en el request
+            $jefe = JefePas::create([
+                'idU_jefe' => $nuevoUser->idUser,
+                'cargo' => $request->cargo,
+                'area' => $request->area,
+                'id_empresa' => $request->id_empresa,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Jefe de Pasantes creado exitosamente',
+                'data' => [
+                    'user' => $nuevoUser,
+                    'jefe' => $jefe
+                ]
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Error al crear el jefe',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function verJefe($id)
+    {
+        // Buscamos directamente por ID sin filtrar por empresa del Auth
+        $jefe = JefePas::with('user')->findOrFail($id);
+        
+        return response()->json([
+            'data' => [
+                'id' => $jefe->idU_jefe,
+                'id_empresa' => $jefe->id_empresa, // Añadido para que el Admin sepa de qué empresa es
+                'nombre' => $jefe->user->nombre,
+                'ap_paterno' => $jefe->user->ap_paterno,
+                'ap_materno' => $jefe->user->ap_materno,
+                'nombre_user' => $jefe->user->nombre_user,
+                'correo' => $jefe->user->correo,
+                'numero_cel' => $jefe->user->numero_cel,
+                'ci' => $jefe->user->ci,
+                'estado_cuenta' => $jefe->user->estado_cuenta,
+                'cargo' => $jefe->cargo,
+                'area' => $jefe->area,
+            ]
+        ]);
+    }
+
+    public function cambiarEstadoJefe($id)
+    {
+        $jefe = JefePas::findOrFail($id);
+        
+        $nuevoEstado = !$jefe->user->estado_cuenta;
+        $jefe->user->update(['estado_cuenta' => $nuevoEstado]);
+        
+        $estado = $nuevoEstado ? 'habilitado' : 'deshabilitado';
+        return response()->json(['message' => "Jefe {$estado} exitosamente"]);
+    }
+
+    public function eliminarJefe($id)
+    {
+        $jefe = JefePas::findOrFail($id);
+        
+        // El admin también debe respetar si hay pasantes activos para no romper la integridad
+        $tienePasantes = Inscripcion::where('idU_jefe', $jefe->idU_jefe)
+            ->whereIn('estado', ['inscrito', 'activo'])
+            ->exists();
+        
+        if ($tienePasantes) {
+            return response()->json([
+                'message' => 'No se puede eliminar el jefe porque tiene pasantes asignados activos'
+            ], 400);
+        }
+        
+        $jefe->user->update(['estado_cuenta' => false]);
+        
+        return response()->json(['message' => 'Jefe deshabilitado por el administrador']);
+    }
+
+    public function asignarJefeAPasantes(Request $request)
+    {
+        $request->validate([
+            'asignaciones' => 'required|array',
+            'asignaciones.*.id_pasantia' => 'required|exists:pasantia,id_pasantia',
+            'asignaciones.*.idU_pasante' => 'required|exists:pasante,idU_pasante',
+            'asignaciones.*.idU_jefe' => 'required|exists:jefe_pas,idU_jefe',
+        ]);
+        
+        try {
+            DB::beginTransaction();
+            
+            foreach ($request->asignaciones as $asignacion) {
+                $pasantia = Pasantia::findOrFail($asignacion['id_pasantia']);
+                $jefe = JefePas::findOrFail($asignacion['idU_jefe']);
+                
+                // Validación de integridad: ¿Pertenecen a la misma empresa?
+                if ($pasantia->id_empresa !== $jefe->id_empresa) {
+                    throw new \Exception("El jefe y la pasantía no pertenecen a la misma empresa.");
+                }
+                
+                Inscripcion::where('idU_pasante', $asignacion['idU_pasante'])
+                    ->where('id_pasantia', $asignacion['id_pasantia'])
+                    ->update(['idU_jefe' => $asignacion['idU_jefe']]);
+            }
+            
+            DB::commit();
+            return response()->json(['message' => 'Asignaciones realizadas por Admin correctamente']);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
+
+
     // =============================================
     // CRUD de GERENTES + EMPRESA
     // =============================================
@@ -257,9 +426,10 @@ class AdminController extends Controller
     public function listarGerentes(Request $request)
     {
         $gerentes = Gerente::with(['user', 'empresa'])->get();
-        return response()->json(['data' => $gerentes]);
+        // return response()->json(['data' => $gerentes]);
+        return Inertia::render('Admin/Usuarios/Gerentes', ['gerentes' => $gerentes]);
     }
-    
+ 
     public function crearGerente(Request $request)
     {
         $request->validate([
@@ -421,7 +591,8 @@ class AdminController extends Controller
     public function listarTutores(Request $request)
     {
         $tutores = TutorAca::with('user')->get();
-        return response()->json(['data' => $tutores]);
+        // return response()->json(['data' => $tutores]);
+        return Inertia::render('Admin/Usuarios/Tutores', ['tutores' => $tutores]);
     }
 
     // Ver un tutor específico
@@ -538,7 +709,8 @@ class AdminController extends Controller
     public function listarAdministradores(Request $request)
     {
         $admins = Administrador::with('user')->get();
-        return response()->json(['data' => $admins]);
+        // return response()->json(['data' => $admins]);
+        return Inertia::render('Admin/Usuarios/Administradores', ['administradores' => $admins]);
     }
     
     public function crearAdministrador(Request $request)
@@ -664,7 +836,11 @@ class AdminController extends Controller
                     'correo' => $user->correo,
                     'estado' => $user->estado_cuenta,
                     'rol' => $this->getUserRole($user),
-                    'perfil' => $this->getPerfilData($user)
+                    'perfil' => $this->getPerfilData($user),
+                    'ci' => $user->ci,
+                    'estado_aprobacion' => $user->estado_aprobacion,
+                    'numero_cel' => $user->numero_cel,
+                    'fecha_nac' => $user->fecha_nac
                 ];
             });
         

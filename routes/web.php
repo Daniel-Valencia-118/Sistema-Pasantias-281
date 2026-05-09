@@ -10,6 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\EmpresaController;
+use App\Http\Controllers\Api\GerenteController;
+use App\Http\Controllers\Api\JefeController;
+use App\Http\Controllers\Api\PasantiaController;
 
 Route::get('auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('google.login');
 Route::get('auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
@@ -82,26 +86,30 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Usuarios
     Route::get('/admin/usuarios', [AdminController::class, 'listarTodosUsuarios'])
         ->name('admin.usuarios.index');
-    Route::get('/admin/solicitudes', [App\Http\Controllers\Admin\SolicitudController::class, 'index'])
+    Route::get('/admin/solicitudes', [AdminController::class, 'listarSolicitudes'])
         ->name('admin.solicitudes.index');
-    Route::get('/admin/administradores', [App\Http\Controllers\Admin\AdministradorController::class, 'index'])
+    Route::get('/admin/administradores', [AdminController::class, 'listarAdministradores'])
         ->name('admin.administradores.index');
-    Route::get('/admin/gerentes', [App\Http\Controllers\Admin\GerenteController::class, 'index'])
+    Route::get('/admin/gerentes', [AdminController::class, 'listarGerentes'])
         ->name('admin.gerentes.index');
-    Route::get('/admin/jefes', [App\Http\Controllers\Admin\JefeController::class, 'index'])
+    Route::get('/admin/jefes', [AdminController::class, 'listarJefes'])
         ->name('admin.jefes.index');
-    Route::get('/admin/tutores', [App\Http\Controllers\Admin\TutorController::class, 'index'])
+    Route::get('/admin/tutores', [AdminController::class, 'listarTutores'])
         ->name('admin.tutores.index');
-    Route::get('/admin/pasantes', [App\Http\Controllers\Admin\PasanteController::class, 'index'])
+    Route::get('/admin/pasantes', [AdminController::class, 'listarPasantes'])
         ->name('admin.pasantes.index');
 
     // Empresas
-    Route::get('/admin/empresas', [App\Http\Controllers\Admin\EmpresaController::class, 'index'])
-        ->name('admin.empresas.index');
+    Route::get('/admin/empresas', [EmpresaController::class, 'index'])
+        ->name('admin.empresas');
 
     // Pasantías
-    Route::get('/admin/pasantias', [App\Http\Controllers\Admin\PasantiaController::class, 'index'])
+    Route::get('/admin/pasantias', [PasantiaController::class, 'index'])
         ->name('admin.pasantias.index');
+    // Ruta para crear pasantía, el cual reenderiza la pagina Admin/Pasantias/Ofertas.jsx
+    Route::get('/admin/pasantias/crear', function () {
+        return Inertia::render('Admin/Pasantias/Ofertas');
+    })->name('admin.pasantias.create');
 
     // Monitoreo
     Route::get('/admin/actividades', [App\Http\Controllers\Admin\ActividadController::class, 'index'])
@@ -125,6 +133,34 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 //     Route::put('/admin/usuarios/{id}', [App\Http\Controllers\Admin\UsuarioController::class, 'update'])->name('admin.usuarios.update');
 //     Route::patch('/admin/usuarios/{id}/estado', [App\Http\Controllers\Admin\UsuarioController::class, 'toggleEstado'])->name('admin.usuarios.estado');
 // });
+
+Route::middleware(['auth', 'role:jefe'])->group(function () {
+    Route::get('/jefe/perfil', [JefeController::class, 'perfil'])->name('jefe.perfil');
+    Route::put('/jefe/perfil', [JefeController::class, 'actualizarPerfil'])->name('jefe.actualizarPerfil');
+    Route::get('/jefe', [JefeController::class, 'dashboard'])->name('jefe.dashboard');
+    Route::get('/jefe/pasantes', [JefeController::class, 'misPasantes'])->name('jefe.pasantes');
+
+    Route::get('/jefe/pasantias', [JefeController::class, 'misPasantias'])->name('jefe.pasantias');
+
+    Route::get('/jefe/evaluaciones/bitacoras', [JefeController::class, 'bitacoras'])->name('jefe.bitacoras');
+    Route::post('/jefe/evaluaciones/evaluar', [JefeController::class, 'evaluarBitacora'])->name('jefe.evaluarBitacora');
+    Route::get('/jefe/evaluaciones/subactividades', [JefeController::class, 'subactividades'])->name('jefe.subactividades');
+    Route::post('/jefe/evaluaciones/asignar-subactividad', [JefeController::class, 'asignarSubactividad'])->name('jefe.asignarSubactividad');
+
+    Route::get('/jefe/bitacora/crear', [JefeController::class, 'crearBitacora'])->name('jefe.bitacora.crear');
+    Route::get('/jefe/bitacora/{id}/editar', [JefeController::class, 'editarBitacora'])->name('jefe.bitacora.editar');
+    Route::post('/jefe/bitacora/guardar', [JefeController::class, 'guardarBitacora'])->name('jefe.bitacora.guardar');
+
+    Route::get('/jefe/comunicacion/crear-mensaje', [JefeController::class, 'crearMensaje'])->name('jefe.mensajes.crear');
+    Route::post('/jefe/comunicacion/enviar-mensaje', [JefeController::class, 'enviarMensaje'])->name('jefe.mensajes.enviar');
+    Route::get('/jefe/comunicacion/mensajes-enviados', [JefeController::class, 'mensajesEnviados'])->name('jefe.mensajes.enviados');
+
+    Route::get('/jefe/informes/historial', [JefeController::class, 'informesHistorial'])->name('jefe.informes.historial');
+    Route::get('/jefe/informes/redactar', [JefeController::class, 'redactarInforme'])->name('jefe.informes.redactar');
+    Route::post('/jefe/informes/generar', [JefeController::class, 'generarInforme'])->name('jefe.informes.generar');
+    Route::get('/jefe/informes/{id}/ver', [JefeController::class, 'verInforme'])->name('jefe.informes.ver');
+    Route::get('/jefe/informes/{id}/descargar', [JefeController::class, 'descargarInforme'])->name('jefe.informes.descargar');
+});
 
 
 // Rutas protegidas (ejemplo)

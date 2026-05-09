@@ -130,7 +130,7 @@ export const menuConfig = {
         },
     ],
 
-    jefe_pas: [
+    jefe: [
         {
             name: 'Perfil',
             icon: UserCircle,
@@ -143,7 +143,13 @@ export const menuConfig = {
             name: 'Dashboard',
             icon: LayoutDashboard,
             single: true,
-            href: '/jefe/dashboard',
+            href: '/jefe',
+        },
+        {
+            name: 'Mis Pasantías',
+            icon: Briefcase,
+            single: true,
+            href: '/jefe/pasantias',
         },
         {
             name: 'Mis Pasantes',
@@ -155,23 +161,26 @@ export const menuConfig = {
             name: 'Evaluaciones',
             icon: FileCheck,
             submenus: [
-                { name: 'Bitácoras', href: '/jefe/bitacoras', icon: FileCheck },
-                { name: 'Subactividades', href: '/jefe/subactividades', icon: Activity },
+                { name: 'Actividades', href: '/jefe/evaluaciones/subactividades', icon: Activity },
+                { name: 'Bitácoras', href: '/jefe/evaluaciones/bitacoras', icon: FileCheck },
+                { name: 'Nueva Bitácora', href: '/jefe/bitacora/crear', icon: FilePlus },
+            ],
+        },
+                {
+            name: 'Informes Finales',
+            icon: FileText,
+            submenus: [
+                { name: 'Historial', href: '/jefe/informes/historial', icon: FileText },
+                { name: 'Redactar Informe', href: '/jefe/informes/redactar', icon: FilePlus },
             ],
         },
         {
             name: 'Comunicación',
             icon: MessageCircle,
             submenus: [
-                { name: 'Enviar Mensaje', href: '/jefe/mensajes/crear', icon: FilePlus },
-                { name: 'Mensajes Enviados', href: '/jefe/mensajes', icon: MessageCircle },
+                { name: 'Enviar Mensaje', href: '/jefe/comunicacion/crear-mensaje', icon: FilePlus },
+                { name: 'Mensajes Enviados', href: '/jefe/comunicacion/mensajes-enviados', icon: MessageCircle },
             ],
-        },
-        {
-            name: 'Informes Finales',
-            icon: FileText,
-            single: true,
-            href: '/jefe/informes',
         },
     ],
 

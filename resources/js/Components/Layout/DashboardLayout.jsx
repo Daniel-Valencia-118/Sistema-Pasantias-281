@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Sidebar from '@/Components/Sidebar';
+import Toast from '@/Components/Toast';
 import { Menu } from 'lucide-react';
 
 export default function DashboardLayout({ children, auth }) {
@@ -49,6 +50,7 @@ export default function DashboardLayout({ children, auth }) {
                     {children}
                 </main>
             </div>
+            <Toast />
         </div>
     );
 }

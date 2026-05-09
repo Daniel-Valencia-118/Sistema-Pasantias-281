@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { router, usePage } from "@inertiajs/react";
-import GerenteLayout from "@/Components/Layout/GerenteLayout";
+import DashboardLayout from "@/Components/Layout/DashboardLayout";
 import BadgeEstado from "@/Components/Common/BadgeEstado";
 import ModalConfirmacion from "@/Components/Common/ModalConfirmacion";
 import ModalPerfil from "@/Components/Common/ModalPerfil";
@@ -116,7 +116,7 @@ export default function Index({ auth, jefes }) {
     };
 
     return (
-        <GerenteLayout auth={auth}>
+        <DashboardLayout auth={auth}>
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 {/* Header */}
                 <div className="bg-primary-navy px-6 py-4">
@@ -342,6 +342,6 @@ export default function Index({ auth, jefes }) {
                     window.location.reload();
                 }}
             />
-        </GerenteLayout>
+        </DashboardLayout>
     );
 }
