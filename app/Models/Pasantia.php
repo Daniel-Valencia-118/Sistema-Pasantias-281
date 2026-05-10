@@ -22,12 +22,7 @@ class Pasantia extends Model
         'turno',
         'id_empresa',
     ];
-    
-    protected $casts = [
-        'fecha_ini' => 'date',
-        'fecha_fin' => 'date',
-    ];
-    
+
     public function empresa()
     {
         return $this->belongsTo(Empresa::class, 'id_empresa', 'id_empresa');
@@ -48,11 +43,5 @@ class Pasantia extends Model
         return $this->hasMany(Comentario::class, 'id_pasantia', 'id_pasantia');
     }
     
-    // // Scope para pasantías activas
-    // public function scopeActivas($query)
-    // {
-    //     return $query->where('estado', 'activo')
-    //                  ->where('fecha_ini', '<=', now())
-    //                  ->where('fecha_fin', '>=', now());
-    // }
+   
 }

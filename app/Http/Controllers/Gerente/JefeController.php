@@ -168,12 +168,12 @@ class JefeController extends Controller
         
         // Obtener todas las inscripciones de pasantes en pasantías de esta empresa
         $inscripciones = Inscripcion::with(['pasante.user', 'pasantia'])
-            ->whereHas('pasantia', function($q) use ($empresa) {
-                $q->where('id_empresa', $empresa->id_empresa)
-                  ->whereNotIn('estado', ['CANCELADO','FINALIZADO']); // Solo pasantías abiertas o iniciadas
-            })
+            ->join('pasantia', 'inscripcion.id_pasantia', '=', 'pasantia.id_pasantia')
+            ->where('pasantia.id_empresa', $empresa->id_empresa)
+            ->whereIn('pasantia.estado', ['ABIERTA', 'INICIADO'])
+            ->select('inscripcion.*')
             ->get();
-        
+            
         $pasantesAsignados = [];
         $pasantesSinAsignar = [];
         
@@ -193,8 +193,8 @@ class JefeController extends Controller
                 'pasantia_id' => $inscripcion->pasantia->id_pasantia,
                 'pasantia_nombre' => $inscripcion->pasantia->nombre_pas,
                 'pasantia_estado' => $inscripcion->pasantia->estado,
-                'fecha_ini' => $inscripcion->pasantia->fecha_ini ? $inscripcion->pasantia->fecha_ini->format('Y-m-d') : null,
-                'fecha_fin' => $inscripcion->pasantia->fecha_fin ? $inscripcion->pasantia->fecha_fin->format('Y-m-d') : null,
+                'fecha_ini' => $inscripcion->pasantia->fecha_ini ? \Carbon\Carbon::parse($inscripcion->pasantia->fecha_ini)->format('Y-m-d') : null,
+                'fecha_fin' => $inscripcion->pasantia->fecha_fin ? \Carbon\Carbon::parse($inscripcion->pasantia->fecha_fin)->format('Y-m-d') : null,
                 'jefe_asignado_id' => $inscripcion->idU_jefe,
             ];
             
@@ -236,7 +236,8 @@ class JefeController extends Controller
         // Buscar la inscripción del pasante
         $inscripcion = Inscripcion::where('idU_pasante', $request->idPasante)
             ->whereHas('pasantia', function($q) use ($empresa) {
-                $q->where('id_empresa', $empresa->id_empresa);
+                $q->where('id_empresa', $empresa->id_empresa)
+                ->whereIn('estado', ['ABIERTA', 'INICIADO']);
             })
             ->first();
         
@@ -245,8 +246,10 @@ class JefeController extends Controller
         }
         
         // Verificar que la pasantía permite asignaciones (no FINALIZADO ni CANCELADO)
-        if (in_array($inscripcion->pasantia->estado, ['FINALIZADO', 'CANCELADO'])) {
-            return response()->json(['message' => 'No se puede asignar. La pasantía está ' . $inscripcion->pasantia->estado], 400);
+        if (!in_array($inscripcion->pasantia->estado, ['ABIERTA', 'INICIADO'])) {
+            return response()->json([
+                'message' => 'No se puede asignar. La pasantía está ' . $inscripcion->pasantia->estado
+            ], 400);
         }
         
         if ($request->accion == 'asignar') {

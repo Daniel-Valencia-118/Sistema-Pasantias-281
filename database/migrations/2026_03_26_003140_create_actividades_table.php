@@ -21,7 +21,7 @@ return new class extends Migration
         });
 
         // Agregar CHECK constraint después de crear la tabla
-        DB::statement("ALTER TABLE actividad ADD CONSTRAINT check_tipo_actividad CHECK (tipo IN ('colectiva', 'individual'))");
+        //DB::statement("ALTER TABLE actividad ADD CONSTRAINT check_tipo_actividad CHECK (tipo IN ('colectiva', 'individual'))");
         DB::statement('ALTER TABLE actividad ADD CONSTRAINT check_fechas_actividad CHECK (fecha_fin >= fecha_ini)');
     }
 

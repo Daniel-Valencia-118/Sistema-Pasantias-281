@@ -10,6 +10,7 @@ use Inertia\Inertia;
 
 class PerfilController extends Controller
 {
+    // Vista de perfil (datos personales)
     public function index()
     {
         $user = Auth::user();
@@ -18,15 +19,13 @@ class PerfilController extends Controller
         return Inertia::render('Gerente/Perfil/Index', [
             'user' => [
                 'id' => $user->idUser,
-                'nombre_user' => $user->nombre_user,
                 'nombre' => $user->nombre,
                 'ap_paterno' => $user->ap_paterno,
                 'ap_materno' => $user->ap_materno,
-                'correo' => $user->correo,
-                'numero_cel' => $user->numero_cel,
                 'ci' => $user->ci,
-                'fecha_nac' => $user->fecha_nac,
-                'estado_cuenta' => $user->estado_cuenta,
+                'numero_cel' => $user->numero_cel,
+                'correo' => $user->correo,
+                'fecha_nac' => $user->fecha_nac ? $user->fecha_nac->format('Y-m-d') : null,
             ],
             'gerente' => [
                 'nro_secun' => $gerente->nro_secun ?? null,
@@ -34,43 +33,36 @@ class PerfilController extends Controller
         ]);
     }
 
+    // Actualizar datos personales (sin contraseña)
     public function update(Request $request)
     {
         $user = Auth::user();
         
         $request->validate([
-            'nombre_user' => 'sometimes|string|unique:usuario,nombre_user,' . $user->idUser . ',idUser',
-            'nombre' => 'sometimes|string',
-            'ap_paterno' => 'sometimes|string',
-            'ap_materno' => 'sometimes|string',
-            'correo' => 'sometimes|email|unique:usuario,correo,' . $user->idUser . ',idUser',
-            'numero_cel' => 'sometimes|string',
-            'ci' => 'sometimes|string|unique:usuario,ci,' . $user->idUser . ',idUser',
-            'fecha_nac' => 'sometimes|date',
-            'nro_secun' => 'nullable|string',
-            'password' => 'nullable|string|min:6',
-            'password_confirmation' => 'nullable|same:password',
+            'nombre' => 'required|string|max:255',
+            'ap_paterno' => 'required|string|max:255',
+            'ap_materno' => 'required|string|max:255',
+            'ci' => 'required|string|max:20|unique:usuario,ci,' . $user->idUser . ',idUser',
+            'numero_cel' => 'required|string|max:20',
+            'correo' => 'required|email|max:255|unique:usuario,correo,' . $user->idUser . ',idUser',
+            'fecha_nac' => 'required|date',
+            'nro_secun' => 'nullable|string|max:20',
         ]);
 
-        // Actualizar datos del usuario
-        $userData = $request->only([
-            'nombre_user', 'nombre', 'ap_paterno', 'ap_materno',
-            'correo', 'numero_cel', 'ci', 'fecha_nac'
+        $user->update([
+            'nombre' => $request->nombre,
+            'ap_paterno' => $request->ap_paterno,
+            'ap_materno' => $request->ap_materno,
+            'ci' => $request->ci,
+            'numero_cel' => $request->numero_cel,
+            'correo' => $request->correo,
+            'fecha_nac' => $request->fecha_nac,
         ]);
-        
-        if ($request->filled('password')) {
-            $userData['password'] = Hash::make($request->password);
-        }
-        
-        $user->update($userData);
-        
-        // Actualizar datos del gerente
-        if ($request->has('nro_secun')) {
-            $user->gerente->update([
-                'nro_secun' => $request->nro_secun
-            ]);
-        }
-        
+
+        $user->gerente->update([
+            'nro_secun' => $request->nro_secun,
+        ]);
+
         return redirect()->back()->with('success', 'Perfil actualizado correctamente.');
     }
 }

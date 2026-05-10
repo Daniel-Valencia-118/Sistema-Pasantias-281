@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { GraduationCap } from "lucide-react";
 import {
     X,
     User,
@@ -20,6 +21,7 @@ export default function ModalPerfil({
     onClose,
     usuario,
     tipo,
+    readOnly,
     onUpdate,
 }) {
     const [isEditing, setIsEditing] = useState(false);
@@ -168,7 +170,7 @@ export default function ModalPerfil({
                                         size={18}
                                         className="text-primary-blue"
                                     />
-                                    Datos Personales
+                                    Nombre Completo
                                 </h4>
                                 <div className="grid md:grid-cols-3 gap-4">
                                     <div>
@@ -212,6 +214,99 @@ export default function ModalPerfil({
                                     </div>
                                 </div>
                             </div>
+                            {/* Datos Académicos (solo para pasante) */}
+                            {tipo === "pasante" && (
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                    <h4 className="font-semibold text-primary-navy mb-4 flex items-center gap-2 border-b pb-2">
+                                        <GraduationCap
+                                            size={18}
+                                            className="text-primary-blue"
+                                        />
+                                        Datos Académicos
+                                    </h4>
+                                    <div className="grid md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                Semestre
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={
+                                                    displayData.semestre || "-"
+                                                }
+                                                disabled
+                                                className="w-full rounded-lg border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-700 cursor-not-allowed"
+                                            />
+                                        </div>
+                                        <div className="md:col-span-1">
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                Mención
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={
+                                                    displayData.mencion || "-"
+                                                }
+                                                disabled
+                                                className="w-full rounded-lg border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-700 cursor-not-allowed"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                Matrícula
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={
+                                                    displayData.matricula || "-"
+                                                }
+                                                disabled
+                                                className="w-full rounded-lg border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-700 cursor-not-allowed"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {/* Datos laborales (solo para jefe) */}
+                            {tipo === "jefe" && (
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                    <h4 className="font-semibold text-primary-navy mb-4 flex items-center gap-2 border-b pb-2">
+                                        <Briefcase
+                                            size={18}
+                                            className="text-primary-blue"
+                                        />
+                                        Datos Laborales
+                                    </h4>
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                Área de Trabajo
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="area"
+                                                value={displayData.area || ""}
+                                                onChange={handleChange}
+                                                disabled={!isEditing}
+                                                className="w-full rounded-lg border-gray-200 px-3 py-2 text-sm focus:border-primary-blue focus:ring-1 focus:ring-primary-blue/20 disabled:bg-gray-100 disabled:text-gray-500 transition-all cursor-pointer"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                Cargo
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="cargo"
+                                                value={displayData.cargo || ""}
+                                                onChange={handleChange}
+                                                disabled={!isEditing}
+                                                className="w-full rounded-lg border-gray-200 px-3 py-2 text-sm focus:border-primary-blue focus:ring-1 focus:ring-primary-blue/20 disabled:bg-gray-100 disabled:text-gray-500 transition-all cursor-pointer"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Documentos y contacto */}
                             <div className="bg-gray-50 rounded-lg p-4">
@@ -225,7 +320,7 @@ export default function ModalPerfil({
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-medium text-gray-500 mb-1">
-                                            Carnet de Identidad
+                                            CI
                                         </label>
                                         <input
                                             type="text"
@@ -278,25 +373,28 @@ export default function ModalPerfil({
                                 </div>
                             </div>
 
-                            {/* Datos laborales (solo para jefe) */}
-                            {tipo === "jefe" && (
+                            {/* Datos de cuenta - SOLO si NO es readonly */}
+                            {!readOnly && (
                                 <div className="bg-gray-50 rounded-lg p-4">
                                     <h4 className="font-semibold text-primary-navy mb-4 flex items-center gap-2 border-b pb-2">
-                                        <Briefcase
+                                        <Mail
                                             size={18}
                                             className="text-primary-blue"
                                         />
-                                        Datos Laborales
+                                        Datos de Cuenta
                                     </h4>
                                     <div className="grid md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-500 mb-1">
-                                                Área de Trabajo
+                                                Nombre de Usuario
                                             </label>
                                             <input
                                                 type="text"
-                                                name="area"
-                                                value={displayData.area || ""}
+                                                name="nombre_user"
+                                                value={
+                                                    displayData.nombre_user ||
+                                                    ""
+                                                }
                                                 onChange={handleChange}
                                                 disabled={!isEditing}
                                                 className="w-full rounded-lg border-gray-200 px-3 py-2 text-sm focus:border-primary-blue focus:ring-1 focus:ring-primary-blue/20 disabled:bg-gray-100 disabled:text-gray-500 transition-all cursor-pointer"
@@ -304,62 +402,23 @@ export default function ModalPerfil({
                                         </div>
                                         <div>
                                             <label className="block text-xs font-medium text-gray-500 mb-1">
-                                                Cargo
+                                                Fecha de Registro
                                             </label>
                                             <input
                                                 type="text"
-                                                name="cargo"
-                                                value={displayData.cargo || ""}
-                                                onChange={handleChange}
-                                                disabled={!isEditing}
-                                                className="w-full rounded-lg border-gray-200 px-3 py-2 text-sm focus:border-primary-blue focus:ring-1 focus:ring-primary-blue/20 disabled:bg-gray-100 disabled:text-gray-500 transition-all cursor-pointer"
+                                                value={
+                                                    usuario.fecha_registro || ""
+                                                }
+                                                disabled
+                                                className="w-full rounded-lg border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500 cursor-not-allowed"
                                             />
                                         </div>
                                     </div>
                                 </div>
                             )}
 
-                            {/* Datos de cuenta */}
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <h4 className="font-semibold text-primary-navy mb-4 flex items-center gap-2 border-b pb-2">
-                                    <Mail
-                                        size={18}
-                                        className="text-primary-blue"
-                                    />
-                                    Datos de Cuenta
-                                </h4>
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">
-                                            Nombre de Usuario
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="nombre_user"
-                                            value={
-                                                displayData.nombre_user || ""
-                                            }
-                                            onChange={handleChange}
-                                            disabled={!isEditing}
-                                            className="w-full rounded-lg border-gray-200 px-3 py-2 text-sm focus:border-primary-blue focus:ring-1 focus:ring-primary-blue/20 disabled:bg-gray-100 disabled:text-gray-500 transition-all cursor-pointer"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-500 mb-1">
-                                            Fecha de Registro
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={usuario.fecha_registro || ""}
-                                            disabled
-                                            className="w-full rounded-lg border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500 cursor-not-allowed"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Cambio de contraseña (solo edición) */}
-                            {isEditing && tipo === "jefe" && (
+                            {/* Cambio de contraseña - SOLO si NO es readonly y está en edición */}
+                            {!readOnly && isEditing && tipo === "jefe" && (
                                 <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                                     <h4 className="font-semibold text-yellow-800 mb-4 flex items-center gap-2">
                                         <Key size={18} />
@@ -398,39 +457,41 @@ export default function ModalPerfil({
                             )}
                         </div>
 
-                        {/* Botones de acción */}
-                        <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-                            {!isEditing ? (
-                                <button
-                                    type="button"
-                                    onClick={() => setIsEditing(true)}
-                                    className="flex items-center gap-2 bg-primary-blue text-white px-5 py-2.5 rounded-lg hover:bg-primary-sky-blue transition-all cursor-pointer shadow-sm hover:shadow-md"
-                                >
-                                    <Edit size={18} />
-                                    Editar Perfil
-                                </button>
-                            ) : (
-                                <>
+                        {/* Botones de acción - SOLO si NO es readonly */}
+                        {!readOnly && (
+                            <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+                                {!isEditing ? (
                                     <button
                                         type="button"
-                                        onClick={handleCancelEdit}
-                                        className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
+                                        onClick={() => setIsEditing(true)}
+                                        className="flex items-center gap-2 bg-primary-blue text-white px-5 py-2.5 rounded-lg hover:bg-primary-sky-blue transition-all cursor-pointer shadow-sm hover:shadow-md"
                                     >
-                                        Cancelar
+                                        <Edit size={18} />
+                                        Editar Perfil
                                     </button>
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 transition-all cursor-pointer disabled:opacity-50 shadow-sm hover:shadow-md"
-                                    >
-                                        <Save size={18} />
-                                        {loading
-                                            ? "Guardando..."
-                                            : "Guardar cambios"}
-                                    </button>
-                                </>
-                            )}
-                        </div>
+                                ) : (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={handleCancelEdit}
+                                            className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 transition-all cursor-pointer disabled:opacity-50 shadow-sm hover:shadow-md"
+                                        >
+                                            <Save size={18} />
+                                            {loading
+                                                ? "Guardando..."
+                                                : "Guardar cambios"}
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </form>
                 </div>
             </div>
