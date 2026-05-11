@@ -1,10 +1,13 @@
 import React, { useState, useMemo } from "react";
 import { Head, router } from "@inertiajs/react";
+import { Flag } from "lucide-react";
+import ModalConfirmacion from "@/Components/Common/ModalConfirmacion";
 import GerenteLayout from "@/Components/Layout/GerenteLayout";
 import ModalDetallesPasantia from "@/Components/Common/ModalDetallesPasantia";
 import ModalActividadesPasantia from "@/Components/Common/ModalActividadesPasantia";
 import ModalInscritosActivos from "@/Components/Common/ModalInscritosActivos";
 import BadgeFecha from "@/Components/Common/BadgeFecha";
+import axios from "axios";
 import {
     Eye,
     Calendar,
@@ -22,6 +25,12 @@ export default function Activas({ auth, pasantias }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [sortField, setSortField] = useState("fecha_ini");
     const [sortDirection, setSortDirection] = useState("asc");
+    const [modalFinalizar, setModalFinalizar] = useState({
+        isOpen: false,
+        pasantiaId: null,
+        infoFin: null,
+    });
+    const [loadingFinalizar, setLoadingFinalizar] = useState(false);
     const [modalDetalles, setModalDetalles] = useState({
         isOpen: false,
         pasantia: null,
@@ -47,7 +56,21 @@ export default function Activas({ auth, pasantias }) {
             setSortDirection("asc");
         }
     };
-
+    // Función para obtener info de fin
+    const handleAbrirConfirmacionFin = async (pasantiaId) => {
+        try {
+            const response = await axios.get(
+                `/gerente/pasantias-activas/${pasantiaId}/info-fin`,
+            );
+            setModalFinalizar({
+                isOpen: true,
+                pasantiaId: pasantiaId,
+                infoFin: response.data,
+            });
+        } catch (error) {
+            alert("Error al verificar condiciones");
+        }
+    };
     const SortIcon = ({ field }) => {
         if (sortField !== field)
             return <ArrowUpDown size={14} className="text-gray-400" />;
@@ -57,7 +80,41 @@ export default function Activas({ auth, pasantias }) {
             <ChevronDown size={14} />
         );
     };
-
+    // Función para finalizar
+    const handleFinalizarPasantia = async () => {
+        setLoadingFinalizar(true);
+        try {
+            const response = await axios.patch(
+                `/gerente/pasantias-activas/${modalFinalizar.pasantiaId}/finalizar`,
+            );
+            if (response.data.message) {
+                window.location.reload();
+            }
+        } catch (error) {
+            alert(
+                error.response?.data?.message ||
+                    "Error al finalizar la pasantía",
+            );
+            setModalFinalizar({
+                isOpen: false,
+                pasantiaId: null,
+                infoFin: null,
+            });
+        } finally {
+            setLoadingFinalizar(false);
+        }
+    };
+    // Determinar el mensaje de confirmación para finalizar
+    const getMensajeFinalizacion = (infoFin) => {
+        if (!infoFin) return "";
+        if (infoFin.hay_inscripciones_no_finalizadas) {
+            return "Existen pasantes inscritos que aún no han finalizado su inscripción, ¿Desea finalizar la pasantía?";
+        }
+        if (infoFin.fecha_actual_es_menor) {
+            return `¿Finalizar a pesar de que faltan ${Math.round(infoFin.dias_restantes)} días para que termine la pasantía?`;
+        }
+        return "¿Desea finalizar la pasantía?";
+    };
     const filteredAndSortedData = useMemo(() => {
         let filtered = [...pasantiasData];
 
@@ -92,7 +149,6 @@ export default function Activas({ auth, pasantias }) {
     return (
         <GerenteLayout auth={auth}>
             <Head title="Pasantías Activas" />
-
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="bg-gradient-to-r from-primary-navy to-primary-slate px-6 py-4">
                     <h2 className="text-xl font-semibold text-white">
@@ -166,6 +222,9 @@ export default function Activas({ auth, pasantias }) {
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     Estado
+                                </th>
+                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                    Finalizar
                                 </th>
                             </tr>
                         </thead>
@@ -271,6 +330,20 @@ export default function Activas({ auth, pasantias }) {
                                             }
                                         })()}
                                     </td>
+
+                                    <td className="px-4 py-3 text-center">
+                                        <button
+                                            onClick={() =>
+                                                handleAbrirConfirmacionFin(
+                                                    pasantia.id,
+                                                )
+                                            }
+                                            className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-all cursor-pointer"
+                                            title="Finalizar pasantía"
+                                        >
+                                            <Flag size={18} />
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -283,7 +356,6 @@ export default function Activas({ auth, pasantias }) {
                     </div>
                 )}
             </div>
-
             {/* Modales reutilizables */}
             <ModalDetallesPasantia
                 isOpen={modalDetalles.isOpen}
@@ -292,7 +364,6 @@ export default function Activas({ auth, pasantias }) {
                 }
                 pasantia={modalDetalles.pasantia}
             />
-
             <ModalActividadesPasantia
                 isOpen={modalActividades.isOpen}
                 onClose={() =>
@@ -308,6 +379,26 @@ export default function Activas({ auth, pasantias }) {
                 onUpdate={() => {}}
             />
 
+            <ModalConfirmacion
+                isOpen={modalFinalizar.isOpen}
+                onClose={() =>
+                    setModalFinalizar({
+                        isOpen: false,
+                        pasantiaId: null,
+                        infoFin: null,
+                    })
+                }
+                onConfirm={handleFinalizarPasantia}
+                titulo="Finalizar Pasantía"
+                mensaje={getMensajeFinalizacion(modalFinalizar.infoFin)}
+                type={
+                    modalFinalizar.infoFin?.hay_inscripciones_no_finalizadas
+                        ? "warning"
+                        : "info"
+                }
+                confirmText="Finalizar"
+                loading={loadingFinalizar}
+            />
             <ModalInscritosActivos
                 isOpen={modalInscritos.isOpen}
                 onClose={() =>

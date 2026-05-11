@@ -141,4 +141,94 @@ class PasantiaActivaController extends Controller
         $hasEvaluaciones = BitacoraEva::where('id_actividad', $idActividad)->exists();
         return response()->json(['hasEvaluaciones' => $hasEvaluaciones]);
     }
+
+    // Agrega este método
+    public function finalizarPasantia($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        // Verificar que la pasantía pertenece a la empresa
+        $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->where('id_pasantia', $id)
+            ->firstOrFail();
+        
+        // Verificar que está en estado INICIADO
+        if ($pasantia->estado !== 'INICIADO') {
+            return response()->json(['message' => 'La pasantía no está en estado INICIADO'], 400);
+        }
+        
+        $inscritos = $pasantia->inscripciones;
+        
+        // Condición: Todos los inscritos tienen jefe asignado
+        $sinJefe = $inscritos->filter(function($inscripcion) {
+            return $inscripcion->idU_jefe === null;
+        });
+        
+        if ($sinJefe->count() > 0) {
+            return response()->json(['message' => 'Existen pasantes sin tener un jefe de pasante asignado'], 400);
+        }
+        
+        // Verificar si hay inscripciones que no están en estado 'finalizado'
+        $inscripcionesNoFinalizadas = $inscritos->filter(function($inscripcion) {
+            return $inscripcion->estado !== 'finalizado';
+        });
+        
+        $hayInscripcionesNoFinalizadas = $inscripcionesNoFinalizadas->count() > 0;
+        
+        // Cambiar estado de la pasantía a FINALIZADO
+        $pasantia->update(['estado' => 'FINALIZADO']);
+        
+        return response()->json(['message' => 'Pasantía finalizada correctamente']);
+    }
+
+    // Método auxiliar para obtener información de fechas
+    public function getInfoInicio($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->where('id_pasantia', $id)
+            ->firstOrFail();
+        
+        $fechaActual = now();
+        $fechaInicio = \Carbon\Carbon::parse($pasantia->fecha_ini);
+        $diasDiferencia = $fechaActual->diffInDays($fechaInicio, false);
+        
+        return response()->json([
+            'fecha_actual' => $fechaActual->toDateString(),
+            'fecha_inicio' => $pasantia->fecha_ini,
+            'dias_restantes' => max(0, $diasDiferencia),
+            'fecha_actual_es_menor' => $fechaActual->lt($fechaInicio)
+        ]);
+    }
+
+    public function getInfoFin($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->where('id_pasantia', $id)
+            ->firstOrFail();
+        
+        $inscritos = $pasantia->inscripciones;
+        $hayInscripcionesNoFinalizadas = $inscritos->filter(function($inscripcion) {
+            return $inscripcion->estado !== 'finalizado';
+        })->count() > 0;
+        
+        $fechaActual = now();
+        $fechaFin = \Carbon\Carbon::parse($pasantia->fecha_fin);
+        $diasDiferencia = $fechaActual->diffInDays($fechaFin, false);
+        
+        return response()->json([
+            'fecha_actual' => $fechaActual->toDateString(),
+            'fecha_fin' => $pasantia->fecha_fin,
+            'dias_restantes' => max(0, $diasDiferencia),
+            'fecha_actual_es_menor' => $fechaActual->lt($fechaFin),
+            'hay_inscripciones_no_finalizadas' => $hayInscripcionesNoFinalizadas
+        ]);
+    } 
+    
 }

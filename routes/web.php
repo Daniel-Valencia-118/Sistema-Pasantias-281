@@ -135,6 +135,25 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         Route::put('/gerente/cuenta', [App\Http\Controllers\Gerente\CuentaController::class, 'update'])->name('gerente.cuenta.update');
 
         Route::get('/gerente/estadisticas', [App\Http\Controllers\Gerente\EstadisticaController::class, 'index'])->name('gerente.estadisticas');
+
+        // Iniciar pasantía (desde Pasantías Publicadas)
+        Route::patch('/gerente/pasantias/{id}/iniciar', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'iniciarPasantia'])->name('gerente.pasantias.iniciar');
+        Route::get('/gerente/pasantias/{id}/info-inicio', [App\Http\Controllers\Gerente\PasantiaActivaController::class, 'getInfoInicio'])->name('gerente.pasantias.info-inicio');
+
+        // Finalizar pasantía (desde Pasantías Activas)
+        Route::patch('/gerente/pasantias-activas/{id}/finalizar', [App\Http\Controllers\Gerente\PasantiaActivaController::class, 'finalizarPasantia'])->name('gerente.pasantias-activas.finalizar');
+        Route::get('/gerente/pasantias-activas/{id}/info-fin', [App\Http\Controllers\Gerente\PasantiaActivaController::class, 'getInfoFin'])->name('gerente.pasantias-activas.info-fin');
+
 });
 
 
+// ROL PASANTE
+Route::middleware(['auth', 'role:pasante'])->group(function () {
+    Route::get('/pasante', function () {
+        return Inertia::render('Pasante/Dashboard');
+    })->name('pasante.dashboard');
+
+    //---------> not id
+
+    //------> id
+});

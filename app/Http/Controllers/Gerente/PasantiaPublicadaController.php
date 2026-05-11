@@ -319,4 +319,51 @@ class PasantiaPublicadaController extends Controller
     }    
 
 
+    // Agrega este método
+    public function iniciarPasantia($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        // Verificar que la pasantía pertenece a la empresa
+        $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->where('id_pasantia', $id)
+            ->firstOrFail();
+        
+        // Verificar que está en estado ABIERTA
+        if ($pasantia->estado !== 'ABIERTA') {
+            return response()->json(['message' => 'La pasantía no está en estado ABIERTA'], 400);
+        }
+        
+        $inscritos = $pasantia->inscripciones;
+        $inscritosCount = $inscritos->count();
+        $cuposDisponibles = $pasantia-> cupos - $inscritosCount;
+        
+        // Condición 1: Cupos disponibles = 0
+        if ($cuposDisponibles > 0) {
+            return response()->json(['message' => 'Faltan cupos por llenar'], 400);
+        }
+        
+        // Condición 2: Al menos 1 inscrito
+        if ($inscritosCount === 0) {
+            return response()->json(['message' => 'Debe existir al menos 1 inscrito'], 400);
+        }
+        
+        // Condición 3: Todos los inscritos tienen jefe asignado
+        $sinJefe = $inscritos->filter(function($inscripcion) {
+            return $inscripcion->idU_jefe === null;
+        });
+        
+        if ($sinJefe->count() > 0) {
+            return response()->json(['message' => 'Existen pasantes sin tener un jefe de pasante asignado'], 400);
+        }
+        
+        // Cambiar estado de la pasantía a INICIADO
+        $pasantia->update(['estado' => 'INICIADO']);
+        
+        // Opcional: Actualizar estados de inscripción a 'iniciado'
+        // (Esto lo hará el rol JEFE más adelante, por ahora no)
+        
+        return response()->json(['message' => 'Pasantía iniciada correctamente']);
+    }    
 }
