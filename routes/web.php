@@ -162,8 +162,10 @@ Route::middleware(['auth', 'role:pasante'])->group(function () {
     
     Route::get('/pasante/inscribirse', [App\Http\Controllers\Pasante\InscripcionController::class, 'index'])->name('pasante.inscribirse');
     
+    Route::get('/pasante/inscripciones/activas', [App\Http\Controllers\Pasante\InscripcionController::class, 'pasantiasInscritas'])->name('pasante.inscripciones.activas');
     //------> id
     Route::post('/pasante/inscribirse/{id}', [App\Http\Controllers\Pasante\InscripcionController::class, 'store'])->name('pasante.inscribirse.store');
-
+    
+    Route::get('/pasante/inscripciones/{id}/companeros', [App\Http\Controllers\Pasante\InscripcionController::class, 'getCompaneros'])->name('pasante.inscripciones.companeros');
    
 });

@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Pasantia;
 use App\Models\Inscripcion;
 use App\Models\Actividad;
+use App\Models\User;
+use App\Models\JefePas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -215,4 +217,221 @@ class InscripcionController extends Controller
             ], 500);
         }
     }
+
+    // =============================================
+    // MÉTODO DE SINCRONIZACIÓN DE ESTADOS (REUTILIZABLE)
+    // =============================================
+    /**
+     * Sincroniza los estados de las inscripciones según el estado de la pasantía
+     * 
+     * Reglas:
+     * - Si Pasantía.estado === 'ABIERTA' y Inscripcion.estado != 'inscrito' → actualiza a 'inscrito'
+     * - Si Pasantía.estado === 'INICIADO' y Inscripcion.estado != 'iniciado' → actualiza a 'iniciado'
+     * - Si Pasantía.estado === 'FINALIZADO' y Inscripcion.estado === 'inscrito' → actualiza a 'iniciado'
+     * 
+     * @param \Illuminate\Database\Eloquent\Collection $inscripciones
+     * @return \Illuminate\Database\Eloquent\Collection (inscripciones actualizadas)
+     */
+    private function sincronizarEstadosInscripciones($inscripciones)
+    {
+        foreach ($inscripciones as $inscripcion) {
+            $estadoPasantia = $inscripcion->pasantia->estado;
+            $estadoInscripcion = $inscripcion->estado;
+            $actualizado = false;
+            
+            // Regla 1: Si la pasantía está ABIERTA, la inscripción debe estar 'inscrito'
+            if ($estadoPasantia === 'ABIERTA' && $estadoInscripcion !== 'inscrito') {
+                $inscripcion->estado = 'inscrito';
+                $actualizado = true;
+            }
+            
+            // Regla 2: Si la pasantía está INICIADO, la inscripción debe estar 'iniciado'
+            if ($estadoPasantia === 'INICIADO' && $estadoInscripcion !== 'iniciado') {
+                $inscripcion->estado = 'iniciado';
+                $actualizado = true;
+            }
+            
+            // Regla 3: Si la pasantía está FINALIZADO y la inscripción está 'inscrito', pasa a 'iniciado'
+            if ($estadoPasantia === 'FINALIZADO' && $estadoInscripcion === 'inscrito') {
+                $inscripcion->estado = 'iniciado';
+                $actualizado = true;
+            }
+            
+            // Guardar cambios si es necesario
+            if ($actualizado) {
+                $inscripcion->save();
+            }
+        }
+        
+        // Refrescar la colección con los datos actualizados
+        return $inscripciones->fresh();
+    }    
+
+// =============================================
+    // PASANTÍAS INSCRITAS (inscrito o iniciado)
+    // =============================================
+    public function pasantiasInscritas()
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        // Obtener todas las inscripciones del pasante con sus relaciones
+        $inscripciones = Inscripcion::with([
+            'pasantia.empresa.gerente.user',
+            'pasantia.actividades',
+            'jefe.user'
+        ])
+        ->where('idU_pasante', $pasante->idU_pasante)
+        ->get();
+        
+        // =============================================
+        // SINCRONIZAR ESTADOS (llamada al método reutilizable)
+        // =============================================
+        $inscripciones = $this->sincronizarEstadosInscripciones($inscripciones);
+        
+        // Filtrar solo las que están en estado 'inscrito' o 'iniciado'
+        $inscripciones = $inscripciones->filter(function($inscripcion) {
+            return in_array($inscripcion->estado, ['inscrito', 'iniciado']);
+        });
+        
+        // Formatear los datos para la vista
+        $data = $inscripciones->map(function($inscripcion) use ($pasante) {
+            $pasantia = $inscripcion->pasantia;
+            $jefe = $inscripcion->jefe;
+            
+            // Calcular cupos disponibles reales
+            $inscritosActivos = $pasantia->inscripciones()
+                ->whereIn('estado', ['inscrito', 'activo'])
+                ->count();
+            $cuposDisponibles = max(0, $pasantia->cupos - $inscritosActivos);
+            
+            // Total de inscritos (activos + inscritos)
+            $totalInscritos = $pasantia->inscripciones()
+                ->whereIn('estado', ['inscrito', 'activo', 'iniciado'])
+                ->count();
+            
+            // Actividades ordenadas
+            $actividades = $pasantia->actividades
+                ->sortBy([
+                    ['fecha_ini', 'asc'],
+                    ['fecha_fin', 'asc']
+                ])
+                ->values()
+                ->map(function($actividad) {
+                    return [
+                        'id' => $actividad->id_actividad,
+                        'nombre_act' => $actividad->nombre_act,
+                        'tipo' => $actividad->tipo,
+                        'descripcion' => $actividad->descripcion,
+                        'fecha_ini' => $actividad->fecha_ini,
+                        'fecha_fin' => $actividad->fecha_fin,
+                    ];
+                });
+            
+            // Nombre del gerente
+            $gerenteNombre = '';
+            if ($pasantia->empresa && $pasantia->empresa->gerente && $pasantia->empresa->gerente->user) {
+                $gerente = $pasantia->empresa->gerente->user;
+                $gerenteNombre = $gerente->nombre . ' ' . $gerente->ap_paterno . ' ' . ($gerente->ap_materno ?? '');
+            }
+            
+            // Datos del jefe asignado
+            $jefeData = null;
+            if ($jefe && $jefe->user) {
+                $jefeData = [
+                    'id' => $jefe->idU_jefe,
+                    'nombre' => $jefe->user->nombre,
+                    'ap_paterno' => $jefe->user->ap_paterno,
+                    'ap_materno' => $jefe->user->ap_materno ?? '',
+                ];
+            }
+            
+            return [
+                'id_inscripcion' => $inscripcion->id_inscripcion,
+                'estado_inscripcion' => $inscripcion->estado,
+                'pasantia' => [
+                    'id' => $pasantia->id_pasantia,
+                    'nombre' => $pasantia->nombre_pas,
+                    'mencion' => $pasantia->mencion,
+                    'turno' => $pasantia->turno,
+                    'carga_horaria' => $pasantia->carga_horaria,
+                    'fecha_ini' => $pasantia->fecha_ini,
+                    'fecha_fin' => $pasantia->fecha_fin,
+                    'cupos_disponibles' => $cuposDisponibles,
+                    'total_inscritos' => $totalInscritos,
+                    'actividades' => $actividades,
+                    'empresa' => [
+                        'id' => $pasantia->empresa->id_empresa,
+                        'nombre' => $pasantia->empresa->nombre,
+                        'nit' => $pasantia->empresa->nit,
+                        'direccion' => $pasantia->empresa->direccion,
+                        'telefono' => $pasantia->empresa->telefono,
+                        'email' => $pasantia->empresa->email,
+                        'gerente_nombre' => $gerenteNombre,
+                    ],
+                ],
+                'jefe_asignado' => $jefeData,
+            ];
+        });
+        
+        return Inertia::render('Pasante/Inscripciones/Activas', [
+            'inscripciones' => $data->sortBy('pasantia.nombre')->values(),
+        ]);
+    }
+    
+    
+    // =============================================
+    // OBTENER COMPAÑEROS DE UNA PASANTÍA
+    // =============================================
+    public function getCompaneros($idPasantia)
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        // Verificar que el pasante está inscrito en esta pasantía
+        $inscripcion = Inscripcion::where('idU_pasante', $pasante->idU_pasante)
+            ->where('id_pasantia', $idPasantia)
+            ->firstOrFail();
+        
+        // Obtener todas las inscripciones de esta pasantía
+        $inscripciones = Inscripcion::with(['pasante.user', 'jefe.user'])
+            ->where('id_pasantia', $idPasantia)
+            ->whereIn('estado', ['inscrito', 'activo', 'iniciado'])
+            ->get();
+        
+        $companeros = $inscripciones->map(function($insc) use ($pasante) {
+            $pasanteData = $insc->pasante;
+            $esYo = ($pasanteData->idU_pasante === $pasante->idU_pasante);
+            
+            $jefeData = null;
+            if ($insc->jefe && $insc->jefe->user) {
+                $jefeData = $insc->jefe->user->ap_paterno . ' ' . 
+                           ($insc->jefe->user->ap_materno ?? '') . ' ' . 
+                           $insc->jefe->user->nombre;
+            }
+            
+            return [
+                'id' => $pasanteData->idU_pasante,
+                'ap_paterno' => $pasanteData->user->ap_paterno,
+                'ap_materno' => $pasanteData->user->ap_materno ?? '',
+                'nombre' => $pasanteData->user->nombre,
+                'es_yo' => $esYo,
+                'jefe_nombre' => $jefeData ?? 'No Asignado',
+            ];
+        });
+        
+        // Ordenar por apellido paterno (A-Z)
+        $companeros = $companeros->sortBy('ap_paterno')->values();
+        
+        // Obtener la pasantía para el título del modal
+        $pasantia = Pasantia::findOrFail($idPasantia);
+        
+        return response()->json([
+            'pasantia_nombre' => $pasantia->nombre_pas,
+            'companeros' => $companeros,
+        ]);
+    }
+
+
+
 }

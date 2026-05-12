@@ -52,6 +52,8 @@ export default function Inscribirse({
         isOpen: false,
         turno: null,
         cargaHoraria: null,
+        fechaIni: null,
+        fechaFin: null,
     });
     const [modalActividades, setModalActividades] = useState({
         isOpen: false,
@@ -412,6 +414,10 @@ export default function Inscribirse({
                                                         turno: pasantia.turno,
                                                         cargaHoraria:
                                                             pasantia.carga_horaria,
+                                                        fechaIni:
+                                                            pasantia.fecha_ini,
+                                                        fechaFin:
+                                                            pasantia.fecha_fin,
                                                     })
                                                 }
                                                 className="text-primary-blue hover:text-primary-sky-blue"
@@ -504,10 +510,14 @@ export default function Inscribirse({
                         isOpen: false,
                         turno: null,
                         cargaHoraria: null,
+                        fechaIni: null,
+                        fechaFin: null,
                     })
                 }
                 turno={modalHorario.turno}
                 cargaHoraria={modalHorario.cargaHoraria}
+                fechaIni={modalHorario.fechaIni}
+                fechaFin={modalHorario.fechaFin}
             />
 
             <ModalActividadesPasante
