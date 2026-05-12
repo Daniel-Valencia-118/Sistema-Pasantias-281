@@ -154,6 +154,16 @@ Route::middleware(['auth', 'role:pasante'])->group(function () {
     })->name('pasante.dashboard');
 
     //---------> not id
-
+    Route::get('/pasante/perfil', [App\Http\Controllers\Pasante\PerfilController::class, 'perfil'])->name('pasante.perfil');
+    Route::put('/pasante/perfil', [App\Http\Controllers\Pasante\PerfilController::class, 'updatePerfil'])->name('pasante.perfil.update');
+    Route::get('/pasante/cuenta', [App\Http\Controllers\Pasante\PerfilController::class, 'cuenta'])->name('pasante.cuenta');
+    Route::put('/pasante/cuenta', [App\Http\Controllers\Pasante\PerfilController::class, 'updateCuenta'])->name('pasante.cuenta.update');
+    Route::put('/pasante/password', [App\Http\Controllers\Pasante\PerfilController::class, 'updatePassword'])->name('pasante.password.update');
+    
+    Route::get('/pasante/inscribirse', [App\Http\Controllers\Pasante\InscripcionController::class, 'index'])->name('pasante.inscribirse');
+    
     //------> id
+    Route::post('/pasante/inscribirse/{id}', [App\Http\Controllers\Pasante\InscripcionController::class, 'store'])->name('pasante.inscribirse.store');
+
+   
 });
