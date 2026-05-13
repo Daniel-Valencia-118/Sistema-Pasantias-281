@@ -37,4 +37,9 @@ class JefePas extends Model
     {
         return $this->hasMany(BitacoraEva::class, 'idU_jefe', 'idU_jefe');
     }
+    // Comentarios de actividad (como jefe)
+    public function comentariosActividad()
+    {
+        return $this->hasMany(ComActividad::class, 'idU_jefe', 'idU_jefe');
+    }
 }

@@ -28,4 +28,23 @@ class Actividad extends Model
     {
         return $this->hasMany(BitacoraEva::class, 'id_actividad', 'id_actividad');
     }
+    // Agregar estas relaciones al modelo Actividad
+
+    // Comentarios de la actividad
+    public function comentarios()
+    {
+        return $this->hasMany(ComActividad::class, 'id_actividad', 'id_actividad');
+    }
+
+    // Progresos de la actividad
+    public function progresos()
+    {
+        return $this->hasMany(ProgresoAct::class, 'id_actividad', 'id_actividad');
+    }
+
+    // Autoevaluaciones de la actividad
+    public function autoevaluaciones()
+    {
+        return $this->hasMany(AutoEva::class, 'id_actividad', 'id_actividad');
+    }
 }
