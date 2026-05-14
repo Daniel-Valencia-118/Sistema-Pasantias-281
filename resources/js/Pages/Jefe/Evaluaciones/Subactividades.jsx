@@ -9,6 +9,10 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
+import TextArea from '@/Components/TextArea';
+// Select and SelectInput componentes
+import Select from '@/Components/Select';
+import SelectInput from '@/Components/SelectInput';
 import { PlusCircle, ClipboardList } from 'lucide-react';
 
 export default function Subactividades({ actividades = [], pasantes = [], auth }) {
@@ -19,6 +23,9 @@ export default function Subactividades({ actividades = [], pasantes = [], auth }
         id_actividad: '',
         descripcion: '',
     });
+
+    console.log(actividades);
+    
 
     const abrirAsignar = () => {
         reset();
@@ -72,7 +79,7 @@ export default function Subactividades({ actividades = [], pasantes = [], auth }
                 <form onSubmit={handleAsignar} className="space-y-4">
                     <div>
                         <InputLabel htmlFor="id_pasante" value="Pasante" />
-                        <select
+                        <SelectInput
                             id="id_pasante"
                             value={data.id_pasante}
                             onChange={e => setData('id_pasante', e.target.value)}
@@ -83,12 +90,12 @@ export default function Subactividades({ actividades = [], pasantes = [], auth }
                             {pasantes.map(p => (
                                 <option key={p.id} value={p.id}>{p.nombre}</option>
                             ))}
-                        </select>
+                        </SelectInput>
                         <InputError message={errors.id_pasante} />
                     </div>
                     <div>
                         <InputLabel htmlFor="id_actividad" value="Actividad" />
-                        <select
+                        <SelectInput
                             id="id_actividad"
                             value={data.id_actividad}
                             onChange={e => setData('id_actividad', e.target.value)}
@@ -99,12 +106,12 @@ export default function Subactividades({ actividades = [], pasantes = [], auth }
                             {actividades.map(a => (
                                 <option key={a.id} value={a.id}>{a.nombre} ({a.pasantia})</option>
                             ))}
-                        </select>
+                        </SelectInput>
                         <InputError message={errors.id_actividad} />
                     </div>
                     <div>
                         <InputLabel htmlFor="descripcion" value="Descripción de la actividad" />
-                        <textarea
+                        <TextArea
                             id="descripcion"
                             value={data.descripcion}
                             onChange={e => setData('descripcion', e.target.value)}

@@ -14,6 +14,13 @@ use App\Http\Controllers\Api\EmpresaController;
 use App\Http\Controllers\Api\GerenteController;
 use App\Http\Controllers\Api\JefeController;
 use App\Http\Controllers\Api\PasantiaController;
+use App\Http\Controllers\Api\ActividadController;
+use App\Http\Controllers\Api\BitacoraEvaController;
+use App\Http\Controllers\Api\InformeFinController;
+use App\Http\Controllers\Api\MensajeController;
+use App\Http\Controllers\Api\ComentarioController;
+use App\Http\Controllers\Admin\DashboardController;
+
 
 Route::get('auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('google.login');
 Route::get('auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
@@ -77,15 +84,24 @@ Route::post('/reset-password', [NewPasswordController::class, 'store'])
     ->name('password.update');
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    // Dashboard Admin
-    Route::get('/admin', [App\Http\Controllers\Admin\DashboardController::class, 'index'])
-        ->name('admin');
-    Route::get('/admin/alertas', [App\Http\Controllers\Admin\DashboardController::class, 'alertas'])
+    // Dashboard Admin y perfil
+    Route::get('/admin', [DashboardController::class, 'index'])
+        ->name('admin.dashboard');
+    Route::get('/admin/alertas', [DashboardController::class, 'alertas'])
         ->name('admin.alertas');
+    Route::get('/admin/perfil', [AdminController::class, 'perfil'])->name('admin.perfil');
+    Route::put('/admin/perfil', [AdminController::class, 'updatePerfil'])->name('admin.perfil.update');
 
-    // Usuarios
+    // Listar, crear y actualizar Usuarios 
     Route::get('/admin/usuarios', [AdminController::class, 'listarTodosUsuarios'])
         ->name('admin.usuarios.index');
+    Route::post('/admin/usuarios', [AdminController::class, 'crearUsuario'])
+        ->name('admin.usuarios.store');
+    Route::put('/admin/usuarios/{id}', [AdminController::class, 'actualizarUsuario'])
+        ->name('admin.usuarios.update');
+    Route::delete('/admin/usuarios/{id}', [AdminController::class, 'eliminarUsuario'])
+        ->name('admin.usuarios.destroy');
+        
     Route::get('/admin/solicitudes', [AdminController::class, 'listarSolicitudes'])
         ->name('admin.solicitudes.index');
     Route::get('/admin/administradores', [AdminController::class, 'listarAdministradores'])
@@ -112,26 +128,43 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     })->name('admin.pasantias.create');
 
     // Monitoreo
-    Route::get('/admin/actividades', [App\Http\Controllers\Admin\ActividadController::class, 'index'])
-        ->name('admin.actividades.index');
-    Route::get('/admin/bitacoras', [App\Http\Controllers\Admin\BitacoraController::class, 'index'])
-        ->name('admin.bitacoras.index');
-    Route::get('/admin/informes', [App\Http\Controllers\Admin\InformeController::class, 'index'])
+    Route::get('/admin/actividades', [ActividadController::class, 'index'])->name('admin.actividades.index');
+    Route::post('/admin/actividades', [ActividadController::class, 'store'])->name('admin.actividades.store');
+    Route::put('/admin/actividades/{id}', [ActividadController::class, 'update'])->name('admin.actividades.update');
+    Route::delete('/admin/actividades/{id}', [ActividadController::class, 'destroy'])->name('admin.actividades.destroy');
+
+    Route::resource('admin/bitacoras', BitacoraEvaController::class)->names([
+            'index'   => 'bitacoras.index',
+            'store'   => 'bitacoras.store',
+            'update'  => 'bitacoras.update',
+            'destroy' => 'bitacoras.destroy',
+        ]);
+
+    Route::get('/admin/informes', [InformeFinController::class, 'index'])
         ->name('admin.informes.index');
 
     // Comunicación
-    Route::get('/admin/mensajes', [App\Http\Controllers\Admin\MensajeController::class, 'index'])
-        ->name('admin.mensajes.index');
-    Route::get('/admin/comentarios', [App\Http\Controllers\Admin\ComentarioController::class, 'index'])
-        ->name('admin.comentarios.index');
+    Route::resource('/admin/mensajes', MensajeController::class)->names([
+            'index'   => 'mensajes.index',
+            'store'   => 'mensajes.store',
+            'update'  => 'mensajes.update',
+            'destroy' => 'mensajes.destroy',
+        ]);
+
+    Route::resource('/admin/comentarios', ComentarioController::class)->names([
+            'index'   => 'comentarios.index',
+            'store'   => 'comentarios.store',
+            'update'  => 'comentarios.update',
+            'destroy' => 'comentarios.destroy',
+        ]);
 });
 
 // Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 //     // ... anteriores
-//     Route::get('/admin/usuarios', [App\Http\Controllers\Admin\UsuarioController::class, 'index'])->name('admin.usuarios.index');
-//     Route::post('/admin/usuarios', [App\Http\Controllers\Admin\UsuarioController::class, 'store'])->name('admin.usuarios.store');
-//     Route::put('/admin/usuarios/{id}', [App\Http\Controllers\Admin\UsuarioController::class, 'update'])->name('admin.usuarios.update');
-//     Route::patch('/admin/usuarios/{id}/estado', [App\Http\Controllers\Admin\UsuarioController::class, 'toggleEstado'])->name('admin.usuarios.estado');
+//     Route::get('/admin/usuarios', [UsuarioController::class, 'index'])->name('admin.usuarios.index');
+//     Route::post('/admin/usuarios', [UsuarioController::class, 'store'])->name('admin.usuarios.store');
+//     Route::put('/admin/usuarios/{id}', [UsuarioController::class, 'update'])->name('admin.usuarios.update');
+//     Route::patch('/admin/usuarios/{id}/estado', [UsuarioController::class, 'toggleEstado'])->name('admin.usuarios.estado');
 // });
 
 Route::middleware(['auth', 'role:jefe'])->group(function () {
@@ -160,6 +193,7 @@ Route::middleware(['auth', 'role:jefe'])->group(function () {
     Route::post('/jefe/informes/generar', [JefeController::class, 'generarInforme'])->name('jefe.informes.generar');
     Route::get('/jefe/informes/{id}/ver', [JefeController::class, 'verInforme'])->name('jefe.informes.ver');
     Route::get('/jefe/informes/{id}/descargar', [JefeController::class, 'descargarInforme'])->name('jefe.informes.descargar');
+    Route::get('/informes/{id}/certificado', [JefeController::class, 'generarCertificado'])->name('informes.certificado');
 });
 
 

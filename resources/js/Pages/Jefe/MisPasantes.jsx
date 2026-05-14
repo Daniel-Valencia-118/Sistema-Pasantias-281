@@ -29,6 +29,9 @@ export default function MisPasantes({ pasantes = [], auth }) {
         }));
     }, [pasantes]);
 
+    console.log(datosTabla);
+    
+
     // 2. Controladores de Modales
     const verPerfil = (row) => {
         setSelectedPasante(row.raw);
@@ -41,8 +44,8 @@ export default function MisPasantes({ pasantes = [], auth }) {
     };
 
     const breadcrumbs = [
-        { label: 'Inicio', href: route('dashboard') },
-        { label: 'Gestión de Pasantes', href: '#' },
+        { label: 'Inicio', url: 'jefe.dashboard' },
+        { label: 'Gestión de Pasantes', url: 'jefe.pasantes' },
         { label: 'Mis Asignados' },
     ];
 
@@ -193,36 +196,124 @@ export default function MisPasantes({ pasantes = [], auth }) {
                 )}
             </Modal>
 
-            {/* Modal Bitácora - Usando tu Modal.jsx */}
-            <Modal
-                show={isBitacoraOpen}
-                onClose={() => setIsBitacoraOpen(false)}
-                title={`Bitácora: ${selectedPasante?.pasante?.nombre || ''}`}
-                maxWidth="3xl"
-            >
-                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                    {selectedPasante?.bitacora && selectedPasante.bitacora.length > 0 ? (
-                        selectedPasante.bitacora.map((entry, idx) => (
-                            <div key={idx} className="relative pl-6 border-l-2 border-slate-200 py-1">
-                                <div className="absolute -left-[9px] top-2 h-4 w-4 rounded-full bg-white border-2 border-primary-blue shadow-sm" />
-                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs font-black text-primary-navy uppercase">{entry.actividad}</span>
-                                        <span className="text-[10px] font-bold text-slate-400 bg-white px-2 py-1 rounded border">{entry.fecha}</span>
+{/* Modal Bitácora - Usando tu Modal.jsx */}
+<Modal
+    show={isBitacoraOpen}
+    onClose={() => setIsBitacoraOpen(false)}
+    title={`Bitácora: ${selectedPasante?.pasante?.nombre || ''}`}
+    maxWidth="3xl"
+>
+    {/* Contenedor principal con scroll e hilos de línea de tiempo limpios */}
+    <div className="space-y-6 max-h-[65vh] overflow-y-auto pr-3 pl-2 scrollbar-thin scrollbar-thumb-slate-200">
+        {selectedPasante?.bitacora && selectedPasante.bitacora.length > 0 ? (
+            <div className="relative border-l-2 border-slate-200 ml-4 space-y-6 py-2">
+                {selectedPasante.bitacora.map((entry, idx) => {
+                    const tieneNota = entry.nota !== null && entry.nota !== undefined;
+                    
+                    return (
+                        <div key={idx} className="relative pl-6 transition-all duration-200 hover:translate-x-0.5">
+                            {/* Nodo indicador en la línea de tiempo */}
+                            <span 
+                                className={`absolute -left-[7px] top-4 h-3 w-3 rounded-full border-2 bg-white shadow-sm ${
+                                    tieneNota ? 'border-emerald-500 ring-4 ring-emerald-50' : 'border-amber-400 ring-4 ring-amber-50'
+                                }`} 
+                            />
+                            
+                            {/* Tarjeta de la Bitácora */}
+                            <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+                                
+                                {/* Encabezado de la Tarjeta */}
+                                <div className="bg-slate-50/70 px-4 py-3 border-b border-slate-100 flex justify-between items-start gap-4">
+                                    <div className="space-y-0.5">
+                                        <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase block">
+                                            Actividad Asociada
+                                        </span>
+                                        <h4 className="text-sm font-semibold text-slate-800 leading-tight">
+                                            {entry.actividad_nombre}
+                                        </h4>
                                     </div>
-                                    <p className="text-sm text-slate-600 leading-relaxed">{entry.descripcion}</p>
+                                    
+                                    {/* Calificación o Estado */}
+                                    <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                                        <span className={`inline-flex items-center px-2.5 py-1 text-xs font-bold rounded-lg border ${
+                                            tieneNota 
+                                                ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
+                                                : 'bg-amber-50 border-amber-200 text-amber-700'
+                                        }`}>
+                                            {tieneNota ? `Nota: ${entry.nota}` : 'Sin Nota'}
+                                        </span>
+                                        {entry.fecha && (
+                                            <span className="text-[10px] font-medium text-slate-400">
+                                                {new Date(entry.fecha).toLocaleDateString('es-ES', {
+                                                    day: '2-digit',
+                                                    month: 'short',
+                                                    year: 'numeric'
+                                                })}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
+                                
+                                {/* Cuerpo y Detalles de la Evaluación */}
+                                <div className="p-4 space-y-3.5">
+                                    {/* Descripción del Avance */}
+                                    <div>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight block mb-0.5">
+                                            Descripción / Avance
+                                        </span>
+                                        <p className="text-sm text-slate-600 leading-relaxed font-normal">
+                                            {entry.descripcion || 'No se registró una descripción del avance.'}
+                                        </p>
+                                    </div>
+
+                                    {/* Bloque Condicional: Observaciones y Recomendaciones */}
+                                    {(entry.observacion || entry.recomendacion) && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-slate-100 bg-slate-50/40 -mx-4 -mb-4 p-4">
+                                            {entry.observacion && (
+                                                <div className="bg-white p-2.5 rounded-lg border border-slate-200/60 shadow-xs">
+                                                    <span className="text-[10px] font-bold text-red-500 uppercase tracking-tight block mb-0.5">
+                                                        Observaciones
+                                                    </span>
+                                                    <p className="text-xs text-slate-600 leading-normal">
+                                                        {entry.observacion}
+                                                    </p>
+                                                </div>
+                                            )}
+                                            
+                                            {entry.recomendacion && (
+                                                <div className="bg-white p-2.5 rounded-lg border border-slate-200/60 shadow-xs">
+                                                    <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-tight block mb-0.5">
+                                                        Recomendaciones
+                                                    </span>
+                                                    <p className="text-xs text-slate-600 leading-normal">
+                                                        {entry.recomendacion}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
                             </div>
-                        ))
-                    ) : (
-                        <div className="flex flex-col items-center justify-center py-12 text-slate-400 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                            <ClipboardList size={48} className="mb-2 opacity-20" />
-                            <p className="font-bold">Sin registros de actividad</p>
-                            <p className="text-xs">Este pasante aún no ha reportado avances en su bitácora.</p>
                         </div>
-                    )}
+                    );
+                })}
+            </div>
+        ) : (
+            /* Layout para Estado Vacío */
+            <div className="flex flex-col items-center justify-center py-14 text-slate-400 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200/80 m-2">
+                <div className="p-4 bg-white rounded-full shadow-sm border border-slate-100 mb-3">
+                    <ClipboardList size={32} strokeWidth={1.5} className="text-slate-300" />
                 </div>
-            </Modal>
+                <p className="font-semibold text-slate-700 text-sm">Sin registros en la bitácora</p>
+                <p className="text-xs text-slate-400 mt-1 max-w-xs text-center">
+                    Este pasante no tiene ninguna evaluación registrada bajo las actividades actuales.
+                </p>
+            </div>
+        )}
+    </div>
+</Modal>
+
         </DashboardLayout>
     );
 }

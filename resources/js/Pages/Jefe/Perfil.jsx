@@ -7,6 +7,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
+import InfoItem from '@/Components/InfoItem';
 import { User, Lock, Save, X } from 'lucide-react';
 
 export default function Perfil({ usuario, jefe, auth }) {
@@ -164,14 +165,5 @@ export default function Perfil({ usuario, jefe, auth }) {
                 </div>
             </div>
         </DashboardLayout>
-    );
-}
-
-function InfoItem({ label, value }) {
-    return (
-        <div>
-            <p className="text-sm font-medium text-gray-500">{label}</p>
-            <p className="text-gray-900">{value || '—'}</p>
-        </div>
     );
 }

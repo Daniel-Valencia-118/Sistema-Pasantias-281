@@ -6,6 +6,8 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
+import Select from '@/Components/Select';
+import TextArea from '@/Components/TextArea';
 import { FilePlus, AlertCircle } from 'lucide-react';
 
 export default function Redactar({ inscripciones = [], inscripcionSeleccionada = null, auth }) {
@@ -51,7 +53,7 @@ export default function Redactar({ inscripciones = [], inscripcionSeleccionada =
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
                             <InputLabel htmlFor="id_inscripcion" value="Seleccionar inscripción activa" />
-                            <select
+                            <Select
                                 id="id_inscripcion"
                                 value={data.id_inscripcion}
                                 onChange={e => setData('id_inscripcion', e.target.value)}
@@ -64,7 +66,7 @@ export default function Redactar({ inscripciones = [], inscripcionSeleccionada =
                                         {ins.pasante} - {ins.pasantia}
                                     </option>
                                 ))}
-                            </select>
+                            </Select>
                             <InputError message={errors.id_inscripcion} />
                         </div>
 

@@ -1,17 +1,16 @@
-// resources/js/Components/Sidebar.jsx
-import React, { useState } from 'react';
-import { Link, router, usePage } from '@inertiajs/react';
-import { menuConfig } from '@/Config/menuConfig';
-import {
-    ChevronLeft,
-    ChevronRight,
-} from 'lucide-react';
+import React, { useState } from "react";
+import { Link, router, usePage } from "@inertiajs/react";
+import { menuConfig } from "@/Config/menuConfig";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 export default function Sidebar({ auth, onClose }) {
     const [collapsed, setCollapsed] = useState(false);
     const [openMenus, setOpenMenus] = useState({});
 
-    const role = auth?.user?.rol || 'administrador';
+    // Obtenemos la URL actual para el estado "Activo"
+    const { url } = usePage();
+
+    const role = auth?.user?.rol || "administrador";
     const menuItems = menuConfig[role] || [];
 
     const toggleMenu = (menuName) => {
@@ -19,68 +18,109 @@ export default function Sidebar({ auth, onClose }) {
     };
 
     const handleLogout = () => {
-        router.post(route('logout'));
+        router.post(route("logout"));
     };
+
+    // Función auxiliar para determinar si una ruta está activa
+    const isActive = (href) => url.startsWith(href);
 
     const renderMenuItem = (item) => {
         const Icon = item.icon;
         const isOpen = openMenus[item.name];
+        const active = item.single && isActive(item.href);
 
         if (item.single) {
             return (
                 <Link
                     href={item.href}
-                    className="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-primary-blue/20 hover:text-white rounded-lg transition-colors"
+                    title={collapsed ? item.name : ""}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 mx-2
+                        ${
+                            active
+                                ? "bg-primary-blue text-white shadow-md"
+                                : "text-gray-300 hover:bg-primary-blue/20 hover:text-white"
+                        }`}
                 >
-                    <Icon size={20} />
-                    {!collapsed && <span>{item.name}</span>}
+                    <Icon size={20} className={active ? "text-white" : ""} />
+                    {!collapsed && (
+                        <span className="font-medium">{item.name}</span>
+                    )}
                 </Link>
             );
         }
 
         if (item.submenus) {
+            // Verifica si algún submenú está activo para mantener el menú padre abierto/resaltado
+            const isSubMenuActive = item.submenus.some(
+                (sub) => sub.href && isActive(sub.href),
+            );
+
             return (
-                <div>
+                <div className="mx-2">
                     <button
                         onClick={() => toggleMenu(item.name)}
-                        className="w-full flex items-center justify-between px-4 py-3 text-gray-300 hover:bg-primary-blue/20 hover:text-white rounded-lg transition-colors"
+                        title={collapsed ? item.name : ""}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200
+                            ${isSubMenuActive && !isOpen ? "text-white bg-primary-blue/10" : "text-gray-300 hover:bg-primary-blue/20 hover:text-white"}`}
                     >
                         <div className="flex items-center gap-3">
-                            <Icon size={20} />
-                            {!collapsed && <span>{item.name}</span>}
+                            <Icon
+                                size={20}
+                                className={
+                                    isSubMenuActive
+                                        ? "text-primary-sky-blue"
+                                        : ""
+                                }
+                            />
+                            {!collapsed && (
+                                // alineado a la izquierda
+                                <span className="font-medium text-left">{item.name}</span>
+                            )}
                         </div>
                         {!collapsed && (
                             <ChevronRight
                                 size={16}
-                                className={`transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                                className={`transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
                             />
                         )}
                     </button>
 
                     {!collapsed && isOpen && (
-                        <div className="ml-8 mt-1 space-y-1">
+                        <div className="ml-9 mt-1 mb-2 space-y-1 border-l border-gray-600 pl-2">
                             {item.submenus.map((sub, idx) => {
                                 const SubIcon = sub.icon;
-                                if (sub.action === 'logout') {
+
+                                if (sub.action === "logout") {
                                     return (
                                         <button
                                             key={idx}
                                             onClick={handleLogout}
-                                            className="w-full flex items-center gap-3 px-4 py-2 text-gray-400 hover:bg-red-500/20 hover:text-red-400 rounded-lg transition-colors"
+                                            className="w-full flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-red-500/10 hover:text-red-400 rounded-lg transition-colors"
                                         >
                                             <SubIcon size={16} />
-                                            <span className="text-sm">{sub.name}</span>
+                                            <span className="text-sm font-medium">
+                                                {sub.name}
+                                            </span>
                                         </button>
                                     );
                                 }
+
+                                const subActive = isActive(sub.href);
                                 return (
                                     <Link
                                         key={idx}
                                         href={sub.href}
-                                        className="flex items-center gap-3 px-4 py-2 text-gray-400 hover:bg-primary-blue/20 hover:text-white rounded-lg transition-colors"
+                                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
+                                            ${
+                                                subActive
+                                                    ? "text-primary-sky-blue bg-primary-blue/10"
+                                                    : "text-gray-400 hover:bg-primary-blue/20 hover:text-white"
+                                            }`}
                                     >
                                         <SubIcon size={16} />
-                                        <span className="text-sm">{sub.name}</span>
+                                        <span className="text-sm font-medium">
+                                            {sub.name}
+                                        </span>
                                     </Link>
                                 );
                             })}
@@ -94,24 +134,32 @@ export default function Sidebar({ auth, onClose }) {
 
     return (
         <aside
-            className={`bg-primary-navy min-h-screen transition-all duration-300 ${
-                collapsed ? 'w-20' : 'w-64'
-            }`}
+            className={`bg-primary-navy h-full transition-all duration-300 ${collapsed ? "w-20" : "w-64"}`}
         >
-            <div className="flex flex-col h-full">
-                {/* HEADER */}
-                <div className="flex items-center justify-between p-5 border-b border-primary-slate">
+            <div className="flex flex-col h-full relative">
+                {/* Botón cerrar para móvil */}
+                <button
+                    onClick={onClose}
+                    className="lg:hidden absolute right-4 top-4 text-gray-400 hover:text-white"
+                >
+                    <X size={24} />{" "}
+                    {/* Asegúrate de importar X de lucide-react */}
+                </button>
+                {/* HEADER SIDEBAR */}
+                <div className="flex items-center justify-between p-4 border-b border-gray-700/50 min-h-[72px]">
                     {!collapsed && (
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 overflow-hidden">
                             <img
                                 src="/images/logo.png"
                                 alt="Logo"
-                                className="h-12 w-auto rounded-full"
+                                className="h-10 w-auto rounded-full shadow-sm"
                             />
-                            <div className="flex flex-col items-center leading-tight">
-                                <h3 className="text-white font-bold text-lg">SGP</h3>
-                                <span className="text-white font-bold text-lg uppercase">
-                                    {role.replace('_', ' ')}
+                            <div className="flex flex-col leading-tight truncate">
+                                <h3 className="text-white font-bold text-lg tracking-wide">
+                                    SGP
+                                </h3>
+                                <span className="text-primary-sky-blue font-semibold text-xs uppercase tracking-wider truncate">
+                                    {role.replace("_", " ")}
                                 </span>
                             </div>
                         </div>
@@ -120,32 +168,61 @@ export default function Sidebar({ auth, onClose }) {
                         <img
                             src="/images/logo.png"
                             alt="Logo"
-                            className="h-7 w-auto mx-auto rounded-full"
+                            className="h-8 w-auto mx-auto rounded-full"
                         />
                     )}
+
+                    {/* Botón de Colapso (Oculto en móvil) */}
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        className="p-1 rounded-lg hover:bg-primary-blue/20 text-gray-300"
+                        className="hidden lg:flex absolute -right-3 top-6 bg-primary-blue text-white p-1 rounded-full shadow-lg hover:bg-blue-600 transition-colors"
                     >
-                        {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                        {collapsed ? (
+                            <ChevronRight size={16} />
+                        ) : (
+                            <ChevronLeft size={16} />
+                        )}
                     </button>
                 </div>
 
-                {/* NAV (scroll interno) */}
-                <nav className="flex-1 py-4 space-y-1 overflow-y-auto">
+                {/* NAV (scroll interno ocultando scrollbar pero permitiendo scroll) */}
+                <nav className="flex-1 py-6 space-y-2 overflow-y-auto scrollbar-hide">
                     {menuItems.map((item, idx) => (
                         <div key={idx}>{renderMenuItem(item)}</div>
                     ))}
                 </nav>
 
-                {/* FOOTER */}
-                {!collapsed && (
-                    <div className="p-4 border-t border-primary-slate">
-                        <p className="text-gray-400 text-sm">Conectado como</p>
-                        <p className="text-white font-medium">{auth?.user?.nombre_user}</p>
-                        <p className="text-primary-sky-blue text-xs capitalize">{role}</p>
-                    </div>
-                )}
+                {/* FOOTER SIDEBAR */}
+                <div className="p-4 border-t border-gray-700/50 bg-black/10">
+                    {!collapsed ? (
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary-blue flex items-center justify-center text-white font-bold shadow-inner">
+                                {auth?.user?.nombre_user
+                                    ?.charAt(0)
+                                    .toUpperCase() || "U"}
+                            </div>
+                            <div className="flex flex-col truncate">
+                                <p className="text-white font-medium text-sm truncate">
+                                    {auth?.user?.nombre_user}
+                                </p>
+                                <p className="text-gray-400 text-xs truncate">
+                                    Conectado
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex justify-center">
+                            <div
+                                className="h-8 w-8 rounded-full bg-primary-blue flex items-center justify-center text-white font-bold"
+                                title={auth?.user?.nombre_user}
+                            >
+                                {auth?.user?.nombre_user
+                                    ?.charAt(0)
+                                    .toUpperCase() || "U"}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </aside>
     );

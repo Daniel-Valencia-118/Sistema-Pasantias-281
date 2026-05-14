@@ -39,7 +39,7 @@ export const menuConfig = {
             name: 'Perfil',
             icon: UserCircle,
             submenus: [
-                // { name: 'Ver Perfil', href: '/admin/perfil', icon: Eye },
+                { name: 'Ver Perfil', href: '/admin/perfil', icon: Eye },
                 { name: 'Cerrar Sesión', action: 'logout', icon: LogOut },
             ],
         },

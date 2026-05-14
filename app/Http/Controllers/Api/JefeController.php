@@ -22,6 +22,74 @@ use Pdf;
 
 class JefeController extends Controller
 {
+public function dashboard()
+{
+    $user = Auth::user();
+    $idJefe = $user->idUser; 
+
+    // 1. ESTADÍSTICAS (KPIs)
+    $stats = [
+        'pasantes_activos' => Inscripcion::where('idU_jefe', $idJefe)->count(),
+        
+        'actividades_pendientes' => BitacoraEva::where('idU_jefe', $idJefe)
+            ->where('estado', 'no realizada')
+            ->count(),
+            
+        'actividades_completadas' => BitacoraEva::where('idU_jefe', $idJefe)
+            ->where('estado', 'completada')
+            ->count(),
+            
+        'mensajes_recibidos' => Mensaje::where('idU_jefe', $idJefe)->count(),
+    ];
+
+    // 2. RENDIMIENTO POR PASANTE (Uso de Eloquent para evitar errores de tabla)
+    $rendimiento_pasantes = BitacoraEva::query()
+        ->join('usuario', 'bitacora_eva.idU_pasante', '=', 'usuario.idUser')
+        ->select(
+            DB::raw("CONCAT(usuario.nombre, ' ', usuario.ap_paterno) as nombre"),
+            DB::raw("AVG(bitacora_eva.nota) as progreso")
+        )
+        ->where('bitacora_eva.idU_jefe', $idJefe)
+        ->where('bitacora_eva.estado', 'completada')
+        ->groupBy('usuario.idUser', 'usuario.nombre', 'usuario.ap_paterno')
+        ->get();
+
+    // 3. BITÁCORAS PENDIENTES
+    $bitacoras_pendientes = BitacoraEva::where('idU_jefe', $idJefe)
+        ->where('estado', 'no realizada')
+        ->with(['pasante.user', 'actividad']) 
+        ->orderBy('fecha', 'desc')
+        ->take(5)
+        ->get()
+        ->map(fn($b) => [
+            'id' => $b->id_bitacora,
+            'pasante_nombre' => $b->pasante && $b->pasante->usuario 
+                                ? $b->pasante->usuario->nombre . ' ' . $b->pasante->usuario->ap_paterno 
+                                : 'Sin nombre',
+            'pasantia_titulo' => $b->actividad->nombre_act ?? 'Actividad General',
+            'fecha' => $b->fecha ? $b->fecha->format('d/m/Y') : 'S/F',
+        ]);
+
+    // 4. SEGUIMIENTO DE INFORMES FINALES
+    $informes_status = Inscripcion::where('idU_jefe', $idJefe)
+        ->with(['pasante.user', 'informeFinal'])
+        ->get()
+        ->map(fn($i) => [
+            'pasante' => $i->pasante && $i->pasante->usuario 
+                         ? $i->pasante->usuario->nombre . ' ' . $i->pasante->usuario->ap_paterno 
+                         : 'N/A',
+            'completitud' => $i->informeFinal ? 100 : 40, // 40% si está inscrito, 100% si tiene informe
+            'resultado' => $i->informeFinal->resultado ?? 'Pendiente',
+            'fecha_limite' => $i->fecha_insc,
+        ]);
+
+    return Inertia::render('Jefe/Dashboard', [
+        'stats' => $stats,
+        'rendimiento_pasantes' => $rendimiento_pasantes,
+        'bitacoras_pendientes' => $bitacoras_pendientes,
+        'actividades_recientes' => $informes_status,
+    ]);
+}
     public function perfil()
     {
         $user = Auth::user();
@@ -79,38 +147,6 @@ class JefeController extends Controller
         return back()->with('success', 'Perfil actualizado correctamente.');
     }
 
-    public function dashboard()
-    {
-        $user = Auth::user();
-        $jefe = $user->jefePas;
-
-        // Estadísticas
-        $pasantesAsignados = Pasante::whereHas('inscripciones', function ($q) use ($jefe) {
-            $q->where('idU_jefe', $jefe->idU_jefe)->where('estado', 'Inscrito');
-        })->count();
-
-        $actividadesPendientes = \App\Models\BitacoraEva::where('idU_jefe', $jefe->idU_jefe)
-            ->where('estado', 'no realizada', )
-            ->count();
-
-        $actividadesCompletadas = \App\Models\BitacoraEva::where('idU_jefe', $jefe->idU_jefe)
-            ->where('estado', 'completada')
-            ->count();
-
-        $mensajesNoLeidos = \App\Models\Mensaje::where('idU_jefe', $jefe->idU_jefe)
-            // ->where('leido', false) // Asumo que exista un campo 'leido'
-            ->count();
-
-        return Inertia::render('Jefe/Dashboard', [
-            'stats' => [
-                'pasantes_activos' => $pasantesAsignados,
-                'actividades_pendientes' => $actividadesPendientes,
-                'actividades_completadas' => $actividadesCompletadas,
-                'mensajes_no_leidos' => $mensajesNoLeidos,
-            ],
-        ]);
-    }
-
     public function misPasantes2()
     {
         $user = Auth::user();
@@ -149,7 +185,7 @@ class JefeController extends Controller
         $user = Auth::user();
         $jefe = $user->jefePas;
         
-        $pasantes = Inscripcion::with(['pasante.user', 'pasantia.actividades'])
+        $pasantes = Inscripcion::with(['pasante.user', 'pasantia.actividades', 'pasantia.actividades.evaluaciones'])
             ->where('idU_jefe', $jefe->idU_jefe)
             ->get()
             ->map(function($inscripcion) {
@@ -166,6 +202,20 @@ class JefeController extends Controller
                         'nombre' => $inscripcion->pasantia->nombre_pas,
                     ],
                     'estado' => $inscripcion->estado,
+                    // Extraer y aplanar todas las evaluaciones de todas las actividades de esta pasantía
+                    'bitacora' => $inscripcion->pasantia->actividades->flatMap(function($actividad) {
+                        return $actividad->evaluaciones->map(function($eva) use ($actividad) {
+                            return [
+                                'id_bitacora' => $eva->id_bitacora,
+                                'descripcion' => $eva->descripcion,
+                                'nota' => $eva->nota,
+                                'observacion' => $eva->observacion,
+                                'recomendacion' => $eva->recomendacion,
+                                'fecha' => $eva->fecha,
+                                'actividad_nombre' => $actividad->nombre_act,
+                            ];
+                        });
+                    }),
                 ];
             });
         
@@ -185,8 +235,8 @@ class JefeController extends Controller
                 'id' => $pasantia->id_pasantia,
                 'nombre' => $pasantia->nombre_pas,
                 'estado' => $pasantia->estado,
-                'fecha_ini' => $pasantia->fecha_ini->format('Y-m-d'),
-                'fecha_fin' => $pasantia->fecha_fin->format('Y-m-d'),
+                'fecha_ini' => $pasantia->fecha_ini,
+                'fecha_fin' => $pasantia->fecha_fin,
                 'cupos' => $pasantia->cupos,
                 'cupos_disponibles' => $pasantia->cupos_disponibles,
                 'pasantes_inscritos' => $pasantia->inscripciones->map(function ($inscripcion) {
@@ -642,8 +692,8 @@ class JefeController extends Controller
                     'nombre' => $act->nombre_act,
                     'pasantia' => $act->pasantia->nombre_pas,
                     // mandamos también fechas para mostrar en el frontend si es necesario
-                    'fecha_ini' => $act->fecha_ini->format('d/m/Y'),
-                    'fecha_fin' => $act->fecha_fin->format('d/m/Y'),
+                    'fecha_ini' => $act->fecha_ini,
+                    'fecha_fin' => $act->fecha_fin,
                     'tipo' => $act->tipo,
                 ];
             });
@@ -1031,5 +1081,34 @@ class JefeController extends Controller
 
         return $pdf->stream("informe_{$id}.pdf", ["Attachment" => false]);
         // return $pdf->download("informe_{$informe->id_informe}.pdf");
-    }  
+    }
+    
+    public function generarCertificado($id)
+    {
+        // 1. Obtener los datos con sus relaciones
+        $informe = InformeFin::with(['inscripcion.pasante.user', 'inscripcion.pasantia.empresa', 'jefe.user'])
+                    ->findOrFail($id);
+
+        // 2. Preparar los datos para la vista
+        $data = [
+            'pasante'    => $informe->inscripcion->pasante->user->nombre . ' ' . $informe->inscripcion->pasante->user->ap_paterno . ' ' . $informe->inscripcion->pasante->user->ap_materno,
+            'cedula'     => $informe->inscripcion->pasante->user->ci ?? 'S/N',
+            'empresa'    => $informe->inscripcion->pasantia->empresa->nombre,
+            'pasantia'   => $informe->inscripcion->pasantia->nombre_pas,
+            'promedio'   => $informe->promedio,
+            'cargahoraria' => $informe->inscripcion->pasantia->carga_horaria,
+            'fecha'      => now(),
+            'jefe'       => $informe->jefe->user->nombre,
+            'resultado'  => $informe->resultado,
+        ];
+
+        // 3. Cargar la vista Blade y generar el PDF
+        // 'landscape' para que el certificado sea horizontal
+        $pdf = Pdf::loadView('informes.certificado', $data)->setPaper('letter', 'landscape');
+
+        $pdf->setOption(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+
+        // 4. abrir el archivo en otra pestaña del navegador (stream) en lugar de descargarlo
+        return $pdf->stream("certificado_{$informe->id_informe}.pdf", ["Attachment" => false]);
+    }
 }

@@ -65,8 +65,8 @@ export default function Index({ usuarios, auth }) {
             nombre_completo: `${u.nombre || ''} ${u.ap_paterno || ''} ${u.ap_materno || ''}`.trim(),
             rol_display: u.rol === 'admin' ? 'Administrador' :
                          u.rol === 'gerente' ? 'Gerente' :
-                         u.rol === 'jefePas' ? 'Jefe de Pasantía' :
-                         u.rol === 'tutorAca' ? 'Tutor Académico' :
+                         u.rol === 'jefe' ? 'Jefe de Pasantía' :
+                         u.rol === 'tutor' ? 'Tutor Académico' :
                          u.rol === 'pasante' ? 'Pasante' : 'Usuario',
             estado_label: u.estado ? 'Activo' : 'Inactivo',
         }));

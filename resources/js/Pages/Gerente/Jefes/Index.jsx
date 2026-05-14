@@ -14,6 +14,7 @@ import {
     ChevronUp,
     ChevronDown,
 } from "lucide-react";
+import GerenteLayout from "../../../Components/Layout/GerenteLayout";
 
 export default function Index({ auth, jefes }) {
     const [searchTerm, setSearchTerm] = useState("");
@@ -116,7 +117,7 @@ export default function Index({ auth, jefes }) {
     };
 
     return (
-        <DashboardLayout auth={auth}>
+        <GerenteLayout auth={auth}>
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 {/* Header */}
                 <div className="bg-primary-navy px-6 py-4">
@@ -347,6 +348,6 @@ export default function Index({ auth, jefes }) {
                 //     window.location.reload();
                 // }}
             />
-        </DashboardLayout>
+        </GerenteLayout>
     );
 }

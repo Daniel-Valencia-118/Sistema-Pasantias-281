@@ -108,17 +108,17 @@ export default function DataTable({
                             {processedData.length > 0 ? (
                                 processedData.map((row, idx) => (
                                     <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-6 py-4 text-sm text-slate-400 font-medium">
+                                        <td className="px-6 py-4 text-sm text-black-400 font-medium">
                                             {idx + 1}
                                         </td>
                                         {columns.map((col) => (
-                                            <td key={col.key} className={`px-6 py-4 text-sm text-slate-600 ${col.align === 'center' ? 'text-center' : ''}`}>
+                                            <td key={col.key} className={`px-6 py-4 text-sm text-black-600 ${col.align === 'center' ? 'text-center' : ''}`}>
                                                 {col.render ? col.render(row[col.key], row) : row[col.key]}
                                             </td>
                                         ))}
                                         {actionsRender && (
                                             <td className="px-6 py-4 text-sm text-right">
-                                                <div className="flex justify-end gap-3">
+                                                <div className="flex justify-center gap-3">
                                                     {actionsRender(row)}
                                                 </div>
                                             </td>

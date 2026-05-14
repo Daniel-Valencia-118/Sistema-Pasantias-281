@@ -9,6 +9,11 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
+import TextArea from '@/Components/TextArea';
+// Select and SelectInput componentes
+import Select from '@/Components/Select';
+import SelectInput from '@/Components/SelectInput';
+import InfoItem from '@/Components/InfoItem';
 import { Star, CheckCircle, Clock, XCircle, Edit2, HelpCircle } from 'lucide-react';
 
 export default function Bitacoras({ bitacoras = [], auth }) {
@@ -80,6 +85,15 @@ export default function Bitacoras({ bitacoras = [], auth }) {
             label: 'Nota',
             sortable: true,
             align: 'center',
+            // si la nota es mayor o igual a 90, mostrar en verde, si es entre 70 y 89 en naranja, si es menor a 70 en rojo y si no hay nota mostrar 'Sin calificar' en gris
+            render: (value) => {
+                if (value === '' || value === null) {
+                    return <span className="text-gray-500">Sin calificar</span>;
+                }
+                const nota = parseInt(value, 10);
+                const color = nota >= 90 ? 'text-green-500' : nota >= 51 ? 'text-purple-500' : 'text-red-500';
+                return <span className={`font-bold ${color}`}>{nota}</span>;
+            },
         },
         {
             key: 'fecha',
@@ -119,12 +133,12 @@ export default function Bitacoras({ bitacoras = [], auth }) {
                 searchPlaceholder="Buscar bitácoras..."
             />
 
-            <Modal show={evaluarModal} onClose={() => setEvaluarModal(false)} title="Evaluar Bitácora" maxWidth="lg">
+            <Modal show={evaluarModal} onClose={() => setEvaluarModal(false)} title="Evaluar Bitácora" maxWidth="3xl">
                 {selectedBitacora && (
                     <form onSubmit={handleEvaluar} className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                            <InfoField label="Pasante" value={selectedBitacora.pasante} />
-                            <InfoField label="Actividad" value={selectedBitacora.actividad} />
+                            <InfoItem label="Pasante" value={selectedBitacora.pasante} />
+                            <InfoItem label="Actividad" value={selectedBitacora.actividad} />
                         </div>
                         <div>
                             <InputLabel htmlFor="nota" value="Nota (0-100)" />
@@ -133,7 +147,7 @@ export default function Bitacoras({ bitacoras = [], auth }) {
                         </div>
                         <div>
                             <InputLabel htmlFor="observacion" value="Observación" />
-                            <textarea
+                            <TextArea
                                 id="observacion"
                                 value={data.observacion}
                                 onChange={e => setData('observacion', e.target.value)}
@@ -144,7 +158,7 @@ export default function Bitacoras({ bitacoras = [], auth }) {
                         </div>
                         <div>
                             <InputLabel htmlFor="estado" value="Estado" />
-                            <select
+                            <SelectInput
                                 id="estado"
                                 value={data.estado}
                                 onChange={e => setData('estado', e.target.value)}
@@ -154,7 +168,7 @@ export default function Bitacoras({ bitacoras = [], auth }) {
                                 <option value="completada parcialmente">Completada parcialmente</option>
                                 <option value="no realizada">No realizada</option>
                                 <option value="sin calificar">Sin calificar</option>
-                            </select>
+                            </SelectInput>
                             <InputError message={errors.estado} />
                         </div>
                         <div className="flex justify-end gap-3">
@@ -165,14 +179,5 @@ export default function Bitacoras({ bitacoras = [], auth }) {
                 )}
             </Modal>
         </DashboardLayout>
-    );
-}
-
-function InfoField({ label, value }) {
-    return (
-        <div>
-            <p className="text-xs font-bold text-slate-400 uppercase">{label}</p>
-            <p className="text-sm font-medium text-slate-700">{value}</p>
-        </div>
     );
 }

@@ -6,6 +6,8 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
+import Select from '@/Components/Select';
+import TextArea from '@/Components/TextArea';
 import { Send } from 'lucide-react';
 
 export default function CrearMensaje({ pasantes = [], auth }) {
@@ -34,7 +36,7 @@ export default function CrearMensaje({ pasantes = [], auth }) {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <InputLabel htmlFor="id_pasante" value="Destinatario" />
-                            <select
+                            <Select
                                 id="id_pasante"
                                 value={data.id_pasante}
                                 onChange={e => setData('id_pasante', e.target.value)}
@@ -45,12 +47,12 @@ export default function CrearMensaje({ pasantes = [], auth }) {
                                 {pasantes.map(p => (
                                     <option key={p.id} value={p.id}>{p.nombre}</option>
                                 ))}
-                            </select>
+                            </Select>
                             <InputError message={errors.id_pasante} />
                         </div>
                         <div>
                             <InputLabel htmlFor="descripcion" value="Mensaje" />
-                            <textarea
+                            <TextArea
                                 id="descripcion"
                                 value={data.descripcion}
                                 onChange={e => setData('descripcion', e.target.value)}

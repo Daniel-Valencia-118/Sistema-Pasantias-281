@@ -8,6 +8,7 @@ import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
 import Select from '@/Components/Select';
+import TextArea from '@/Components/TextArea';
 import { Save, ArrowLeft, Pencil } from 'lucide-react';
 
 export default function Form({ pasantias = [], pasantes = [], actividades = [], bitacora = null, auth }) {
@@ -144,7 +145,7 @@ export default function Form({ pasantias = [], pasantes = [], actividades = [], 
                         {/* Campos de la bitácora */}
                         <div>
                             <InputLabel htmlFor="descripcion" value="Descripción" />
-                            <textarea
+                            <TextArea
                                 id="descripcion"
                                 value={data.descripcion}
                                 onChange={e => setData('descripcion', e.target.value)}
@@ -187,7 +188,7 @@ export default function Form({ pasantias = [], pasantes = [], actividades = [], 
 
                         <div>
                             <InputLabel htmlFor="observacion" value="Observación" />
-                            <textarea
+                            <TextArea
                                 id="observacion"
                                 value={data.observacion}
                                 onChange={e => setData('observacion', e.target.value)}
@@ -199,7 +200,7 @@ export default function Form({ pasantias = [], pasantes = [], actividades = [], 
 
                         <div>
                             <InputLabel htmlFor="recomendacion" value="Recomendación" />
-                            <textarea
+                            <TextArea
                                 id="recomendacion"
                                 value={data.recomendacion}
                                 onChange={e => setData('recomendacion', e.target.value)}

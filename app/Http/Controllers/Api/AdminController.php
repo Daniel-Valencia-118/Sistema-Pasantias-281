@@ -22,6 +22,72 @@ use Inertia\Inertia;
 
 class AdminController extends Controller
 {
+
+    public function perfil()
+    {
+        $user = auth()->user()->load('administrador'); // Cargamos la relación definida como 'admi' o 'administrador'
+        
+        return Inertia::render('Admin/Perfil', [
+            'usuario' => [
+                'idUser' => $user->idUser,
+                'nombre' => $user->nombre,
+                'ap_paterno' => $user->ap_paterno,
+                'ap_materno' => $user->ap_materno,
+                'nombre_user' => $user->nombre_user,
+                'correo' => $user->correo,
+                'numero_cel' => $user->numero_cel,
+                'ci' => $user->ci,
+                'correo_secundario' => $user->administrador->correo_secundario ?? '',
+            ]
+        ]);
+    }
+
+public function updatePerfil(Request $request)
+{
+    $user = auth()->user();
+    $admin = $user->administrador;
+
+    $request->validate([
+        'nombre' => 'required|string|max:255',
+        'ap_paterno' => 'required|string|max:255',
+        'correo' => 'required|email|unique:usuario,correo,' . $user->idUser . ',idUser',
+        'numero_cel' => 'required|numeric',
+        'correo_secundario' => 'nullable|email',
+        // Validación de contraseña solo si se envía
+        'password_actual' => 'required_with:password',
+        'password' => 'nullable|confirmed|min:8',
+    ]);
+
+    echo "Datos validados correctamente. Procediendo a actualizar..." . json_encode($request->all());
+
+    try {
+        DB::beginTransaction();
+
+        // Verificar contraseña actual si se intenta cambiar
+        if ($request->filled('password')) {
+            if (!Hash::check($request->password_actual, $user->password)) {
+                return response()->json(['errors' => ['password_actual' => ['La contraseña actual es incorrecta.']]], 422);
+            }
+            $user->password = Hash::make($request->password);
+        }
+
+        // Actualizar Usuario
+        $user->update($request->only(['nombre', 'ap_paterno', 'ap_materno', 'correo', 'numero_cel', 'ci', 'nombre_user']));
+
+        // Actualizar Admin
+        $admin->update([
+            'correo_secundario' => $request->correo_secundario
+        ]);
+        DB::commit();
+       
+        // El Toast detectará esto automáticamente
+        return back()->with('success', '¡Perfil de Administrador actualizado con éxito!');
+
+    } catch (\Exception $e) {
+        DB::rollback();
+        return back()->with('error', 'Hubo un problema al actualizar el perfil.');
+    }
+}
     // =============================================
     // LISTAR SOLICITUDES PENDIENTES
     // =============================================
@@ -43,6 +109,67 @@ class AdminController extends Controller
         
         // return response()->json(['data' => $solicitudes]);
         return Inertia::render('Admin/Usuarios/Solicitudes', ['usuarios' => $solicitudes]);
+    }
+    // crear usuario
+    public function crearUsuario(Request $request)
+    {
+        $request->validate([
+            'nombre_user' => 'required|string|unique:usuario,nombre_user',
+            'password' => 'required|string|min:6',
+            'numero_cel' => 'required|string',
+            'ci' => 'required|string|unique:usuario,ci',
+            'correo' => 'required|email|unique:usuario,correo',
+            'nombre' => 'required|string',
+            'ap_paterno' => 'required|string',
+            'ap_materno' => 'required|string',
+            'fecha_nac' => 'required|date',
+            'rol' => 'required|in:admin,gerente,jefe,tutor,pasante',
+        ]);
+        
+        try {
+            DB::beginTransaction();
+            
+            $user = User::create([
+                'nombre_user' => $request->nombre_user,
+                'password' => Hash::make($request->password),
+                'numero_cel' => $request->numero_cel,
+                'ci' => $request->ci,
+                'correo' => $request->correo,
+                'nombre' => $request->nombre,
+                'ap_paterno' => $request->ap_paterno,
+                'ap_materno' => $request->ap_materno,
+                'fecha_nac' => $request->fecha_nac,
+                'estado_cuenta' => true,
+                'estado_aprobacion' => 'aprobado',
+            ]);
+            
+            // Crear el rol específico según el tipo seleccionado
+            switch ($request->rol) {
+                case 'admin':
+                    Administrador::create(['idU_admin' => $user->idUser]);
+                    break;
+                case 'gerente':
+                    Gerente::create(['idU_gerente' => $user->idUser]);
+                    break;
+                case 'jefe':
+                    JefePas::create(['idU_jefe' => $user->idUser]);
+                    break;
+                case 'tutor':
+                    TutorAca::create(['idU_tutor' => $user->idUser]);
+                    break;
+                case 'pasante':
+                    Pasante::create(['idU_pasante' => $user->idUser]);
+                    break;
+            }
+            
+            DB::commit();
+            
+            return back()->with('success', 'Usuario creado exitosamente');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     // =============================================
