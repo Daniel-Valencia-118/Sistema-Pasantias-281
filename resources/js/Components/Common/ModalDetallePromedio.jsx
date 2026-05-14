@@ -162,7 +162,18 @@ export default function ModalDetallePromedio({
                     </div>
                 )}
 
-                <div className="flex justify-end p-5 border-t bg-gray-50">
+                <div className="flex justify-end p-4 border-t bg-gray-50 rounded-b-xl gap-3">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            // Asegúrate de usar las comillas inclinadas `` (backticks)
+                            window.location.href = "/pasante/actividades/";
+                        }}
+                        className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                        Ir Actividades
+                    </button>
+
                     <button
                         onClick={onClose}
                         className="px-5 py-2 bg-primary-blue text-white rounded-lg hover:bg-primary-sky-blue"

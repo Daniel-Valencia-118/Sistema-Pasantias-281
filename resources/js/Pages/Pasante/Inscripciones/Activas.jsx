@@ -14,6 +14,7 @@ import {
     UserCheck,
 } from "lucide-react";
 
+const bandera1 = 1;
 export default function Activas({ auth, inscripciones }) {
     const [modales, setModales] = useState({
         empresa: { isOpen: false, empresa: null },
@@ -27,7 +28,6 @@ export default function Activas({ auth, inscripciones }) {
         actividades: { isOpen: false, nombre: null, actividades: [] },
         companeros: { isOpen: false, pasantiaId: null, pasantiaNombre: null },
     });
-
     const getEstadoBadge = (estado) => {
         if (estado === "inscrito") {
             return (
@@ -75,14 +75,14 @@ export default function Activas({ auth, inscripciones }) {
                                 <th className="px-4 py-3 text-left text-xs font-bold text-white">
                                     Empresa
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-bold text-white">
+                                {/* <th className="px-4 py-3 text-left text-xs font-bold text-white">
                                     Mención
-                                </th>
+                                </th> */}
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     Actividades
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Horario y Fecha
+                                    Hrs./Fechas
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-white">
                                     Jefe Asignado
@@ -127,11 +127,11 @@ export default function Activas({ auth, inscripciones }) {
                                                 </button>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-gray-600">
+                                        {/* <td className="px-4 py-3 text-sm text-gray-600">
                                             <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                 {p.mencion}
                                             </span>
-                                        </td>
+                                        </td> */}
                                         <td className="px-4 py-3 text-center">
                                             <button
                                                 onClick={() =>
@@ -299,6 +299,7 @@ export default function Activas({ auth, inscripciones }) {
                 }
                 pasantiaNombre={modales.actividades.nombre}
                 actividades={modales.actividades.actividades}
+                var1={bandera1}
             />
 
             <ModalCompaneros

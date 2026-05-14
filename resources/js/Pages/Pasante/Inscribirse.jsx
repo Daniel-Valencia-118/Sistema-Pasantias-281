@@ -221,10 +221,11 @@ export default function Inscribirse({
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="bg-gradient-to-r from-primary-navy to-primary-slate px-6 py-4">
                     <h2 className="text-xl font-semibold text-white">
-                        Pasantías Disponibles
+                        Pasantías Disponibles en Oferta
                     </h2>
                     <p className="text-primary-sky-blue text-sm">
-                        Inscríbete a las pasantías de tu interés
+                        Inscríbete a las pasantías de tu interés (Puedes estar
+                        inscrito maximo a 2 pasantias)
                     </p>
                 </div>
 
@@ -263,7 +264,7 @@ export default function Inscribirse({
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-gray-500">
-                                Filtro por mención:
+                                Mención:
                             </span>
                             <select
                                 value={filtroMencion}
@@ -315,7 +316,7 @@ export default function Inscribirse({
                                     Actividades
                                 </th>
                                 <th className="px-3 py-3 text-center text-xs font-bold text-white">
-                                    Horario
+                                    Hrs./Fechas
                                 </th>
                                 <th
                                     className="px-3 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
@@ -326,7 +327,7 @@ export default function Inscribirse({
                                         <SortIcon field="fecha_ini" />
                                     </div>
                                 </th>
-                                <th
+                                {/* <th
                                     className="px-3 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
                                     onClick={() => handleSort("fecha_fin")}
                                 >
@@ -334,7 +335,7 @@ export default function Inscribirse({
                                         Fecha Final{" "}
                                         <SortIcon field="fecha_fin" />
                                     </div>
-                                </th>
+                                </th> */}
                                 <th className="px-3 py-3 text-center text-xs font-bold text-white">
                                     Cupos
                                 </th>
@@ -431,17 +432,17 @@ export default function Inscribirse({
                                                 fecha={pasantia.fecha_ini}
                                             />
                                         </td>
-                                        <td className="px-3 py-3">
+                                        {/* <td className="px-3 py-3">
                                             <BadgeFecha
                                                 fecha={pasantia.fecha_fin}
                                             />
-                                        </td>
+                                        </td> */}
                                         <td className="px-3 py-3 text-center">
                                             <span
                                                 className={`inline-flex px-2 py-1 rounded-full text-base font-medium ${
                                                     pasantia.cupos_disponibles >
                                                     0
-                                                        ? "bg-yellow-100 text-yellow-900"
+                                                        ? "bg-green-100 text-green-900"
                                                         : "bg-red-100 text-red-800"
                                                 }`}
                                             >

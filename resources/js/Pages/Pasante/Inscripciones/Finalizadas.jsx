@@ -8,7 +8,15 @@ import ModalHorario from "@/Components/Common/ModalHorario";
 import ModalDetallePromedio from "@/Components/Common/ModalDetallePromedio";
 import ModalCalificarPasantia from "@/Components/Common/ModalCalificarPasantia";
 import BadgeFecha from "@/Components/Common/BadgeFecha";
-import { Building2, Clock, Eye, Star, FileText } from "lucide-react";
+
+import {
+    Building2,
+    Clock,
+    Eye,
+    Star,
+    FileText,
+    Calendar as CalendarIcon,
+} from "lucide-react";
 
 export default function Finalizadas({ auth, inscripciones }) {
     const [searchTerm, setSearchTerm] = useState("");
@@ -100,10 +108,10 @@ export default function Finalizadas({ auth, inscripciones }) {
                                     Empresa
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Horario y Fecha
+                                    Hrs./Fechas
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Promedio Final
+                                    Promedio Actividades
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     Informe Final
@@ -162,7 +170,9 @@ export default function Finalizadas({ auth, inscripciones }) {
                                                 }
                                                 className="text-primary-blue hover:text-primary-sky-blue"
                                             >
-                                                FECHA
+                                                {p.fecha_fin.substring(0, 4)}
+                                                {""}
+                                                <Clock size={15} />
                                             </button>
                                         </td>
                                         <td className="px-4 py-3 text-center">
@@ -191,7 +201,9 @@ export default function Finalizadas({ auth, inscripciones }) {
                                                         }
                                                         className="text-primary-blue hover:text-primary-sky-blue text-sm flex items-center gap-1"
                                                     >
-                                                        <Eye size={14} /> VER
+                                                        <CalendarIcon
+                                                            size={18}
+                                                        />
                                                     </button>
                                                 </div>
                                             )}

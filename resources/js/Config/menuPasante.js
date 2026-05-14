@@ -36,6 +36,12 @@ export const menuPasante = [
         single: true,
     },
     {
+        name: "Actividades",
+        icon: Calendar,
+        href: "/pasante/actividades",
+        single: true,
+    },
+    {
         name: "Mis inscripciones",
         icon: ClipboardList,
         submenus: [
@@ -50,12 +56,6 @@ export const menuPasante = [
                 icon: CheckCircle,
             },
         ],
-    },
-    {
-        name: "Actividades",
-        icon: Calendar,
-        href: "/pasante/actividades",
-        single: true,
     },
     {
         name: "Mensajes",
