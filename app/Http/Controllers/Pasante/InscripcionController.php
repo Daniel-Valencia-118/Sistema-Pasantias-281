@@ -12,6 +12,9 @@ use App\Models\JefePas;
 use App\Models\BitacoraEva;
 use App\Models\Comentario;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+//use App\Models\InformeFin;
+use App\Models\HistorialInforme;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -662,4 +665,146 @@ class InscripcionController extends Controller
             'fecha' => $comentario->fecha,
         ]);
     }
+
+
+/**
+ * Generar Informe Final PDF
+ */
+    public function generarInformeFinal($idPasantia)
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        // Verificar que el pasante esté inscrito y la pasantía esté finalizada
+        $inscripcion = Inscripcion::with(['pasantia.empresa.gerente.user', 'jefe.user', 'pasante.tutor.user'])
+            ->where('idU_pasante', $pasante->idU_pasante)
+            ->where('id_pasantia', $idPasantia)
+            ->where('estado', 'finalizado')
+            ->firstOrFail();
+        
+        $pasantia = $inscripcion->pasantia;
+        $jefe = $inscripcion->jefe;
+        $tutor = $pasante->tutor;
+        
+        // Calcular promedio y actividades
+        $actividades = $pasantia->actividades()
+            ->orderBy('fecha_ini', 'asc')
+            ->orderBy('fecha_fin', 'asc')
+            ->get();
+        
+        $totalNota = 0;
+        $actividadesComputadas = 0;
+        $actividadesData = [];
+        
+        foreach ($actividades as $actividad) {
+            $evaluacion = BitacoraEva::where('idU_pasante', $pasante->idU_pasante)
+                ->where('id_actividad', $actividad->id_actividad)
+                ->first();
+            
+            $estado = $evaluacion ? $evaluacion->estado : 'PENDIENTE';
+            $nota = null;
+            
+            if (in_array($estado, ['COMPLETADA', 'COMPLETADA PARCIALMENTE', 'NO REALIZADA'])) {
+                $nota = $evaluacion->nota;
+                $totalNota += $nota;
+                $actividadesComputadas++;
+            }
+            
+            // Mapear estado para mostrar
+            $estadoMostrar = [
+                'COMPLETADA' => 'Completado',
+                'COMPLETADA PARCIALMENTE' => 'Realizado',
+                'NO REALIZADA' => 'No Realizado',
+                'SIN CALIFICAR' => 'No asignado',
+                'PENDIENTE' => 'No Asignado',
+            ][$estado];
+            
+            $actividadesData[] = [
+                'nombre' => $actividad->nombre_act,
+                'descripcion' => $actividad->descripcion ?? 'Sin descripción',
+                'fecha_ini' => $actividad->fecha_ini,
+                'fecha_fin' => $actividad->fecha_fin,
+                'estado' => $estadoMostrar,
+                'nota' => $nota,
+            ];
+        }
+        
+        $promedio = $actividadesComputadas > 0 ? round($totalNota / $actividadesComputadas, 2) : 0;
+        $abandono = $actividadesComputadas === 0;
+        $aprobado = !$abandono && $promedio >= 51;
+        
+        // Calcular duración de la pasantía
+        $fechaIni = new \DateTime($pasantia->fecha_ini);
+        $fechaFin = new \DateTime($pasantia->fecha_fin);
+        $diferencia = $fechaIni->diff($fechaFin);
+        
+        $duracion = '';
+        if ($diferencia->y > 0) $duracion .= $diferencia->y . ' año(s) ';
+        if ($diferencia->m > 0) $duracion .= $diferencia->m . ' mes(es) ';
+        if ($diferencia->d > 0) $duracion .= $diferencia->d . ' día(s)';
+        if (empty($duracion)) $duracion = '0 días';
+        
+        // Nombre del archivo
+        $nombreArchivo = sprintf(
+            'Informe_Final_%s_%s_%s.pdf',
+            $pasantia->nombre_pas,
+            $pasante->user->ap_paterno,
+            now()->format('Ymd_His')
+        );
+        
+        
+        // Guardar registro en INFORME_FIN
+        HistorialInforme::create([
+            'id_inscripcion' => $inscripcion->id_inscripcion,
+            'fecha_generacion' => now()->toDateString(),
+            'hora_generacion' => now()->toTimeString(),
+            'nombre_archivo' => $nombreArchivo,
+        ]);
+        
+        // Datos para el PDF
+        $data = [
+            'pasante' => [
+                'nombre_completo' => $pasante->user->nombre . ' ' . $pasante->user->ap_paterno . ' ' . ($pasante->user->ap_materno ?? ''),
+                'ci' => $pasante->user->ci,
+                'matricula' => $pasante->matricula,
+                'ru' => $pasante->ru,
+                'universidad' => 'UMSA',
+                'carrera' => 'Informática',
+                'mencion' => $pasante->mencion,
+                'semestre' => $pasante->semestre,
+                'tutor' => $tutor && $tutor->user 
+                    ? $tutor->user->nombre . ' ' . $tutor->user->ap_paterno . ' ' . ($tutor->user->ap_materno ?? '')
+                    : 'No asignado',
+            ],
+            'pasantia' => [
+                'nombre' => $pasantia->nombre_pas,
+                'empresa_nombre' => $pasantia->empresa->nombre,
+                'empresa_nit' => $pasantia->empresa->nit ?? 'No registrado',
+                'gerente_nombre' => $pasantia->empresa->gerente && $pasantia->empresa->gerente->user
+                    ? $pasantia->empresa->gerente->user->nombre . ' ' . $pasantia->empresa->gerente->user->ap_paterno . ' ' . ($pasantia->empresa->gerente->user->ap_materno ?? '')
+                    : 'No registrado',
+                'jefe_nombre' => $jefe && $jefe->user
+                    ? $jefe->user->nombre . ' ' . $jefe->user->ap_paterno . ' ' . ($jefe->user->ap_materno ?? '')
+                    : 'No asignado',
+                'fecha_ini' => $pasantia->fecha_ini,
+                'fecha_fin' => $pasantia->fecha_fin,
+                'carga_horaria' => $pasantia->carga_horaria,
+                'turno' => $pasantia->turno,
+                'duracion' => $duracion,
+            ],
+            'actividades' => $actividadesData,
+            'promedio' => $promedio,
+            'abandono' => $abandono,
+            'aprobado' => $aprobado,
+            'fecha_generacion' => now(),
+        ];
+        
+        
+        // Generar PDF
+        $pdf = Pdf::loadView('pdf.informe-final', $data);
+        $pdf->setPaper('letter', 'portrait');
+        
+
+        return $pdf->download($nombreArchivo);
+    }    
 }

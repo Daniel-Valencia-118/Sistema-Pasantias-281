@@ -202,9 +202,16 @@ export default function Finalizadas({ auth, inscripciones }) {
                                                     no disponible
                                                 </span>
                                             ) : (
-                                                <button className="text-primary-blue hover:text-primary-sky-blue">
-                                                    <FileText size={18} />
-                                                </button>
+                                                <a
+                                                    href={route(
+                                                        "pasante.informe-final",
+                                                        { idPasantia: p.id },
+                                                    )}
+                                                    target="_blank"
+                                                    className="inline-flex px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition"
+                                                >
+                                                    GENERAR INFORME
+                                                </a>
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-center">

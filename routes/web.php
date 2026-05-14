@@ -184,4 +184,5 @@ Route::middleware(['auth', 'role:pasante'])->group(function () {
     Route::get('/pasante/inscripciones/{id}/detalle-promedio', [App\Http\Controllers\Pasante\InscripcionController::class, 'getDetallePromedio'])->name('pasante.inscripciones.detalle-promedio');
     Route::get('/pasante/calificacion/{idPasantia}', [App\Http\Controllers\Pasante\InscripcionController::class, 'getCalificacion'])->name('pasante.calificacion.show');
 
+    Route::get('/pasante/informe-final/{idPasantia}', [App\Http\Controllers\Pasante\InscripcionController::class, 'generarInformeFinal'])->name('pasante.informe-final');
 });
