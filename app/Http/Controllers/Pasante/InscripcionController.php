@@ -9,6 +9,8 @@ use App\Models\Inscripcion;
 use App\Models\Actividad;
 use App\Models\User;
 use App\Models\JefePas;
+use App\Models\BitacoraEva;
+use App\Models\Comentario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -246,7 +248,7 @@ class InscripcionController extends Controller
             }
             
             // Regla 2: Si la pasantía está INICIADO, la inscripción debe estar 'iniciado'
-            if ($estadoPasantia === 'INICIADO' && $estadoInscripcion !== 'iniciado') {
+            if ($estadoPasantia === 'INICIADO' && $estadoInscripcion == 'inscrito') {
                 $inscripcion->estado = 'iniciado';
                 $actualizado = true;
             }
@@ -432,6 +434,232 @@ class InscripcionController extends Controller
         ]);
     }
 
+    /**
+     * Muestra las pasantías finalizadas (inscripciones con estado 'finalizado')
+     */
+    public function pasantiasFinalizadas()
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
 
+        // Obtener inscripciones con estado 'finalizado'
+        $inscripciones = Inscripcion::with(['pasantia.empresa', 'jefe.user'])
+            ->where('idU_pasante', $pasante->idU_pasante)
+            ->where('estado', 'finalizado')
+            ->get();
 
+        // Calcular promedio y abandono para cada inscripción
+        $data = $inscripciones->map(function ($inscripcion) use ($pasante) {
+            $pasantia = $inscripcion->pasantia;
+            
+            // Calcular promedio usando la misma lógica del gerente
+            $actividades = $pasantia->actividades;
+            $totalNota = 0;
+            $actividadesComputadas = 0;
+            
+            foreach ($actividades as $actividad) {
+                $evaluacion = BitacoraEva::where('idU_pasante', $pasante->idU_pasante)
+                    ->where('id_actividad', $actividad->id_actividad)
+                    ->first();
+                
+                if ($evaluacion && in_array($evaluacion->estado, ['COMPLETADA', 'COMPLETADA PARCIALMENTE', 'NO REALIZADA'])) {
+                    $actividadesComputadas++;
+                    $totalNota += $evaluacion->nota ?? 0;
+                }
+            }
+            
+            $abandono = $actividadesComputadas === 0;
+            $promedio = !$abandono ? round($totalNota / $actividadesComputadas, 2) : 0;
+            
+            // Verificar si ya calificó la pasantía
+            $yaCalifico = Comentario::where('idU_pasante', $pasante->idU_pasante)
+                ->where('id_pasantia', $pasantia->id_pasantia)
+                ->exists();
+            
+            // Obtener calificación existente (si la hay)
+            $calificacionExistente = null;
+            if ($yaCalifico) {
+                $comentario = Comentario::where('idU_pasante', $pasante->idU_pasante)
+                    ->where('id_pasantia', $pasantia->id_pasantia)
+                    ->first();
+                $calificacionExistente = [
+                    'calificacion' => $comentario->calificacion,
+                    'descripcion' => $comentario->descripcion,
+                    'fecha' => $comentario->fecha,
+                ];
+            }
+            
+            return [
+                'id_inscripcion' => $inscripcion->id_inscripcion,
+                'pasantia' => [
+                    'id' => $pasantia->id_pasantia,
+                    'nombre' => $pasantia->nombre_pas,
+                    'fecha_ini' => $pasantia->fecha_ini,
+                    'fecha_fin' => $pasantia->fecha_fin,
+                    'turno' => $pasantia->turno,
+                    'carga_horaria' => $pasantia->carga_horaria,
+                    'mencion' => $pasantia->mencion,
+                    'empresa' => [
+                        'id' => $pasantia->empresa->id_empresa,
+                        'nombre' => $pasantia->empresa->nombre,
+                        'nit' => $pasantia->empresa->nit,
+                        'direccion' => $pasantia->empresa->direccion,
+                        'telefono' => $pasantia->empresa->telefono,
+                        'email' => $pasantia->empresa->email,
+                        'gerente_nombre' => $pasantia->empresa->gerente && $pasantia->empresa->gerente->user
+                            ? $pasantia->empresa->gerente->user->ap_paterno . ' ' . $pasantia->empresa->gerente->user->ap_materno . ' ' . $pasantia->empresa->gerente->user->nombre
+                            : 'No asignado',
+                    ],
+                ],
+                'abandono' => $abandono,
+                'promedio' => $promedio,
+                'ya_califico' => $yaCalifico,
+                'calificacion_existente' => $calificacionExistente,
+            ];
+        });
+        
+        // Ordenar por fecha inicio ascendente
+        $data = $data->sortBy('pasantia.fecha_ini')->values();
+        
+        return Inertia::render('Pasante/Inscripciones/Finalizadas', [
+            'inscripciones' => $data,
+        ]);
+    }
+
+    /**
+     * Obtener detalle de actividades con notas para el modal VER EVALUACIÓN
+     */
+    public function getDetallePromedio($idPasantia)
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        // Verificar que el pasante esté inscrito en esta pasantía
+        $inscripcion = Inscripcion::where('idU_pasante', $pasante->idU_pasante)
+            ->where('id_pasantia', $idPasantia)
+            ->where('estado', 'finalizado')
+            ->firstOrFail();
+        
+        $pasantia = $inscripcion->pasantia;
+        
+        // Obtener actividades ordenadas
+        $actividades = $pasantia->actividades()
+            ->orderBy('fecha_ini', 'asc')
+            ->orderBy('fecha_fin', 'asc')
+            ->get();
+        
+        $actividadesData = $actividades->map(function ($actividad) use ($pasante) {
+            $evaluacion = BitacoraEva::where('idU_pasante', $pasante->idU_pasante)
+                ->where('id_actividad', $actividad->id_actividad)
+                ->first();
+            
+            $estado = $evaluacion ? $evaluacion->estado : 'PENDIENTE';
+            $nota = ($estado === 'COMPLETADA' || $estado === 'COMPLETADA PARCIALMENTE' || $estado === 'NO REALIZADA') 
+                ? $evaluacion->nota 
+                : null;
+            
+            // Mapear estado para mostrar bonito
+            $estadoMostrar = [
+                'COMPLETADA' => ['label' => 'Completado', 'color' => 'bg-green-100 text-green-800'],
+                'COMPLETADA PARCIALMENTE' => ['label' => 'Realizado', 'color' => 'bg-yellow-100 text-yellow-800'],
+                'NO REALIZADA' => ['label' => 'No Realizado', 'color' => 'bg-red-100 text-red-800'],
+                'SIN CALIFICAR' => ['label' => 'No asignado', 'color' => 'bg-blue-100 text-blue-800'],
+                'PENDIENTE' => ['label' => 'No Asignado', 'color' => 'bg-blue-100 text-blue-800'],
+            ][$estado];
+            
+            return [
+                'id' => $actividad->id_actividad,
+                'nombre' => $actividad->nombre_act,
+                'descripcion' => $actividad->descripcion ?? 'Sin descripción',
+                'fecha_ini' => $actividad->fecha_ini,
+                'fecha_fin' => $actividad->fecha_fin,
+                'estado_label' => $estadoMostrar['label'],
+                'estado_color' => $estadoMostrar['color'],
+                'nota' => $nota,
+            ];
+        });
+        
+        // Calcular promedio general
+        $totalNota = 0;
+        $actividadesComputadas = 0;
+        foreach ($actividadesData as $act) {
+            if ($act['nota'] !== null) {
+                $actividadesComputadas++;
+                $totalNota += $act['nota'];
+            }
+        }
+        $promedio = $actividadesComputadas > 0 ? round($totalNota / $actividadesComputadas, 2) : 0;
+        $abandono = $actividadesComputadas === 0;
+        
+        return response()->json([
+            'pasantia_nombre' => $pasantia->nombre_pas,
+            'actividades' => $actividadesData,
+            'promedio' => $promedio,
+            'abandono' => $abandono,
+        ]);
+    }
+
+    /**
+     * Guardar calificación (comentario + estrellas) de una pasantía finalizada
+     */
+    public function storeCalificacion(Request $request)
+    {
+        $request->validate([
+            'id_pasantia' => 'required|exists:pasantia,id_pasantia',
+            'calificacion' => 'required|integer|min:1|max:5',
+            'opinion' => 'required|string|min:5',
+        ]);
+        
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        // Verificar que la inscripción existe y está finalizada
+        $inscripcion = Inscripcion::where('idU_pasante', $pasante->idU_pasante)
+            ->where('id_pasantia', $request->id_pasantia)
+            ->where('estado', 'finalizado')
+            ->firstOrFail();
+        
+        // Verificar que no haya calificado antes
+        $yaCalifico = Comentario::where('idU_pasante', $pasante->idU_pasante)
+            ->where('id_pasantia', $request->id_pasantia)
+            ->exists();
+        
+        if ($yaCalifico) {
+            return response()->json(['success' => false, 'message' => 'Ya has calificado esta pasantía.'], 403);
+        }
+        
+        $comentario = Comentario::create([
+            'descripcion' => $request->opinion,
+            'calificacion' => $request->calificacion,
+            'fecha' => now()->toDateString(),
+            'idU_pasante' => $pasante->idU_pasante,
+            'id_pasantia' => $request->id_pasantia,
+        ]);
+        
+        return response()->json(['success' => true, 'comentario' => $comentario]);
+    }
+
+    /**
+     * Obtener calificación existente de una pasantía
+     */
+    public function getCalificacion($idPasantia)
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        $comentario = Comentario::where('idU_pasante', $pasante->idU_pasante)
+            ->where('id_pasantia', $idPasantia)
+            ->first();
+        
+        if (!$comentario) {
+            return response()->json(['success' => false, 'message' => 'No has calificado esta pasantía.'], 404);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'calificacion' => $comentario->calificacion,
+            'opinion' => $comentario->descripcion,
+            'fecha' => $comentario->fecha,
+        ]);
+    }
 }

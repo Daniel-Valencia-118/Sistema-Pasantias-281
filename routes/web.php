@@ -168,6 +168,9 @@ Route::middleware(['auth', 'role:pasante'])->group(function () {
     Route::post('/pasante/progreso', [App\Http\Controllers\Pasante\ActividadController::class, 'storeProgreso'])->name('pasante.progreso.store');
     Route::post('/pasante/auto-eva', [App\Http\Controllers\Pasante\ActividadController::class, 'storeAutoEva'])->name('pasante.auto-eva.store');
     Route::post('/pasante/comentario', [App\Http\Controllers\Pasante\ActividadController::class, 'storeComentario'])->name('pasante.comentario.store');
+
+    Route::get('/pasante/inscripciones/finalizadas', [App\Http\Controllers\Pasante\InscripcionController::class, 'pasantiasFinalizadas'])->name('pasante.inscripciones.finalizadas');
+    Route::post('/pasante/calificacion', [App\Http\Controllers\Pasante\InscripcionController::class, 'storeCalificacion'])->name('pasante.calificacion.store');
     
     //------> id
     Route::post('/pasante/inscribirse/{id}', [App\Http\Controllers\Pasante\InscripcionController::class, 'store'])->name('pasante.inscribirse.store');
@@ -177,5 +180,8 @@ Route::middleware(['auth', 'role:pasante'])->group(function () {
     Route::get('/pasante/actividades/{id}', [App\Http\Controllers\Pasante\ActividadController::class, 'show'])->name('pasante.actividades.show');
     Route::get('/pasante/evaluacion-detalle/{idActividad}', [App\Http\Controllers\Pasante\ActividadController::class, 'getEvaluacionDetalle'])->name('pasante.evaluacion.detalle');    
     Route::put('/pasante/comentario/{id}', [App\Http\Controllers\Pasante\ActividadController::class, 'updateComentario'])->name('pasante.comentario.update');
+    
+    Route::get('/pasante/inscripciones/{id}/detalle-promedio', [App\Http\Controllers\Pasante\InscripcionController::class, 'getDetallePromedio'])->name('pasante.inscripciones.detalle-promedio');
+    Route::get('/pasante/calificacion/{idPasantia}', [App\Http\Controllers\Pasante\InscripcionController::class, 'getCalificacion'])->name('pasante.calificacion.show');
 
 });
