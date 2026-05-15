@@ -34,7 +34,7 @@ class InscripcionController extends Controller
             ->map(function($pasantia) use ($pasante) {
                 // Calcular cupos disponibles reales
                 $inscritosActivos = $pasantia->inscripciones()
-                    ->whereIn('estado', ['inscrito', 'activo'])
+                    ->whereIn('estado', ['inscrito', 'iniciado'])
                     ->count();
                 $cuposDisponibles = max(0, $pasantia->cupos - $inscritosActivos);
                 
@@ -132,7 +132,7 @@ class InscripcionController extends Controller
             
             // 2. Verificar cupos disponibles
             $inscritosActivos = $pasantia->inscripciones()
-                ->whereIn('estado', ['inscrito', 'activo'])
+                ->whereIn('estado', ['inscrito', 'iniciado'])
                 ->count();
             $cuposDisponibles = $pasantia->cupos - $inscritosActivos;
             
@@ -306,13 +306,13 @@ class InscripcionController extends Controller
             
             // Calcular cupos disponibles reales
             $inscritosActivos = $pasantia->inscripciones()
-                ->whereIn('estado', ['inscrito', 'activo'])
+                ->whereIn('estado', ['inscrito', 'iniciado'])
                 ->count();
             $cuposDisponibles = max(0, $pasantia->cupos - $inscritosActivos);
             
             // Total de inscritos (activos + inscritos)
             $totalInscritos = $pasantia->inscripciones()
-                ->whereIn('estado', ['inscrito', 'activo', 'iniciado'])
+                ->whereIn('estado', ['inscrito', 'iniciado'])
                 ->count();
             
             // Actividades ordenadas
@@ -401,7 +401,7 @@ class InscripcionController extends Controller
         // Obtener todas las inscripciones de esta pasantía
         $inscripciones = Inscripcion::with(['pasante.user', 'jefe.user'])
             ->where('id_pasantia', $idPasantia)
-            ->whereIn('estado', ['inscrito', 'activo', 'iniciado'])
+            ->whereIn('estado', ['inscrito', 'iniciado'])
             ->get();
         
         $companeros = $inscripciones->map(function($insc) use ($pasante) {

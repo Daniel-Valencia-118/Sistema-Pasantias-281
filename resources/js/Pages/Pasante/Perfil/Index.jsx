@@ -17,13 +17,13 @@ import {
 } from "lucide-react";
 
 const MENCIONES = [
-    "Ingeniería de Sistemas",
-    "Ingeniería Informática",
+    "Desarrollo de Software e Innovación Tecnológica",
+    "Inteligencia Artificial y Ciencias de Datos",
     "Ciencias de la Computación",
-    "Inteligencia Artificial",
-    "Ingeniería de Software",
-    "Telecomunicaciones",
-    "Otra",
+    "Informática Industrial",
+    "Ingeniería de Sistemas",
+    "Redes y TIC",
+    "Seguridad de la Información",
 ];
 
 const SEMESTRES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];

@@ -172,6 +172,10 @@ Route::middleware(['auth', 'role:pasante'])->group(function () {
     Route::get('/pasante/inscripciones/finalizadas', [App\Http\Controllers\Pasante\InscripcionController::class, 'pasantiasFinalizadas'])->name('pasante.inscripciones.finalizadas');
     Route::post('/pasante/calificacion', [App\Http\Controllers\Pasante\InscripcionController::class, 'storeCalificacion'])->name('pasante.calificacion.store');
     
+    Route::get('/pasante/mensajes', [App\Http\Controllers\Pasante\MensajeController::class, 'index'])->name('pasante.mensajes');
+    Route::post('/pasante/mensajes', [App\Http\Controllers\Pasante\MensajeController::class, 'enviarMensaje'])->name('pasante.mensajes.enviar');
+    
+    
     //------> id
     Route::post('/pasante/inscribirse/{id}', [App\Http\Controllers\Pasante\InscripcionController::class, 'store'])->name('pasante.inscribirse.store');
     
@@ -183,6 +187,9 @@ Route::middleware(['auth', 'role:pasante'])->group(function () {
     
     Route::get('/pasante/inscripciones/{id}/detalle-promedio', [App\Http\Controllers\Pasante\InscripcionController::class, 'getDetallePromedio'])->name('pasante.inscripciones.detalle-promedio');
     Route::get('/pasante/calificacion/{idPasantia}', [App\Http\Controllers\Pasante\InscripcionController::class, 'getCalificacion'])->name('pasante.calificacion.show');
-
+    
     Route::get('/pasante/informe-final/{idPasantia}', [App\Http\Controllers\Pasante\InscripcionController::class, 'generarInformeFinal'])->name('pasante.informe-final');
+    
+    Route::get('/pasante/mensajes/{tipo}/{id}', [App\Http\Controllers\Pasante\MensajeController::class, 'getMensajes'])->name('pasante.mensajes.get');
+
 });

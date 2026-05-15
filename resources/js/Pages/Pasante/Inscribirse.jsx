@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 const MENCIONES_DISPONIBLES = [
+    "Todos",
     "Desarrollo de Software e Innovación Tecnológica",
     "Inteligencia Artificial y Ciencias de Datos",
     "Ciencias de la Computación",
@@ -124,6 +125,7 @@ export default function Inscribirse({
                     "success",
                 );
 
+                //(window.location.href = "/pasante/inscripciones/activas");
                 // Actualizar la lista localmente
                 setPasantiasData((prevData) =>
                     prevData.map((p) => {
@@ -273,7 +275,7 @@ export default function Inscribirse({
                                 }
                                 className="px-4 py-2 border border-gray-200 rounded-lg focus:border-primary-blue"
                             >
-                                {todasMenciones.map((m) => (
+                                {MENCIONES_DISPONIBLES.map((m) => (
                                     <option key={m} value={m}>
                                         {m}
                                     </option>
@@ -337,7 +339,7 @@ export default function Inscribirse({
                                     </div>
                                 </th> */}
                                 <th className="px-3 py-3 text-center text-xs font-bold text-white">
-                                    Cupos
+                                    Cupos Disponibles
                                 </th>
                                 <th className="px-3 py-3 text-center text-xs font-bold text-white">
                                     Acción

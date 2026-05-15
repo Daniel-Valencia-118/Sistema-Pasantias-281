@@ -14,7 +14,6 @@ import {
     UserCheck,
 } from "lucide-react";
 
-const bandera1 = 1;
 export default function Activas({ auth, inscripciones }) {
     const [modales, setModales] = useState({
         empresa: { isOpen: false, empresa: null },
@@ -28,6 +27,8 @@ export default function Activas({ auth, inscripciones }) {
         actividades: { isOpen: false, nombre: null, actividades: [] },
         companeros: { isOpen: false, pasantiaId: null, pasantiaNombre: null },
     });
+
+    const bandera1 = 1;
     const getEstadoBadge = (estado) => {
         if (estado === "inscrito") {
             return (

@@ -329,7 +329,7 @@ export default function Index({ auth, pasantias }) {
                                     Actividades
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Cupos
+                                    Cupos Disponibles
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     Inscritos

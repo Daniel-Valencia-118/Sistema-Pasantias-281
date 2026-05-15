@@ -1,5 +1,5 @@
 // resources/js/Components/Common/ModalActividadesPasante.jsx
-import React from "react";
+import React, { act } from "react";
 import { X, Calendar, FileText } from "lucide-react";
 import { formatDateToSpanish } from "@/Utils/dateUtils";
 

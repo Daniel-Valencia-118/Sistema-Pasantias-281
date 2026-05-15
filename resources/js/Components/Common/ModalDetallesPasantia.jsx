@@ -61,10 +61,10 @@ export default function ModalDetallesPasantia({ isOpen, onClose, pasantia }) {
                         </div>
                         <div className="bg-gray-50 rounded-lg p-3">
                             <label className="block text-xs font-medium text-gray-500 mb-1">
-                                Cupos disponibles
+                                Cupos
                             </label>
                             <p className="text-gray-900 font-medium">
-                                {pasantia.cupos_disponibles} / {pasantia.cupos}
+                                {pasantia.cupos}
                             </p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-3">
