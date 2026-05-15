@@ -1,9 +1,12 @@
 import React, { useState, useMemo } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
+import { Play, Flag } from "lucide-react";
+import ModalConfirmacion from "@/Components/Common/ModalConfirmacion";
 import GerenteLayout from "@/Components/Layout/GerenteLayout";
 import ModalDetallesPasantia from "@/Components/Common/ModalDetallesPasantia";
 import ModalActividadesPasantia from "@/Components/Common/ModalActividadesPasantia";
 import ModalInscritos from "@/Components/Common/ModalInscritos";
+import axios from "axios";
 import {
     Eye,
     Calendar,
@@ -34,7 +37,12 @@ export default function Index({ auth, pasantias }) {
         pasantiaId: null,
         pasantiaNombre: null,
     });
-
+    const [modalIniciar, setModalIniciar] = useState({
+        isOpen: false,
+        pasantiaId: null,
+        infoInicio: null,
+    });
+    const [loadingIniciar, setLoadingIniciar] = useState(false);
     const formatDate = (date) => {
         if (!date) return "-";
         return date.split("-").reverse().join("/");
@@ -63,7 +71,21 @@ export default function Index({ auth, pasantias }) {
         pasantiaId: null,
         pasantiaNombre: null,
     });
-
+    // Función para obtener info de inicio
+    const handleAbrirConfirmacionInicio = async (pasantiaId) => {
+        try {
+            const response = await axios.get(
+                `/gerente/pasantias/${pasantiaId}/info-inicio`,
+            );
+            setModalIniciar({
+                isOpen: true,
+                pasantiaId: pasantiaId,
+                infoInicio: response.data,
+            });
+        } catch (error) {
+            alert("Error al verificar fechas");
+        }
+    };
     const filteredAndSortedData = useMemo(() => {
         let filtered = [...pasantiasData];
 
@@ -156,6 +178,29 @@ export default function Index({ auth, pasantias }) {
             }
         }
     };
+    // Función para iniciar
+    const handleIniciarPasantia = async () => {
+        setLoadingIniciar(true);
+        try {
+            const response = await axios.patch(
+                `/gerente/pasantias/${modalIniciar.pasantiaId}/iniciar`,
+            );
+            if (response.data.message) {
+                window.location.reload();
+            }
+        } catch (error) {
+            alert(
+                error.response?.data?.message || "Error al iniciar la pasantía",
+            );
+            setModalIniciar({
+                isOpen: false,
+                pasantiaId: null,
+                infoInicio: null,
+            });
+        } finally {
+            setLoadingIniciar(false);
+        }
+    };
 
     const getEstadoBadge = (pasantia) => {
         const { cupos_disponibles, inscritos, todos_con_jefe, cupos } =
@@ -226,7 +271,6 @@ export default function Index({ auth, pasantias }) {
     return (
         <GerenteLayout auth={auth}>
             <Head title="Pasantías Publicadas" />
-
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="bg-gradient-to-r from-primary-navy to-primary-slate px-6 py-4">
                     <h2 className="text-xl font-semibold text-white">
@@ -285,13 +329,16 @@ export default function Index({ auth, pasantias }) {
                                     Actividades
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Cupos
+                                    Cupos Disponibles
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     Inscritos
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     Estado
+                                </th>
+                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                    Iniciar
                                 </th>
                             </tr>
                         </thead>
@@ -425,6 +472,19 @@ export default function Index({ auth, pasantias }) {
                                             );
                                         })()}
                                     </td>
+                                    <td className="px-4 py-3 text-center">
+                                        <button
+                                            onClick={() =>
+                                                handleAbrirConfirmacionInicio(
+                                                    pasantia.id,
+                                                )
+                                            }
+                                            className="p-2 text-green-500 hover:bg-green-50 rounded-lg transition-all cursor-pointer"
+                                            title="Iniciar pasantía"
+                                        >
+                                            <Play size={18} />
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -437,7 +497,6 @@ export default function Index({ auth, pasantias }) {
                     </div>
                 )}
             </div>
-
             {/* Modales */}
             <ModalDetallesPasantia
                 isOpen={modalDetalles.isOpen}
@@ -457,6 +516,27 @@ export default function Index({ auth, pasantias }) {
                 }
                 pasantiaId={modalInscritos.pasantiaId}
                 pasantiaNombre={modalInscritos.pasantiaNombre}
+            />
+
+            <ModalConfirmacion
+                isOpen={modalIniciar.isOpen}
+                onClose={() =>
+                    setModalIniciar({
+                        isOpen: false,
+                        pasantiaId: null,
+                        infoInicio: null,
+                    })
+                }
+                onConfirm={handleIniciarPasantia}
+                titulo="Iniciar Pasantía"
+                mensaje={
+                    modalIniciar.infoInicio?.fecha_actual_es_menor
+                        ? `¿Iniciar a pesar de que faltan ${Math.round(modalIniciar.infoInicio?.dias_restantes)} días para el inicio de la pasantía?`
+                        : "¿Desea Iniciar la pasantía?"
+                }
+                type="info"
+                confirmText="Iniciar"
+                loading={loadingIniciar}
             />
             <ModalActividadesPasantia
                 isOpen={modalActividades.isOpen}

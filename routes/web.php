@@ -261,6 +261,61 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         Route::put('/gerente/cuenta', [App\Http\Controllers\Gerente\CuentaController::class, 'update'])->name('gerente.cuenta.update');
 
         Route::get('/gerente/estadisticas', [App\Http\Controllers\Gerente\EstadisticaController::class, 'index'])->name('gerente.estadisticas');
+
+        // Iniciar pasantía (desde Pasantías Publicadas)
+        Route::patch('/gerente/pasantias/{id}/iniciar', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'iniciarPasantia'])->name('gerente.pasantias.iniciar');
+        Route::get('/gerente/pasantias/{id}/info-inicio', [App\Http\Controllers\Gerente\PasantiaActivaController::class, 'getInfoInicio'])->name('gerente.pasantias.info-inicio');
+
+        // Finalizar pasantía (desde Pasantías Activas)
+        Route::patch('/gerente/pasantias-activas/{id}/finalizar', [App\Http\Controllers\Gerente\PasantiaActivaController::class, 'finalizarPasantia'])->name('gerente.pasantias-activas.finalizar');
+        Route::get('/gerente/pasantias-activas/{id}/info-fin', [App\Http\Controllers\Gerente\PasantiaActivaController::class, 'getInfoFin'])->name('gerente.pasantias-activas.info-fin');
+
 });
 
 
+// ROL PASANTE
+Route::middleware(['auth', 'role:pasante'])->group(function () {
+    Route::get('/pasante', function () {
+        return Inertia::render('Pasante/Dashboard');
+    })->name('pasante.dashboard');
+
+    //---------> not id
+    Route::get('/pasante/perfil', [App\Http\Controllers\Pasante\PerfilController::class, 'perfil'])->name('pasante.perfil');
+    Route::put('/pasante/perfil', [App\Http\Controllers\Pasante\PerfilController::class, 'updatePerfil'])->name('pasante.perfil.update');
+    Route::get('/pasante/cuenta', [App\Http\Controllers\Pasante\PerfilController::class, 'cuenta'])->name('pasante.cuenta');
+    Route::put('/pasante/cuenta', [App\Http\Controllers\Pasante\PerfilController::class, 'updateCuenta'])->name('pasante.cuenta.update');
+    Route::put('/pasante/password', [App\Http\Controllers\Pasante\PerfilController::class, 'updatePassword'])->name('pasante.password.update');
+    
+    Route::get('/pasante/inscribirse', [App\Http\Controllers\Pasante\InscripcionController::class, 'index'])->name('pasante.inscribirse');
+    
+    Route::get('/pasante/inscripciones/activas', [App\Http\Controllers\Pasante\InscripcionController::class, 'pasantiasInscritas'])->name('pasante.inscripciones.activas');
+    
+    Route::get('/pasante/actividades', [App\Http\Controllers\Pasante\ActividadController::class, 'index'])->name('pasante.actividades');
+    Route::post('/pasante/progreso', [App\Http\Controllers\Pasante\ActividadController::class, 'storeProgreso'])->name('pasante.progreso.store');
+    Route::post('/pasante/auto-eva', [App\Http\Controllers\Pasante\ActividadController::class, 'storeAutoEva'])->name('pasante.auto-eva.store');
+    Route::post('/pasante/comentario', [App\Http\Controllers\Pasante\ActividadController::class, 'storeComentario'])->name('pasante.comentario.store');
+
+    Route::get('/pasante/inscripciones/finalizadas', [App\Http\Controllers\Pasante\InscripcionController::class, 'pasantiasFinalizadas'])->name('pasante.inscripciones.finalizadas');
+    Route::post('/pasante/calificacion', [App\Http\Controllers\Pasante\InscripcionController::class, 'storeCalificacion'])->name('pasante.calificacion.store');
+    
+    Route::get('/pasante/mensajes', [App\Http\Controllers\Pasante\MensajeController::class, 'index'])->name('pasante.mensajes');
+    Route::post('/pasante/mensajes', [App\Http\Controllers\Pasante\MensajeController::class, 'enviarMensaje'])->name('pasante.mensajes.enviar');
+    
+    
+    //------> id
+    Route::post('/pasante/inscribirse/{id}', [App\Http\Controllers\Pasante\InscripcionController::class, 'store'])->name('pasante.inscribirse.store');
+    
+    Route::get('/pasante/inscripciones/{id}/companeros', [App\Http\Controllers\Pasante\InscripcionController::class, 'getCompaneros'])->name('pasante.inscripciones.companeros');
+
+    Route::get('/pasante/actividades/{id}', [App\Http\Controllers\Pasante\ActividadController::class, 'show'])->name('pasante.actividades.show');
+    Route::get('/pasante/evaluacion-detalle/{idActividad}', [App\Http\Controllers\Pasante\ActividadController::class, 'getEvaluacionDetalle'])->name('pasante.evaluacion.detalle');    
+    Route::put('/pasante/comentario/{id}', [App\Http\Controllers\Pasante\ActividadController::class, 'updateComentario'])->name('pasante.comentario.update');
+    
+    Route::get('/pasante/inscripciones/{id}/detalle-promedio', [App\Http\Controllers\Pasante\InscripcionController::class, 'getDetallePromedio'])->name('pasante.inscripciones.detalle-promedio');
+    Route::get('/pasante/calificacion/{idPasantia}', [App\Http\Controllers\Pasante\InscripcionController::class, 'getCalificacion'])->name('pasante.calificacion.show');
+    
+    Route::get('/pasante/informe-final/{idPasantia}', [App\Http\Controllers\Pasante\InscripcionController::class, 'generarInformeFinal'])->name('pasante.informe-final');
+    
+    Route::get('/pasante/mensajes/{tipo}/{id}', [App\Http\Controllers\Pasante\MensajeController::class, 'getMensajes'])->name('pasante.mensajes.get');
+
+});

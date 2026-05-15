@@ -49,4 +49,35 @@ class Pasante extends Model
     {
         return $this->hasMany(Comentario::class, 'idU_pasante', 'idU_pasante');
     }
+    // Agregar estas relaciones al modelo Pasante
+
+    // Comentarios de actividad (como pasante)
+    public function comentariosActividad()
+    {
+        return $this->hasMany(ComActividad::class, 'idU_pasante', 'idU_pasante');
+    }
+
+    // Progresos de actividad
+    public function progresosActividad()
+    {
+        return $this->hasMany(ProgresoAct::class, 'idU_pasante', 'idU_pasante');
+    }
+
+    // Autoevaluaciones
+    public function autoevaluaciones()
+    {
+        return $this->hasMany(AutoEva::class, 'idU_pasante', 'idU_pasante');
+    }
+
+    // Mensajes enviados
+    public function mensajesEnviados()
+    {
+        return $this->hasMany(MensajePas::class, 'idU_pasanteA', 'idU_pasante');
+    }
+
+    // Mensajes recibidos
+    public function mensajesRecibidos()
+    {
+        return $this->hasMany(MensajePas::class, 'idU_pasanteB', 'idU_pasante');
+    }
 }
