@@ -62,9 +62,9 @@ class ActividadController extends Controller
 
         // Orden: fecha_ini ASC, fecha_fin ASC, nombre ASC
         $tarjetas = $tarjetas->sortBy([
-            ['fecha_ini', 'asc'],
-            ['fecha_fin', 'asc'],
-            ['nombre', 'asc'],
+            ['fecha_ini', 'desc'],
+            ['fecha_fin', 'desc'],
+            ['nombre', 'desc'],
         ])->values();
 
         return Inertia::render('Pasante/Actividades/Index', [

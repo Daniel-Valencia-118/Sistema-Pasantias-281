@@ -3,8 +3,9 @@ import { Head, router, usePage } from "@inertiajs/react";
 import { Play, Flag } from "lucide-react";
 import ModalConfirmacion from "@/Components/Common/ModalConfirmacion";
 import GerenteLayout from "@/Components/Layout/GerenteLayout";
-import ModalDetallesPasantia from "@/Components/Common/ModalDetallesPasantia";
+import ModalHorario from "@/Components/Common/ModalHorario";
 import ModalActividadesPasantia from "@/Components/Common/ModalActividadesPasantia";
+import ModalEditarPasantia from "@/Components/Common/ModalEditarPasantia";
 import ModalInscritos from "@/Components/Common/ModalInscritos";
 import axios from "axios";
 import {
@@ -15,18 +16,24 @@ import {
     AlertTriangle,
     CheckCircle,
     Minus,
+    Clock,
     Plus,
     XCircle,
     Search,
     ArrowUpDown,
     ChevronUp,
     ChevronDown,
+    Edit,
 } from "lucide-react";
 
 export default function Index({ auth, pasantias }) {
     const [pasantiasData, setPasantiasData] = useState(pasantias);
     const [searchTerm, setSearchTerm] = useState("");
     const [sortField, setSortField] = useState("fecha_ini");
+    const [modalEditar, setModalEditar] = useState({
+        isOpen: false,
+        pasantia: null,
+    });
     const [sortDirection, setSortDirection] = useState("asc");
     const [modalDetalles, setModalDetalles] = useState({
         isOpen: false,
@@ -42,12 +49,27 @@ export default function Index({ auth, pasantias }) {
         pasantiaId: null,
         infoInicio: null,
     });
+    const [modalHorario, setModalHorario] = useState({
+        isOpen: false,
+        turno: null,
+        cargaHoraria: null,
+        fechaIni: null,
+        fechaFin: null,
+    });
     const [loadingIniciar, setLoadingIniciar] = useState(false);
     const formatDate = (date) => {
         if (!date) return "-";
         return date.split("-").reverse().join("/");
     };
-
+    const handlePasantiaEditada = (pasantiaActualizada) => {
+        setPasantiasData((prev) =>
+            prev.map((p) =>
+                p.id === pasantiaActualizada.id
+                    ? { ...p, ...pasantiaActualizada }
+                    : p,
+            ),
+        );
+    };
     const handleSort = (field) => {
         if (sortField === field) {
             setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -313,17 +335,11 @@ export default function Index({ auth, pasantias }) {
                                         Nombre <SortIcon field="nombre" />
                                     </div>
                                 </th>
-                                <th
-                                    className="px-4 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
-                                    onClick={() => handleSort("fecha_ini")}
-                                >
-                                    <div className="flex items-center gap-1">
-                                        Fecha Inicio{" "}
-                                        <SortIcon field="fecha_ini" />
-                                    </div>
+                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                    Mencion
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Detalles
+                                    Hrs./Fechas
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     Actividades
@@ -336,6 +352,15 @@ export default function Index({ auth, pasantias }) {
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     Estado
+                                </th>
+                                <th
+                                    className="px-4 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
+                                    onClick={() => handleSort("fecha_ini")}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Fecha Inicio{" "}
+                                        <SortIcon field="fecha_ini" />
+                                    </div>
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     Iniciar
@@ -352,23 +377,44 @@ export default function Index({ auth, pasantias }) {
                                         {index + 1}
                                     </td>
                                     <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                        {pasantia.nombre}
+                                        <div className="flex items-center gap-2">
+                                            {pasantia.nombre}
+                                            <button
+                                                onClick={() =>
+                                                    setModalEditar({
+                                                        isOpen: true,
+                                                        pasantia: pasantia,
+                                                    })
+                                                }
+                                                className="text-gray-400 hover:text-primary-blue transition-all cursor-pointer"
+                                                title="Editar pasantía"
+                                            >
+                                                <Edit size={14} />
+                                            </button>
+                                        </div>
                                     </td>
-                                    <td className="px-4 py-3 text-sm text-gray-600">
-                                        {formatDate(pasantia.fecha_ini)}
+                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                        {pasantia.mencion}
                                     </td>
-                                    <td className="px-4 py-3 text-center">
+
+                                    <td className="px-3 py-3 text-center">
                                         <button
                                             onClick={() =>
-                                                setModalDetalles({
+                                                setModalHorario({
                                                     isOpen: true,
-                                                    pasantia: pasantia,
+                                                    turno: pasantia.turno,
+                                                    cargaHoraria:
+                                                        pasantia.carga_horaria,
+                                                    fechaIni:
+                                                        pasantia.fecha_ini,
+                                                    fechaFin:
+                                                        pasantia.fecha_fin,
                                                 })
                                             }
-                                            className="text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer"
-                                            title="Ver detalles"
+                                            className="text-primary-blue hover:text-primary-sky-blue"
+                                            title="Ver horario"
                                         >
-                                            <Eye size={18} />
+                                            <Clock size={18} />
                                         </button>
                                     </td>
                                     <td className="px-4 py-3 text-center">
@@ -472,6 +518,9 @@ export default function Index({ auth, pasantias }) {
                                             );
                                         })()}
                                     </td>
+                                    <td className="px-4 py-3 text-sm text-gray-600">
+                                        {formatDate(pasantia.fecha_ini)}
+                                    </td>
                                     <td className="px-4 py-3 text-center">
                                         <button
                                             onClick={() =>
@@ -498,12 +547,29 @@ export default function Index({ auth, pasantias }) {
                 )}
             </div>
             {/* Modales */}
-            <ModalDetallesPasantia
-                isOpen={modalDetalles.isOpen}
+            <ModalHorario
+                isOpen={modalHorario.isOpen}
                 onClose={() =>
-                    setModalDetalles({ isOpen: false, pasantia: null })
+                    setModalHorario({
+                        isOpen: false,
+                        turno: null,
+                        cargaHoraria: null,
+                        fechaIni: null,
+                        fechaFin: null,
+                    })
                 }
-                pasantia={modalDetalles.pasantia}
+                turno={modalHorario.turno}
+                cargaHoraria={modalHorario.cargaHoraria}
+                fechaIni={modalHorario.fechaIni}
+                fechaFin={modalHorario.fechaFin}
+            />
+            <ModalEditarPasantia
+                isOpen={modalEditar.isOpen}
+                onClose={() =>
+                    setModalEditar({ isOpen: false, pasantia: null })
+                }
+                pasantia={modalEditar.pasantia}
+                onUpdate={handlePasantiaEditada}
             />
             <ModalInscritos
                 isOpen={modalInscritos.isOpen}

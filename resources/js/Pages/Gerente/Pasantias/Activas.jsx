@@ -3,7 +3,10 @@ import { Head, router } from "@inertiajs/react";
 import { Flag } from "lucide-react";
 import ModalConfirmacion from "@/Components/Common/ModalConfirmacion";
 import GerenteLayout from "@/Components/Layout/GerenteLayout";
-import ModalDetallesPasantia from "@/Components/Common/ModalDetallesPasantia";
+
+//import ModalDetallesPasantia from "@/Components/Common/ModalDetallesPasantia";
+import ModalHorario from "@/Components/Common/ModalHorario";
+
 import ModalActividadesPasantia from "@/Components/Common/ModalActividadesPasantia";
 import ModalInscritosActivos from "@/Components/Common/ModalInscritosActivos";
 import BadgeFecha from "@/Components/Common/BadgeFecha";
@@ -12,6 +15,7 @@ import {
     Eye,
     Calendar,
     Users,
+    Clock,
     Search,
     ArrowUpDown,
     AlertTriangle,
@@ -41,6 +45,13 @@ export default function Activas({ auth, pasantias }) {
         pasantiaNombre: null,
         pasantiaFechaIni: null,
         pasantiaFechaFin: null,
+    });
+    const [modalHorario, setModalHorario] = useState({
+        isOpen: false,
+        turno: null,
+        cargaHoraria: null,
+        fechaIni: null,
+        fechaFin: null,
     });
     const [modalInscritos, setModalInscritos] = useState({
         isOpen: false,
@@ -191,28 +202,13 @@ export default function Activas({ auth, pasantias }) {
                                         Nombre <SortIcon field="nombre" />
                                     </div>
                                 </th>
-                                <th
-                                    className="px-4 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
-                                    onClick={() => handleSort("fecha_ini")}
-                                >
-                                    <div className="flex items-center gap-1">
-                                        Fecha Inicio{" "}
-                                        <SortIcon field="fecha_ini" />
-                                    </div>
-                                </th>
-                                <th
-                                    className="px-4 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
-                                    onClick={() => handleSort("fecha_fin")}
-                                >
-                                    <div className="flex items-center gap-1">
-                                        Fecha Fin <SortIcon field="fecha_fin" />
-                                    </div>
-                                </th>
+
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     Mencion
                                 </th>
+
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Detalles
+                                    Hrs./Fechas
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     Actividades
@@ -222,6 +218,14 @@ export default function Activas({ auth, pasantias }) {
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     Estado
+                                </th>
+                                <th
+                                    className="px-4 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
+                                    onClick={() => handleSort("fecha_fin")}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Fecha Fin <SortIcon field="fecha_fin" />
+                                    </div>
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     Finalizar
@@ -240,31 +244,29 @@ export default function Activas({ auth, pasantias }) {
                                     <td className="px-4 py-3 text-sm font-medium text-gray-900">
                                         {pasantia.nombre}
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <BadgeFecha
-                                            fecha={pasantia.fecha_ini}
-                                        />
-                                    </td>
-                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                        <BadgeFecha
-                                            fecha={pasantia.fecha_fin}
-                                        />
-                                    </td>
+
                                     <td className="px-2 py-1 text-xs font-medium text-gray-900">
                                         {pasantia.mencion}
                                     </td>
-                                    <td className="px-4 py-3 text-center">
+
+                                    <td className="px-3 py-3 text-center">
                                         <button
                                             onClick={() =>
-                                                setModalDetalles({
+                                                setModalHorario({
                                                     isOpen: true,
-                                                    pasantia: pasantia,
+                                                    turno: pasantia.turno,
+                                                    cargaHoraria:
+                                                        pasantia.carga_horaria,
+                                                    fechaIni:
+                                                        pasantia.fecha_ini,
+                                                    fechaFin:
+                                                        pasantia.fecha_fin,
                                                 })
                                             }
-                                            className="text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer"
-                                            title="Ver detalles"
+                                            className="text-primary-blue hover:text-primary-sky-blue"
+                                            title="Ver horario"
                                         >
-                                            <Eye size={18} />
+                                            <Clock size={18} />
                                         </button>
                                     </td>
                                     <td className="px-4 py-3 text-center">
@@ -330,7 +332,11 @@ export default function Activas({ auth, pasantias }) {
                                             }
                                         })()}
                                     </td>
-
+                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                        <BadgeFecha
+                                            fecha={pasantia.fecha_fin}
+                                        />
+                                    </td>
                                     <td className="px-4 py-3 text-center">
                                         <button
                                             onClick={() =>
@@ -357,13 +363,24 @@ export default function Activas({ auth, pasantias }) {
                 )}
             </div>
             {/* Modales reutilizables */}
-            <ModalDetallesPasantia
-                isOpen={modalDetalles.isOpen}
+
+            <ModalHorario
+                isOpen={modalHorario.isOpen}
                 onClose={() =>
-                    setModalDetalles({ isOpen: false, pasantia: null })
+                    setModalHorario({
+                        isOpen: false,
+                        turno: null,
+                        cargaHoraria: null,
+                        fechaIni: null,
+                        fechaFin: null,
+                    })
                 }
-                pasantia={modalDetalles.pasantia}
+                turno={modalHorario.turno}
+                cargaHoraria={modalHorario.cargaHoraria}
+                fechaIni={modalHorario.fechaIni}
+                fechaFin={modalHorario.fechaFin}
             />
+
             <ModalActividadesPasantia
                 isOpen={modalActividades.isOpen}
                 onClose={() =>

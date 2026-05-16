@@ -114,7 +114,7 @@ class PasantiaPublicadaController extends Controller
         ]);
         
         $pasantesIds = Inscripcion::where('id_pasantia', $id)
-            ->whereIn('estado', ['inscrito', 'iniciado'])
+            ->whereIn('estado', ['iniciado'])
             ->pluck('idU_pasante')
             ->toArray();
         // =============================================
@@ -148,7 +148,7 @@ class PasantiaPublicadaController extends Controller
         ]);
         
         $pasantesIds = Inscripcion::where('id_pasantia', $pasantia->id_pasantia)
-            ->whereIn('estado', ['inscrito', 'iniciado'])
+            ->whereIn('estado', ['iniciado'])
             ->pluck('idU_pasante')
             ->toArray();
 
@@ -453,4 +453,86 @@ class PasantiaPublicadaController extends Controller
         
         return response()->json(['message' => 'Pasantía iniciada correctamente']);
     }    
+
+
+        public function updatePasantia(Request $request, $id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        // Verificar que la pasantía pertenece a la empresa
+        $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->where('id_pasantia', $id)
+            ->firstOrFail();
+        
+        $request->validate([
+            'mencion' => 'required|string',
+            'turno' => 'required|string|in:tiempo completo,medio tiempo,mañana,tarde,noche',
+            'carga_horaria' => 'nullable|integer|min:0',
+            'fecha_ini' => 'required|date',
+            'fecha_fin' => 'required|date|after:fecha_ini',
+        ]);
+        
+        // Obtener la actividad con fecha de inicio más temprana
+        $actividadMinFecha = $pasantia->actividades()
+            ->orderBy('fecha_ini', 'asc')
+            ->first();
+        
+        // Obtener la actividad con fecha de fin más tardía
+        $actividadMaxFecha = $pasantia->actividades()
+            ->orderBy('fecha_fin', 'desc')
+            ->first();
+        
+        // Validar que la nueva fecha inicio no sea mayor que la fecha inicio de la actividad más temprana
+        if ($actividadMinFecha && $request->fecha_ini > $actividadMinFecha->fecha_ini) {
+            return response()->json([
+                'message' => "La fecha de inicio no puede ser mayor a la fecha de inicio de la actividad más temprana ({$actividadMinFecha->fecha_ini})."
+            ], 400);
+        }
+        
+        // Validar que la nueva fecha fin no sea menor que la fecha fin de la actividad más tardía
+        if ($actividadMaxFecha && $request->fecha_fin < $actividadMaxFecha->fecha_fin) {
+            return response()->json([
+                'message' => "La fecha de fin no puede ser menor a la fecha de fin de la actividad más tardía ({$actividadMaxFecha->fecha_fin})."
+            ], 400);
+        }
+        
+        $pasantia->update([
+            'mencion' => $request->mencion,
+            'turno' => $request->turno,
+            'carga_horaria' => $request->carga_horaria ?? 0,
+            'fecha_ini' => $request->fecha_ini,
+            'fecha_fin' => $request->fecha_fin,
+        ]);
+        
+         $pasantesIds = Inscripcion::where('id_pasantia', $id)
+            ->whereIn('estado', ['inscrito', 'iniciado'])
+            ->pluck('idU_pasante')
+            ->toArray();
+        
+        // Si cambió fecha_ini
+        $this->crearNotificacionesMultiples(
+            $pasantesIds,
+            'pasante',
+            'Hrs./Fechas actualizadas de una Pasantia',
+            "La pasantía \"{$pasantia->nombre_pas}\" actualizó sus fechas o detalles ¡¡¡REVISALO!!!",
+            'pasantia',
+            "/pasante/inscripciones/activas"
+        );
+        
+
+        return response()->json([
+            'message' => 'Pasantía actualizada correctamente',
+            'pasantia' => [
+                'id' => $pasantia->id_pasantia,
+                'nombre' => $pasantia->nombre_pas,
+                'mencion' => $pasantia->mencion,
+                'turno' => $pasantia->turno,
+                'carga_horaria' => $pasantia->carga_horaria,
+                'fecha_ini' => $pasantia->fecha_ini,
+                'fecha_fin' => $pasantia->fecha_fin,
+            ]
+        ]);
+
+    }
 }

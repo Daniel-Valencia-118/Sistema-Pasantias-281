@@ -31,7 +31,7 @@ class MensajeController extends Controller
         // Obtener todas las inscripciones activas (INICIADO) del pasante
         $inscripcionesActivas = Inscripcion::with(['pasantia.empresa', 'jefe.user'])
             ->where('idU_pasante', $pasante->idU_pasante)
-            ->where('estado', 'iniciado')
+            ->where('estado', 'iniciado','finalizado')
             ->get();
         
         // Colección para almacenar contactos únicos
@@ -79,7 +79,7 @@ class MensajeController extends Controller
             $otrosPasantes = Inscripcion::with('pasante.user')
                 ->where('id_pasantia', $inscripcion->id_pasantia)
                 ->where('idU_pasante', '!=', $pasante->idU_pasante)
-                ->where('estado', 'iniciado')
+                ->where('estado', 'iniciado','finalizado')
                 ->get();
             
             foreach ($otrosPasantes as $otro) {

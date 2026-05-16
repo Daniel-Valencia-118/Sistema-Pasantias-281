@@ -312,7 +312,7 @@ class InscripcionController extends Controller
             
             // Total de inscritos (activos + inscritos)
             $totalInscritos = $pasantia->inscripciones()
-                ->whereIn('estado', ['inscrito', 'iniciado'])
+                ->whereIn('estado', ['inscrito', 'iniciado','finalizado'])
                 ->count();
             
             // Actividades ordenadas
@@ -401,7 +401,7 @@ class InscripcionController extends Controller
         // Obtener todas las inscripciones de esta pasantía
         $inscripciones = Inscripcion::with(['pasante.user', 'jefe.user'])
             ->where('id_pasantia', $idPasantia)
-            ->whereIn('estado', ['inscrito', 'iniciado'])
+            ->whereIn('estado', ['inscrito', 'iniciado','finalizado'])
             ->get();
         
         $companeros = $inscripciones->map(function($insc) use ($pasante) {

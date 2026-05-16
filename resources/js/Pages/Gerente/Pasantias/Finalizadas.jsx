@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from "react";
 import axios from "axios";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import GerenteLayout from "@/Components/Layout/GerenteLayout";
 import ModalDetallesPasantia from "@/Components/Common/ModalDetallesPasantia";
 import ModalActividadesPasantia from "@/Components/Common/ModalActividadesPasantia";
 import ModalPasantesPromedio from "@/Components/Common/ModalPasantesPromedio";
 import ModalCalificaciones from "@/Components/Common/ModalCalificaciones";
 import ModalActividadesFinalizadas from "@/Components/Common/ModalActividadesFinalizadas";
+import ModalConfirmacion from "@/Components/Common/ModalConfirmacion";
 import BadgeFecha from "@/Components/Common/BadgeFecha";
 import {
     Eye,
@@ -18,9 +19,16 @@ import {
     ChevronUp,
     ChevronDown,
     CheckCircle,
+    Copy,
 } from "lucide-react";
 
 export default function Finalizadas({ auth, pasantias }) {
+    const [modalAbrir, setModalAbrir] = useState({
+        isOpen: false,
+        pasantiaId: null,
+        pasantiaNombre: null,
+    });
+    const [loadingAbrir, setLoadingAbrir] = useState(false);
     const [pasantiasData, setPasantiasData] = useState(pasantias);
     const [searchTerm, setSearchTerm] = useState("");
     const [sortField, setSortField] = useState("fecha_ini");
@@ -64,7 +72,37 @@ export default function Finalizadas({ auth, pasantias }) {
             <ChevronDown size={14} />
         );
     };
+    const handleAbrirPasantia = async () => {
+        setLoadingAbrir(true);
+        try {
+            const response = await axios.get(
+                `/gerente/pasantias/finalizadas/${modalAbrir.pasantiaId}/clonar`,
+            );
 
+            // Guardar los datos en sessionStorage para que Create.jsx los pueda leer
+            sessionStorage.setItem(
+                "pasantia_clonada",
+                JSON.stringify({
+                    pasantia: response.data.pasantia,
+                    actividades: response.data.actividades,
+                }),
+            );
+
+            // Redirigir a la página de creación
+            router.visit("/gerente/pasantias/crear");
+        } catch (error) {
+            alert(
+                error.response?.data?.message || "Error al abrir la pasantía",
+            );
+            setModalAbrir({
+                isOpen: false,
+                pasantiaId: null,
+                pasantiaNombre: null,
+            });
+        } finally {
+            setLoadingAbrir(false);
+        }
+    };
     const renderStars = (rating) => {
         const fullStars = Math.floor(rating);
         const stars = [];
@@ -170,6 +208,18 @@ export default function Finalizadas({ auth, pasantias }) {
                                 </th>
                                 <th
                                     className="px-3 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
+                                    onClick={() => handleSort("mencion")}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        Mención <SortIcon field="mencion" />
+                                    </div>
+                                </th>
+
+                                <th className="px-3 py-3 text-center text-xs font-bold text-white">
+                                    Detalles
+                                </th>
+                                <th
+                                    className="px-3 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
                                     onClick={() => handleSort("fecha_ini")}
                                 >
                                     <div className="flex items-center gap-1">
@@ -185,17 +235,6 @@ export default function Finalizadas({ auth, pasantias }) {
                                         Fecha Fin <SortIcon field="fecha_fin" />
                                     </div>
                                 </th>
-                                <th
-                                    className="px-3 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
-                                    onClick={() => handleSort("mencion")}
-                                >
-                                    <div className="flex items-center gap-1">
-                                        Mención <SortIcon field="mencion" />
-                                    </div>
-                                </th>
-                                <th className="px-3 py-3 text-center text-xs font-bold text-white">
-                                    Detalles
-                                </th>
                                 <th className="px-3 py-3 text-center text-xs font-bold text-white">
                                     Actividades
                                 </th>
@@ -207,6 +246,10 @@ export default function Finalizadas({ auth, pasantias }) {
                                 </th>
                                 <th className="px-3 py-3 text-center text-xs font-bold text-white">
                                     Calificaciones
+                                </th>
+
+                                <th className="px-3 py-3 text-center text-xs font-bold text-white">
+                                    Abrir
                                 </th>
                             </tr>
                         </thead>
@@ -221,16 +264,6 @@ export default function Finalizadas({ auth, pasantias }) {
                                     </td>
                                     <td className="px-4 py-3 text-sm font-medium text-gray-900">
                                         {pasantia.nombre}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                        <BadgeFecha
-                                            fecha={pasantia.fecha_ini}
-                                        />
-                                    </td>
-                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                        <BadgeFecha
-                                            fecha={pasantia.fecha_fin}
-                                        />
                                     </td>
                                     <td className="px-2 py-1 text-xs font-medium text-gray-900">
                                         {pasantia.mencion}
@@ -247,6 +280,16 @@ export default function Finalizadas({ auth, pasantias }) {
                                         >
                                             <Eye size={18} />
                                         </button>
+                                    </td>
+                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                        <BadgeFecha
+                                            fecha={pasantia.fecha_ini}
+                                        />
+                                    </td>
+                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                        <BadgeFecha
+                                            fecha={pasantia.fecha_fin}
+                                        />
                                     </td>
 
                                     <td className="px-4 py-3 text-center">
@@ -311,6 +354,22 @@ export default function Finalizadas({ auth, pasantias }) {
                                             </span>
                                         </button>
                                     </td>
+                                    <td className="px-3 py-3 text-center">
+                                        <button
+                                            onClick={() =>
+                                                setModalAbrir({
+                                                    isOpen: true,
+                                                    pasantiaId: pasantia.id,
+                                                    pasantiaNombre:
+                                                        pasantia.nombre,
+                                                })
+                                            }
+                                            className="p-2 text-primary-blue hover:bg-primary-blue/10 rounded-lg transition-all cursor-pointer"
+                                            title="Abrir pasantía nuevamente"
+                                        >
+                                            🔐
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -352,6 +411,22 @@ export default function Finalizadas({ auth, pasantias }) {
                 pasantiaId={modalCalificaciones.pasantiaId}
                 pasantiaNombre={modalCalificaciones.pasantiaNombre}
                 promedio={modalCalificaciones.promedio}
+            />
+            <ModalConfirmacion
+                isOpen={modalAbrir.isOpen}
+                onClose={() =>
+                    setModalAbrir({
+                        isOpen: false,
+                        pasantiaId: null,
+                        pasantiaNombre: null,
+                    })
+                }
+                onConfirm={handleAbrirPasantia}
+                titulo="Abrir Pasantía"
+                mensaje={`¿Deseas abrir nuevamente la pasantía "${modalAbrir.pasantiaNombre}"? Podrás editar dellates y fechas antes de publicarlo.`}
+                type="info"
+                confirmText="Abrir"
+                loading={loadingAbrir}
             />
             <ModalActividadesFinalizadas
                 isOpen={modalActividades.isOpen}
