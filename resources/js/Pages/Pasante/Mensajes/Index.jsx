@@ -390,8 +390,9 @@ export default function Index({ auth, contactos }) {
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => setBloqueado(!bloqueado)}
-                                    className="p-2 text-gray-400 hover:text-red-500 transition"
+                                    // onClick={() => setBloqueado(!bloqueado)}
+                                    onClick={() => {}}
+                                    className="hidden p-2 text-gray-400 hover:text-red-500 transition"
                                     title={
                                         bloqueado ? "Desbloquear" : "Bloquear"
                                     }

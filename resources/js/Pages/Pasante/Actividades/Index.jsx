@@ -30,9 +30,20 @@ export default function Index({ auth, tarjetas }) {
     };
 
     const formatRangoFechas = (fechaIni, fechaFin) => {
-        const ini = new Date(fechaIni);
-        const fin = new Date(fechaFin);
+        if (!fechaIni || !fechaFin) return "";
+
+        // Función auxiliar para crear la fecha local sin interferencia de UTC
+        const crearFechaLocal = (fechaStr) => {
+            const [year, month, day] = fechaStr.split("-").map(Number);
+            return new Date(year, month - 1, day);
+        };
+
+        // Convertimos ambas fechas de forma segura
+        const ini = crearFechaLocal(fechaIni);
+        const fin = crearFechaLocal(fechaFin);
+
         const opciones = { day: "numeric", month: "long" };
+
         return `${ini.toLocaleDateString("es-ES", opciones)} - ${fin.toLocaleDateString("es-ES", opciones)}`;
     };
 

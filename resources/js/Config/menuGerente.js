@@ -26,6 +26,7 @@ export const menuGerente = [
     {
         name: "Perfil",
         icon: UserCircle,
+        hide: true,
         submenus: [
             { name: "Perfil", href: "/gerente/perfil", icon: Eye },
             { name: "Cuenta", href: "/gerente/cuenta", icon: Settings },

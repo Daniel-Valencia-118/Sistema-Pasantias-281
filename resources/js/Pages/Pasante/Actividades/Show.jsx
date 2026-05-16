@@ -173,7 +173,14 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
     };
 
     const formatFechaLabel = (fecha) => {
-        const d = new Date(fecha);
+        if (!fecha) return "";
+
+        // Separamos el string por los guiones (ej: "2026-05-15" -> ["2026", "05", "15"])
+        const [year, month, day] = fecha.split("-").map(Number);
+
+        // Creamos la fecha usando el constructor local.
+        // Ojo: los meses en JavaScript van de 0 a 11, por eso restamos 1 al mes.
+        const d = new Date(year, month - 1, day);
 
         return d.toLocaleDateString("es-ES", {
             day: "numeric",

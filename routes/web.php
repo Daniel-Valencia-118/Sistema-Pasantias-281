@@ -191,5 +191,13 @@ Route::middleware(['auth', 'role:pasante'])->group(function () {
     Route::get('/pasante/informe-final/{idPasantia}', [App\Http\Controllers\Pasante\InscripcionController::class, 'generarInformeFinal'])->name('pasante.informe-final');
     
     Route::get('/pasante/mensajes/{tipo}/{id}', [App\Http\Controllers\Pasante\MensajeController::class, 'getMensajes'])->name('pasante.mensajes.get');
+    
+});
 
+Route::middleware('auth:sanctum')->group(function () {
+    // Notificaciones
+    Route::get('/notificaciones', [App\Http\Controllers\NotificacionController::class, 'index']);
+    Route::patch('/notificaciones/{id}/leer', [App\Http\Controllers\NotificacionController::class, 'marcarLeida']);
+    Route::patch('/notificaciones/marcar-todas', [App\Http\Controllers\NotificacionController::class, 'marcarTodasLeidas']);
+    Route::delete('/notificaciones/{id}', [App\Http\Controllers\NotificacionController::class, 'destroy']);
 });

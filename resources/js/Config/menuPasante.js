@@ -23,6 +23,7 @@ export const menuPasante = [
     {
         name: "Perfil",
         icon: UserCircle,
+        hide: true,
         submenus: [
             { name: "Perfil", href: "/pasante/perfil", icon: Eye },
             { name: "Cuenta", href: "/pasante/cuenta", icon: Settings },

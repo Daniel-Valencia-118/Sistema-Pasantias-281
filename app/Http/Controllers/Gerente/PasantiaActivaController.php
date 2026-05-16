@@ -7,12 +7,15 @@ use App\Models\Pasantia;
 use App\Models\Inscripcion;
 use App\Models\Actividad;
 use App\Models\BitacoraEva;
+use App\Traits\Notificable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class PasantiaActivaController extends Controller
-{
+{   
+    use Notificable;
+    
     public function index()
     {
         $user = Auth::user();
@@ -179,6 +182,22 @@ class PasantiaActivaController extends Controller
         // Cambiar estado de la pasantía a FINALIZADO
         $pasantia->update(['estado' => 'FINALIZADO']);
         
+        $pasantesIds = Inscripcion::where('id_pasantia', $id)
+            ->whereIn('estado', ['inscrito', 'iniciado', 'finalizado'])
+            ->pluck('idU_pasante')
+            ->toArray();
+        // =============================================
+        // NOTIFICACIÓN: Pasantía finalizada para todos los PASANTES
+        // =============================================
+        $this->crearNotificacionesMultiples(
+            $pasantesIds,
+            'pasante',
+            'Pasantía finalizada',
+            "La pasantía \"{$pasantia->nombre_pas}\" ha finalizado.",
+            'pasantia',
+            '/pasante/inscripciones/finalizadas'
+        );        
+
         return response()->json(['message' => 'Pasantía finalizada correctamente']);
     }
 

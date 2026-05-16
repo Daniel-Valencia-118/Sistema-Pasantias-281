@@ -293,9 +293,11 @@ export default function GerenteLayout({ children }) {
 
                     {/* Menú Scrollable */}
                     <nav className="flex-1 py-4 space-y-1 overflow-y-auto custom-scrollbar pb-10">
-                        {menuGerente.map((item, idx) => (
-                            <div key={idx}>{renderMenuItem(item)}</div>
-                        ))}
+                        {menuGerente
+                            .filter((item) => !item.hide) // 👈 FILTRO: Si tiene 'hide: true', lo ignora
+                            .map((item, idx) => (
+                                <div key={idx}>{renderMenuItem(item)}</div>
+                            ))}
                     </nav>
 
                     {/* Usuario pie de sidebar */}
@@ -495,21 +497,25 @@ export default function GerenteLayout({ children }) {
             )}
 
             {/* Estilos para Scrollbar */}
-            <style jsx>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.1);
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(255, 255, 255, 0.2);
-                }
-            `}</style>
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
+                            .custom-scrollbar::-webkit-scrollbar {
+                                width: 4px;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-track {
+                                background: transparent;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-thumb {
+                                background: rgba(255, 255, 255, 0.1);
+                                border-radius: 10px;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                                background: rgba(255, 255, 255, 0.2);
+                            }
+                        `,
+                }}
+            />
         </>
     );
 }

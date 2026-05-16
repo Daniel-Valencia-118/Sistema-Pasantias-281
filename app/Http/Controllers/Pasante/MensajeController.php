@@ -3,6 +3,7 @@
 
 namespace App\Http\Controllers\Pasante;
 
+
 use App\Http\Controllers\Controller;
 use App\Models\Mensaje;
 use App\Models\MensajePas;
@@ -10,13 +11,15 @@ use App\Models\Inscripcion;
 use App\Models\User;
 use App\Models\JefePas;
 use App\Models\Pasante;
+use App\Traits\Notificable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class MensajeController extends Controller
-{
+{   
+    use Notificable;
     /**
      * Muestra la lista de conversaciones y el chat
      */
@@ -285,6 +288,17 @@ class MensajeController extends Controller
                     'idU_pasante' => $pasante->idU_pasante,
                     'idU_jefe' => $request->id_contacto,
                 ]);
+                // =============================================
+                // NOTIFICACIÓN: Nuevo mensaje para el JEFE
+                // =============================================
+                $this->crearNotificacion(
+                    $request->id_contacto,  // id del jefe
+                    'jefe',
+                    'Nuevo mensaje',
+                    "El pasante {$pasante->user->nombre} {$pasante->user->ap_paterno} te ha enviado un mensaje.",
+                    'mensaje',
+                    '/jefe/mensajes' // Ajusta si la ruta del jefe es diferente
+                );
             } else {
                 $mensaje = MensajePas::create([
                     'descripcion' => $request->mensaje,
@@ -293,6 +307,17 @@ class MensajeController extends Controller
                     'idU_pasanteA' => $pasante->idU_pasante,
                     'idU_pasanteB' => $request->id_contacto,
                 ]);
+                 // =============================================
+                 // NOTIFICACIÓN: Nuevo mensaje para el otro PASANTE
+                // =============================================
+                $this->crearNotificacion(
+                        $request->id_contacto,  // id del otro pasante
+                        'pasante',
+                        'Nuevo mensaje',
+                        "El pasante {$pasante->user->nombre} {$pasante->user->ap_paterno} te ha enviado un mensaje.",
+                        'mensaje',
+                        '/pasante/mensajes'
+                 );
             }
             
             return response()->json([
@@ -311,5 +336,9 @@ class MensajeController extends Controller
                 'message' => 'Error al enviar el mensaje: ' . $e->getMessage()
             ], 500);
         }
+
     }
+
+        
 }
+
