@@ -129,8 +129,6 @@ class ActividadController extends Controller
             $autoevaluacion = AutoEva::where('idU_pasante', $pasante->idU_pasante)
                 ->where('id_actividad', $actividad->id_actividad)
                 ->first();
-
-           // Comentarios (solo del pasante actual, con su jefe)
         // Comentarios (solo del pasante actual, con su jefe)
         $comentarios = ComActividad::where('id_actividad', $actividad->id_actividad)
             ->where('idU_pasante', $pasante->idU_pasante)  // Solo sus comentarios
@@ -139,9 +137,28 @@ class ActividadController extends Controller
             ->get()
             ->map(function ($com) use ($pasante) {
                 // Autor del comentario (siempre será el pasante)
-                $autorNombre = $pasante->user->ap_paterno . ' ' . $pasante->user->ap_materno . ' ' . $pasante->user->nombre;
-                
+                // $autorNombre = $pasante->user->ap_paterno . ' ' . $pasante->user->ap_materno . ' ' . $pasante->user->nombre;
+            // Determinar si es comentario del pasante o respuesta del jefe
+                    $autorNombre = '';
+                    $autorAvatarUrl = null;
+                    
+                    if ($com->com_pasante) {
+                        // Comentario del pasante
+                        $autorNombre = $pasante->user->ap_paterno . ' ' . $pasante->user->ap_materno . ' ' . $pasante->user->nombre;
+                        $autorAvatarUrl = $pasante->user->avatar_url;
+                    } else {
+                        // Respuesta del jefe
+                        $jefe = $com->jefe;
+                        if ($jefe && $jefe->user) {
+                            $autorNombre = $jefe->user->ap_paterno . ' ' . $jefe->user->ap_materno . ' ' . $jefe->user->nombre;
+                            $autorAvatarUrl = $jefe->user->avatar_url;
+                        } else {
+                            $autorNombre = 'Jefe';
+                            $autorAvatarUrl = null;
+                        }
+                    }
                 // Si hay respuesta del jefe, obtener su nombre
+                // Si hay respuesta del jefe, también necesitamos su avatar
                 $respuestaJefe = null;
                 if ($com->com_jefe) {
                     $jefe = $com->jefe;
@@ -152,6 +169,7 @@ class ActividadController extends Controller
                         'jefe_nombre' => $jefe && $jefe->user 
                             ? $jefe->user->ap_paterno . ' ' . $jefe->user->ap_materno . ' ' . $jefe->user->nombre
                             : 'Jefe',
+                        'jefe_avatar_url' => $jefe && $jefe->user ? $jefe->user->avatar_url : null,
                     ];
                 }
                 
@@ -161,6 +179,7 @@ class ActividadController extends Controller
                     'fecha' => $com->fecha,
                     'hora' => $com->hora,
                     'autor_nombre' => $autorNombre,
+                    'autor_avatar_url' => $autorAvatarUrl,
                     'puede_editar' => $com->com_jefe === null, // Puede editar si no ha sido respondido
                     'respuesta_jefe' => $respuestaJefe,
                 ];

@@ -45,6 +45,14 @@ const formatearFecha = (fecha, hora) => {
         });
     }
 };
+const getAvatarUrl = (contacto) => {
+    // Si el contacto tiene avatar_url directamente (desde el backend)
+    if (contacto.avatar_url) {
+        return contacto.avatar_url;
+    }
+    // Si no, mostrar iniciales
+    return null;
+};
 
 const getInitials = (contacto) => {
     if (!contacto) return "?";
@@ -275,8 +283,20 @@ export default function Index({ auth, contactos }) {
                                         }`}
                                     >
                                         <div className="flex gap-3">
-                                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue text-white flex items-center justify-center font-bold shadow-sm">
-                                                {getInitials(contacto)}
+                                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue text-white flex items-center justify-center font-bold shadow-sm overflow-hidden">
+                                                {getAvatarUrl(contacto) ? (
+                                                    <img
+                                                        src={getAvatarUrl(
+                                                            contacto,
+                                                        )}
+                                                        alt={contacto.nombre}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <span>
+                                                        {getInitials(contacto)}
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-baseline">
@@ -371,9 +391,26 @@ export default function Index({ auth, contactos }) {
                                     >
                                         <ArrowLeft size={20} />
                                     </button>
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue text-white flex items-center justify-center font-bold shadow-sm">
-                                        {getInitials(contactoActivo.info)}
+
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue text-white flex items-center justify-center font-bold shadow-sm overflow-hidden">
+                                        {contactoActivo.info?.avatar_url ? (
+                                            <img
+                                                src={
+                                                    contactoActivo.info
+                                                        .avatar_url
+                                                }
+                                                alt={contactoActivo.info.nombre}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span>
+                                                {getInitials(
+                                                    contactoActivo.info,
+                                                )}
+                                            </span>
+                                        )}
                                     </div>
+
                                     <div>
                                         <p className="font-semibold text-gray-900">
                                             {contactoActivo.info?.ap_paterno ||

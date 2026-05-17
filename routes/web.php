@@ -27,7 +27,6 @@ Route::get('/login', function () {
     ]);
 })->name('login');
 
-
 Route::post('/login', [LoginController::class, 'store'])->name('login.store');
 
 // Cerrar sesión
@@ -205,4 +204,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/notificaciones/{id}/leer', [App\Http\Controllers\NotificacionController::class, 'marcarLeida']);
     Route::patch('/notificaciones/marcar-todas', [App\Http\Controllers\NotificacionController::class, 'marcarTodasLeidas']);
     Route::delete('/notificaciones/{id}', [App\Http\Controllers\NotificacionController::class, 'destroy']);
+
+    //avatar
+    Route::post('/avatar/actualizar', [App\Http\Controllers\AvatarController::class, 'update'])->name('avatar.update');
 });

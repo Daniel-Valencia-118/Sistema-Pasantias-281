@@ -68,6 +68,7 @@ class MensajeController extends Controller
                         'ultimo_mensaje_hora' => $ultimoMensaje ? $ultimoMensaje->hora : null,
                         'ultimo_mensaje_enviado_por_mi' => $enviadoPorMi,
                         'finalizada' => false,
+                        'avatar_url' => $jefe->user->avatar_url, // agregar esta línea
                     ]);
                 }
             }
@@ -114,6 +115,7 @@ class MensajeController extends Controller
                         'ultimo_mensaje_hora' => $ultimoMensaje ? $ultimoMensaje->hora : null,
                         'ultimo_mensaje_enviado_por_mi' => $enviadoPorMi,
                         'finalizada' => false,
+                        'avatar_url' => $companero->user->avatar_url, // agregar esta línea
                     ]);
                 }
             }
@@ -226,6 +228,7 @@ class MensajeController extends Controller
                 'ap_materno' => $jefe->user->ap_materno ?? '',
                 'nombre_user' => $jefe->user->nombre_user,
                 'tipo' => 'jefe',
+                'avatar_url' => $jefe->user->avatar_url,
             ];
         } else {
             // Obtener mensajes con otro pasante
@@ -256,6 +259,7 @@ class MensajeController extends Controller
                 'ap_materno' => $otroPasante->user->ap_materno ?? '',
                 'nombre_user' => $otroPasante->user->nombre_user,
                 'tipo' => 'pasante',
+                'avatar_url' => $otroPasante->user->avatar_url,
             ];
         }
         

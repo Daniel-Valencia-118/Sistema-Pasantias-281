@@ -29,6 +29,10 @@ export default function GerenteLayout({ children }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
+    const getInitials = (user) => {
+        if (!user) return "?";
+        return `${user.nombre?.charAt(0) || ""}${user.ap_paterno?.charAt(0) || ""}`;
+    };
     // ─── Fix #2: persistir openMenus en sessionStorage ────────────────────────
     // Sobrevive re-montajes de Inertia y el usuario conserva control total.
     const SESSION_KEY = "sgp_gerente_open_menus";
@@ -375,15 +379,27 @@ export default function GerenteLayout({ children }) {
                     {/* Usuario pie de sidebar */}
                     {!collapsed && (
                         <div className="p-4 border-t border-primary-slate">
-                            <p className="text-gray-400 text-sm">
-                                Conectado como
-                            </p>
-                            <p className="text-white font-medium truncate">
-                                {nombreCompleto}
-                            </p>
-                            <p className="text-primary-sky-blue text-xs">
-                                Gerente
-                            </p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue flex items-center justify-center text-white font-bold overflow-hidden">
+                                    {auth.user?.avatar_url ? (
+                                        <img
+                                            src={auth.user.avatar_url}
+                                            alt="Avatar"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <span>{getInitials(auth.user)}</span>
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-white font-medium truncate">
+                                        {nombreCompleto}
+                                    </p>
+                                    <p className="text-primary-sky-blue text-xs">
+                                        Gerente
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </aside>
@@ -538,8 +554,16 @@ export default function GerenteLayout({ children }) {
                                     }
                                     className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
                                 >
-                                    <div className="h-9 w-9 rounded-full bg-primary-blue flex items-center justify-center text-white font-bold shadow-md">
-                                        {primeraLetra}
+                                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue flex items-center justify-center text-white font-bold shadow-md overflow-hidden">
+                                        {auth.user?.avatar_url ? (
+                                            <img
+                                                src={auth.user.avatar_url}
+                                                alt="Avatar"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span>{primeraLetra}</span>
+                                        )}
                                     </div>
                                     <span className="hidden md:block text-sm font-medium text-gray-700">
                                         {auth.user?.nombre?.split(" ")[0] ||
@@ -555,8 +579,18 @@ export default function GerenteLayout({ children }) {
                                 {userMenuOpen && (
                                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
                                         <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
-                                            <div className="h-12 w-12 rounded-full bg-primary-blue flex items-center justify-center text-white font-bold text-lg shadow-md">
-                                                {primeraLetra}
+                                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue flex items-center justify-center text-white font-bold shadow-md overflow-hidden">
+                                                {auth.user?.avatar_url ? (
+                                                    <img
+                                                        src={
+                                                            auth.user.avatar_url
+                                                        }
+                                                        alt="Avatar"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <span>{primeraLetra}</span>
+                                                )}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-semibold text-gray-900 truncate">
