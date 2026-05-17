@@ -6,6 +6,7 @@ import PasanteLayout from "@/Components/Layout/PasanteLayout";
 import ModalDetallesEmpresa from "@/Components/Common/ModalDetallesEmpresa";
 import ModalHorario from "@/Components/Common/ModalHorario";
 import ModalActividadesPasante from "@/Components/Common/ModalActividadesPasante";
+import ModalScoreEmpresa from "@/Components/Common/ModalScoreEmpresa";
 import ModalConfirmacion from "@/Components/Common/ModalConfirmacion";
 import ModalAlerta from "@/Components/Common/ModalAlerta";
 import BadgeFecha from "@/Components/Common/BadgeFecha";
@@ -16,6 +17,7 @@ import {
     Calendar as CalendarIcon,
     ChevronUp,
     ChevronDown,
+    Star,
     ArrowUpDown,
 } from "lucide-react";
 
@@ -43,7 +45,11 @@ export default function Inscribirse({
     const [filtroMencion, setFiltroMencion] = useState(mencionPorDefecto);
     const [sortField, setSortField] = useState("fecha_ini");
     const [sortDirection, setSortDirection] = useState("asc");
-
+    const [modalScore, setModalScore] = useState({
+        isOpen: false,
+        empresaId: null,
+        empresaNombre: null,
+    });
     // Modales
     const [modalEmpresa, setModalEmpresa] = useState({
         isOpen: false,
@@ -311,6 +317,10 @@ export default function Inscribirse({
                                         <SortIcon field="empresa_nombre" />
                                     </div>
                                 </th>
+                                <th className="px-3 py-3 text-center text-xs font-bold text-white">
+                                    Score
+                                </th>
+
                                 <th className="px-3 py-3 text-left text-xs font-bold text-white">
                                     Mención
                                 </th>
@@ -380,6 +390,29 @@ export default function Inscribirse({
                                                 </button>
                                             </div>
                                         </td>
+
+                                        <td className="px-3 py-3 text-center">
+                                            <button
+                                                onClick={() =>
+                                                    setModalScore({
+                                                        isOpen: true,
+                                                        empresaId:
+                                                            pasantia.empresa.id,
+                                                        empresaNombre:
+                                                            pasantia.empresa
+                                                                .nombre,
+                                                    })
+                                                }
+                                                className="text-yellow-500 hover:text-yellow-600 transition-transform hover:scale-110"
+                                                title="Ver calificaciones de la empresa"
+                                            >
+                                                <Star
+                                                    size={18}
+                                                    fill="currentColor"
+                                                />
+                                            </button>
+                                        </td>
+
                                         <td className="px-3 py-3 text-sm text-gray-600">
                                             <span
                                                 className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -547,7 +580,18 @@ export default function Inscribirse({
                 type="info"
                 confirmText="Sí, inscribirme"
             />
-
+            <ModalScoreEmpresa
+                isOpen={modalScore.isOpen}
+                onClose={() =>
+                    setModalScore({
+                        isOpen: false,
+                        empresaId: null,
+                        empresaNombre: null,
+                    })
+                }
+                empresaId={modalScore.empresaId}
+                empresaNombre={modalScore.empresaNombre}
+            />
             <ModalAlerta
                 isOpen={modalAlerta.isOpen}
                 onClose={() =>

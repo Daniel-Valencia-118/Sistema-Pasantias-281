@@ -196,6 +196,7 @@ Route::middleware(['auth', 'role:pasante'])->group(function () {
     
     Route::get('/pasante/mensajes/{tipo}/{id}', [App\Http\Controllers\Pasante\MensajeController::class, 'getMensajes'])->name('pasante.mensajes.get');
     
+    Route::get('/pasante/inscribirse/{id}/calificaciones', [App\Http\Controllers\Pasante\InscripcionController::class, 'getCalificacionesEmpresa'])->name('pasante.inscribirse.calificaciones');
 });
 
 Route::middleware('auth:sanctum')->group(function () {

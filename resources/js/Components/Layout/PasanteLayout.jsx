@@ -274,7 +274,7 @@ export default function PasanteLayout({ children }) {
     // Polling cada 30 segundos
     useEffect(() => {
         cargarNotificaciones();
-        const interval = setInterval(cargarNotificaciones, 30000);
+        const interval = setInterval(cargarNotificaciones, 15000);
         return () => clearInterval(interval);
     }, []);
 

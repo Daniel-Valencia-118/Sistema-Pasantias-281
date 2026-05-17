@@ -10,8 +10,16 @@ class Notificacion extends Model
     protected $table = 'notificaciones';
     
     protected $fillable = [
-        'titulo', 'mensaje', 'tipo', 'icono', 'url',
-        'id_usuario', 'rol_usuario', 'leido', 'fecha', 'hora'
+        'titulo', 
+        'mensaje', 
+        'tipo', 
+        'icono', 
+        'url',
+        'id_usuario', 
+        'rol_usuario', 
+        'leido', 
+        'fecha', 
+        'hora'
     ];
     
     protected $casts = [
