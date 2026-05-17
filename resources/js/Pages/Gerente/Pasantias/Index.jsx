@@ -208,6 +208,7 @@ export default function Index({ auth, pasantias }) {
                 `/gerente/pasantias/${modalIniciar.pasantiaId}/iniciar`,
             );
             if (response.data.message) {
+                alert(response.data.message); // ← Mostrar mensaje de éxito
                 window.location.reload();
             }
         } catch (error) {

@@ -8,6 +8,7 @@ use App\Models\Actividad;
 use App\Models\Inscripcion;
 use App\Models\JefePas;
 use App\Traits\Notificable;
+use App\Traits\SincronizaEstadosInscripciones; // ← Agregar
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,8 @@ use Inertia\Inertia;
 class PasantiaPublicadaController extends Controller
 {
     use Notificable;
-
+    use SincronizaEstadosInscripciones; // ← Agregar
+    
     public function index()
     {
         $user = Auth::user();
@@ -429,10 +431,17 @@ class PasantiaPublicadaController extends Controller
             return response()->json(['message' => 'Existen pasantes sin tener un jefe de pasante asignado'], 400);
         }
         
+
         // Cambiar estado de la pasantía a INICIADO
         $pasantia->update(['estado' => 'INICIADO']);
+        
+        // Sincronizar inscripciones (cambiará 'inscrito' a 'iniciado')
+        $inscripciones = Inscripcion::where('id_pasantia', $id)->get();
+        $this->sincronizarEstadosInscripciones($inscripciones);
+        
+        // Obtener IDs de pasantes para notificaciones
         $pasantesIds = Inscripcion::where('id_pasantia', $id)
-            ->where('estado', 'inscrito')
+            ->where('estado', 'iniciado','inscrito')
             ->pluck('idU_pasante')
             ->toArray();
 
@@ -447,11 +456,9 @@ class PasantiaPublicadaController extends Controller
             'pasantia',
             "/pasante/actividades/{$pasantia->id_pasantia}"
         );
-            
-        // Opcional: Actualizar estados de inscripción a 'iniciado'
-        // (Esto lo hará el rol JEFE más adelante, por ahora no)
-        
+    
         return response()->json(['message' => 'Pasantía iniciada correctamente']);
+    
     }    
 
 
