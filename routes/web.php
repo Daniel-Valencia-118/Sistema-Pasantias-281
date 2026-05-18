@@ -171,9 +171,14 @@ Route::middleware(['auth', 'role:jefe'])->group(function () {
     Route::get('/jefe/perfil', [JefeController::class, 'perfil'])->name('jefe.perfil');
     Route::put('/jefe/perfil', [JefeController::class, 'actualizarPerfil'])->name('jefe.actualizarPerfil');
     Route::get('/jefe', [JefeController::class, 'dashboard'])->name('jefe.dashboard');
+
     Route::get('/jefe/pasantes', [JefeController::class, 'misPasantes'])->name('jefe.pasantes');
+    Route::get('/jefe/pasantes/{id_pasantia}', [JefeController::class, 'misPasantes'])->name('jefe.pasantes.show');
 
     Route::get('/jefe/pasantias', [JefeController::class, 'misPasantias'])->name('jefe.pasantias');
+    // pagina de tarjetas de pasantias a cargo del jefe
+    Route::get('/jefe/pasantias/tarjetas', [ActividadController::class, 'tarjetas'])->name('jefe.pasantes.tarjetas');
+
 
     Route::get('/jefe/evaluaciones/bitacoras', [JefeController::class, 'bitacoras'])->name('jefe.bitacoras');
     Route::post('/jefe/evaluaciones/evaluar', [JefeController::class, 'evaluarBitacora'])->name('jefe.evaluarBitacora');

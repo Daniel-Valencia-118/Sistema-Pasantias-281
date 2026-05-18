@@ -37,7 +37,7 @@ class PasanteSeeder extends Seeder
                     'ap_materno' => $lastNameM,
                     'fecha_nac' => $faker->date('Y-m-d', '2004-01-01'), // Nacidos antes de 2004
                     'estado_cuenta' => false,
-                    'estado_aprobacion' => 'aprobado',
+                    'estado_aprobacion' => 'APROBADO',
                 ]);
 
                 // Crear el Pasante asociado

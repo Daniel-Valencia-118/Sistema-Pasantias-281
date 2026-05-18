@@ -147,83 +147,134 @@ public function dashboard()
         return back()->with('success', 'Perfil actualizado correctamente.');
     }
 
-    public function misPasantes2()
+    public function misPasantes($id_pasantia)
     {
+        // 1. Obtener los datos del Jefe de Pasantía autenticado
         $user = Auth::user();
-        $jefe = $user->jefePas;
+        $jefe = $user->jefePas; // idU_jefe
 
-        $pasantes = Pasante::with(['user', 'inscripciones' => function ($q) use ($jefe) {
-                $q->where('idU_jefe', $jefe->idU_jefe);
-            }, 'inscripciones.pasantia'])
-            ->whereHas('inscripciones', function ($q) use ($jefe) {
-                $q->where('idU_jefe', $jefe->idU_jefe);
-            })
-            ->get()
-            ->map(function ($pasante) {
-                $inscripcionActiva = $pasante->inscripciones->first();
-                return [
-                    'id' => $pasante->idU_pasante,
-                    'nombre_completo' => $pasante->user->nombre . ' ' . $pasante->user->ap_paterno . ' ' . $pasante->user->ap_materno,
-                    'correo' => $pasante->user->correo,
-                    'ru' => $pasante->ru,
-                    'matricula' => $pasante->matricula,
-                    'semestre' => $pasante->semestre,
-                    'mencion' => $pasante->mencion,
-                    'pasantia_actual' => $inscripcionActiva ? $inscripcionActiva->pasantia->nombre_pas : 'Sin pasantía activa',
-                    'estado_inscripcion' => $inscripcionActiva ? $inscripcionActiva->estado : 'No asignado',
-                    'id_inscripcion' => $inscripcionActiva ? $inscripcionActiva->id_inscripcion : null,
-                ];
-            });
-
-        return Inertia::render('Jefe/MisPasantes', [
-            'pasantes' => $pasantes,
-        ]);
-    }
-    // Ver mis pasantes asignados
-    public function misPasantes()
-    {
-        $user = Auth::user();
-        $jefe = $user->jefePas;
+        // 2. Validar y obtener los datos de la Pasantía actual
+        $pasantia = Pasantia::findOrFail($id_pasantia);
         
-        $pasantes = Inscripcion::with(['pasante.user', 'pasantia.actividades', 'pasantia.actividades.evaluaciones'])
+        // 3. Traer solo las inscripciones asignadas a este jefe en la PASANTÍA ACTUAL
+        $inscripciones = Inscripcion::with(['pasante.user', 'pasantia.actividades.evaluaciones'])
             ->where('idU_jefe', $jefe->idU_jefe)
-            ->get()
-            ->map(function($inscripcion) {
+            ->where('id_pasantia', $id_pasantia)
+            ->get();
+
+        // 4. Mapear y procesar los estudiantes inyectando progresos más recientes y bitácoras
+        $listadoPasantes = $inscripciones->map(function($inscripcion) {
+            
+            // Obtener el listado de actividades con su progreso más reciente y notas de bitácora
+            $actividadesProgreso = $inscripcion->pasantia->actividades->map(function($actividad) use ($inscripcion) {
+                
+                // CONDICIÓN CRÍTICA: Obtener el progreso más reciente ordenando por fecha y hora
+                $progresoReciente = DB::table('progreso_act')
+                    ->where('id_actividad', $actividad->id_actividad)
+                    ->where('idU_pasante', $inscripcion->idU_pasante)
+                    ->orderBy('fecha', 'desc')
+                    ->orderBy('hora', 'desc')
+                    ->first();
+
+                // Buscar si existe un registro de evaluación (BITACORA) para este pasante en esta actividad
+                $evaluacionBitacora = $actividad->evaluaciones
+                    ->where('idU_pasante', $inscripcion->idU_pasante)
+                    ->first();
+
+                // Si progresoReciente es null no enviamos la actividad al frontend, ya que no tiene avances registrados
+                // if (!$progresoReciente) {
+                //     return [];
+                // }
+                
                 return [
-                    'inscripcion_id' => $inscripcion->id_inscripcion,
-                    'pasante' => [
-                        'id' => $inscripcion->pasante->idU_pasante,
-                        'nombre' => $inscripcion->pasante->user->nombre . ' ' . $inscripcion->pasante->user->ap_paterno,
-                        'ru' => $inscripcion->pasante->ru,
-                        'matricula' => $inscripcion->pasante->matricula,
-                    ],
-                    'pasantia' => [
-                        'id' => $inscripcion->pasantia->id_pasantia,
-                        'nombre' => $inscripcion->pasantia->nombre_pas,
-                    ],
-                    'estado' => $inscripcion->estado,
-                    // Extraer y aplanar todas las evaluaciones de todas las actividades de esta pasantía
-                    'bitacora' => $inscripcion->pasantia->actividades->flatMap(function($actividad) {
-                        return $actividad->evaluaciones->map(function($eva) use ($actividad) {
-                            return [
-                                'id_bitacora' => $eva->id_bitacora,
-                                'descripcion' => $eva->descripcion,
-                                'nota' => $eva->nota,
-                                'observacion' => $eva->observacion,
-                                'recomendacion' => $eva->recomendacion,
-                                'fecha' => $eva->fecha,
-                                'actividad_nombre' => $actividad->nombre_act,
-                            ];
-                        });
-                    }),
+                    'id_actividad' => $actividad->id_actividad,
+                    'nombre_actividad' => $actividad->nombre_act,
+                    'porcentaje' => $progresoReciente ? $progresoReciente->porcentaje : 0,
+                    'descripcion_progreso' => $progresoReciente ? $progresoReciente->descripcion : 'Sin reportes de avance registrados.',
+                    'fecha_progreso' => $progresoReciente ? $progresoReciente->fecha : null,
+                    'hora_progreso' => $progresoReciente ? $progresoReciente->hora : null,
+                    // Datos de evaluación oficial (Bitácora del Jefe) si existe
+                    'id_bitacora' => $evaluacionBitacora ? $evaluacionBitacora->id_bitacora : null,
+                    'nota' => $evaluacionBitacora ? $evaluacionBitacora->nota : null,
+                    'observacion' => $evaluacionBitacora ? $evaluacionBitacora->observacion : null,
+                    'recomendacion' => $evaluacionBitacora ? $evaluacionBitacora->recomendacion : null,
                 ];
-            });
-        
-        // return response()->json(['data' => $pasantes]);
+            })->values()->all();
+
+            // Retornamos la estructura optimizada para la tabla y modales
+            return [
+                'id' => $inscripcion->id_inscripcion,
+                'idU_pasante' => $inscripcion->idU_pasante,
+                'estado' => $inscripcion->estado,
+                'nombre_completo' => $inscripcion->pasante->user->nombre . ' ' . $inscripcion->pasante->user->ap_paterno . ' ' . $inscripcion->pasante->user->ap_materno,
+                'ru' => $inscripcion->pasante->ru,
+                'ci' => $inscripcion->pasante->user->ci,
+                'matricula' => $inscripcion->pasante->matricula,
+                'email' => $inscripcion->pasante->user->correo,
+                'telefono' => $inscripcion->pasante->user->numero_cel ?? 'No registrado',
+                'mencion' => $inscripcion->pasante->mencion ?? 'No registrado',
+                'matricula' => $inscripcion->pasante->matricula ?? 'No registrado',
+                'semestre' => $inscripcion->pasante->semestre ?? 'No registrado',
+                'actividades_progreso' => $actividadesProgreso // Inyección de datos estructurales para Modal 2
+            ];
+        })->values()->all();
+
+        // 5. Renderizado único enviando los datos limpios de la pasantía actual
         return Inertia::render('Jefe/MisPasantes', [
-            'pasantes' => $pasantes,
+            'pasantia' => [
+                'id_pasantia' => $pasantia->id_pasantia,
+                'nombre_pasantia' => $pasantia->nombre_pas,
+                'codigo' => $pasantia->codigo_pas ?? $pasantia->codigo ?? 'PAS-GEN',
+            ],
+            'listadoPasantes' => $listadoPasantes,
         ]);
     }
+
+    // Ver mis pasantes asignados
+    // public function misPasantes()
+    // {
+    //     $user = Auth::user();
+    //     $jefe = $user->jefePas;
+        
+    //     $pasantes = Inscripcion::with(['pasante.user', 'pasantia.actividades', 'pasantia.actividades.evaluaciones'])
+    //         ->where('idU_jefe', $jefe->idU_jefe)
+    //         ->get()
+    //         ->map(function($inscripcion) {
+    //             return [
+    //                 'inscripcion_id' => $inscripcion->id_inscripcion,
+    //                 'pasante' => [
+    //                     'id' => $inscripcion->pasante->idU_pasante,
+    //                     'nombre' => $inscripcion->pasante->user->nombre . ' ' . $inscripcion->pasante->user->ap_paterno,
+    //                     'ru' => $inscripcion->pasante->ru,
+    //                     'matricula' => $inscripcion->pasante->matricula,
+    //                 ],
+    //                 'pasantia' => [
+    //                     'id' => $inscripcion->pasantia->id_pasantia,
+    //                     'nombre' => $inscripcion->pasantia->nombre_pas,
+    //                 ],
+    //                 'estado' => $inscripcion->estado,
+    //                 // Extraer y aplanar todas las evaluaciones de todas las actividades de esta pasantía
+    //                 'bitacora' => $inscripcion->pasantia->actividades->flatMap(function($actividad) {
+    //                     return $actividad->evaluaciones->map(function($eva) use ($actividad) {
+    //                         return [
+    //                             'id_bitacora' => $eva->id_bitacora,
+    //                             'descripcion' => $eva->descripcion,
+    //                             'nota' => $eva->nota,
+    //                             'observacion' => $eva->observacion,
+    //                             'recomendacion' => $eva->recomendacion,
+    //                             'fecha' => $eva->fecha,
+    //                             'actividad_nombre' => $actividad->nombre_act,
+    //                         ];
+    //                     });
+    //                 }),
+    //             ];
+    //         });
+        
+    //     // return response()->json(['data' => $pasantes]);
+    //     return Inertia::render('Jefe/MisPasantes', [
+    //         'pasantes' => $pasantes,
+    //     ]);
+    // }
 
     public function misPasantias()
     {

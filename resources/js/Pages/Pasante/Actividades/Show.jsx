@@ -41,6 +41,9 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
         evaluacion: null,
     });
 
+    console.log(pasantia, actividades, puedeComentar);
+    
+
     const toggleComments = (actividadId) => {
         setExpandedComments((prev) => ({
             ...prev,

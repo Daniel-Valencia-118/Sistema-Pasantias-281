@@ -28,6 +28,8 @@ export default function Activas({ auth, inscripciones }) {
         companeros: { isOpen: false, pasantiaId: null, pasantiaNombre: null },
     });
 
+    console.log(inscripciones);
+    
     const bandera1 = 1;
     const getEstadoBadge = (estado) => {
         if (estado === "inscrito") {

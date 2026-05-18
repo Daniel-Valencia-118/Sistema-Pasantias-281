@@ -45,20 +45,21 @@ const columns = [
         label: 'Estado',
         sortable: true,
         align: 'center',
-        render: (value) => {
+        render: (value, row) => {
             // Mapeo adaptado a los estados comunes de una convocatoria de pasantía
             const colorMap = {
-                'iniciado': 'bg-emerald-50 text-emerald-600 border-emerald-200',
-                'abierta': 'bg-blue-50 text-blue-600 border-blue-200',
-                'Cerrada': 'bg-rose-50 text-rose-600 border-rose-200',
-                'Finalizado': 'bg-purple-50 text-purple-600 border-purple-200',
+                'INICIADO': 'bg-emerald-50 text-emerald-600 border-emerald-200',
+                'ABIERTA': 'bg-blue-50 text-blue-600 border-blue-200',
+                'CERRADA': 'bg-rose-50 text-rose-600 border-rose-200',
+                'FINALIZADO': 'bg-purple-50 text-purple-600 border-purple-200',
             };
             return (
                 <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border tracking-wide inline-flex items-center gap-1.5 ${colorMap[value] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${
-                        value === 'Activo' || value === 'Abierta' ? 'bg-emerald-500' : 'bg-slate-400'
+                        value === 'INICIADO' || value === 'ABIERTA' ? 'bg-emerald-500' : 'bg-slate-400'
                     }`} />
-                    {value}
+                    {/* Verificar caso especial, si la pasantia aun no está INICIADA y no hay cupos disponibles entonces mostrar 'SIN CUPOS' si no mostrar el estado correspondiente*/}
+                    {value == 'ABIERTA' && parseInt(row.cupos_disponibles, 10) === 0 ? 'SIN CUPOS' : value}
                 </span>
             );
         },

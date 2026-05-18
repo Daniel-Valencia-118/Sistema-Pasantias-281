@@ -155,7 +155,7 @@ export const menuConfig = {
             name: 'Mis Pasantes',
             icon: School,
             single: true,
-            href: '/jefe/pasantes',
+            href: '/jefe/pasantias/tarjetas',
         },
         {
             name: 'Evaluaciones',

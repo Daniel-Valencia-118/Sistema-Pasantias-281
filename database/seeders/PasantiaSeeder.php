@@ -40,7 +40,7 @@ class PasantiaSeeder extends Seeder
 
                 Pasantia::create([
                     'nombre_pas' => $faker->randomElement($titulos),
-                    'estado' => $faker->randomElement(['disponible', 'activo', 'finalizado']),
+                    'estado' => $faker->randomElement(['ABIERTA', 'INICIADO', 'FINALIZADO', 'CANCELADO']),
                     'mencion' => $faker->randomElement($menciones),
                     'fecha_ini' => $fechaInicio->format('Y-m-d'),
                     'fecha_fin' => $fechaFin->format('Y-m-d'),
