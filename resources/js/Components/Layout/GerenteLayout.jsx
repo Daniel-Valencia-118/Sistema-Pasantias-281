@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import { menuGerente } from "@/Config/menuGerente";
+import axios from "axios";
 import {
     ChevronLeft,
     ChevronRight,
@@ -9,17 +10,29 @@ import {
     User,
     Bell,
     Home,
+    CheckCheck,
     LogOut,
     Settings,
 } from "lucide-react";
 
 export default function GerenteLayout({ children }) {
+    // Estados notificaciones
+    const [notificaciones, setNotificaciones] = useState([]);
+    const [noLeidas, setNoLeidas] = useState(0);
+    const [notifOpen, setNotifOpen] = useState(false);
+    const notifButtonRef = useRef(null);
+    const notifDropdownRef = useRef(null);
+    //-----------------------------
     const { auth } = usePage().props;
     const { url } = usePage();
     const [collapsed, setCollapsed] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
+    const getInitials = (user) => {
+        if (!user) return "?";
+        return `${user.nombre?.charAt(0) || ""}${user.ap_paterno?.charAt(0) || ""}`;
+    };
     // ─── Fix #2: persistir openMenus en sessionStorage ────────────────────────
     // Sobrevive re-montajes de Inertia y el usuario conserva control total.
     const SESSION_KEY = "sgp_gerente_open_menus";
@@ -36,6 +49,35 @@ export default function GerenteLayout({ children }) {
         try {
             sessionStorage.setItem(SESSION_KEY, JSON.stringify(menus));
         } catch {}
+    };
+
+    // Cargar notificaciones
+    const cargarNotificaciones = async () => {
+        try {
+            const response = await axios.get("/notificaciones");
+            setNotificaciones(response.data.notificaciones);
+            setNoLeidas(response.data.no_leidas);
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    };
+    // Marcar como leída
+    const marcarLeida = async (id) => {
+        try {
+            await axios.patch(`/notificaciones/${id}/leer`);
+            cargarNotificaciones();
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    };
+    // Marcar todas como leídas
+    const marcarTodasLeidas = async () => {
+        try {
+            await axios.patch("/notificaciones/marcar-todas");
+            cargarNotificaciones();
+        } catch (error) {
+            console.error("Error:", error);
+        }
     };
 
     // ─── Fix #1: "mejor match gana" ───────────────────────────────────────────
@@ -62,6 +104,40 @@ export default function GerenteLayout({ children }) {
             saveMenus(next);
             return next;
         });
+    };
+
+    // Polling cada 30 segundos
+    useEffect(() => {
+        cargarNotificaciones();
+        const interval = setInterval(cargarNotificaciones, 15000);
+        return () => clearInterval(interval);
+    }, []);
+    // Cerrar dropdown al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                notifButtonRef.current &&
+                !notifButtonRef.current.contains(event.target) &&
+                notifDropdownRef.current &&
+                !notifDropdownRef.current.contains(event.target)
+            ) {
+                setNotifOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+    // Icono por tipo
+    const getNotifIcon = (tipo) => {
+        switch (tipo) {
+            case "inscripcion":
+                return "📋";
+            case "cupos_completados":
+                return "🏢";
+            default:
+                return "🔔";
+        }
     };
 
     // • /gerente (home): cierra todos los despliegues → estado limpio al iniciar sesión.
@@ -293,23 +369,37 @@ export default function GerenteLayout({ children }) {
 
                     {/* Menú Scrollable */}
                     <nav className="flex-1 py-4 space-y-1 overflow-y-auto custom-scrollbar pb-10">
-                        {menuGerente.map((item, idx) => (
-                            <div key={idx}>{renderMenuItem(item)}</div>
-                        ))}
+                        {menuGerente
+                            .filter((item) => !item.hide) // 👈 FILTRO: Si tiene 'hide: true', lo ignora
+                            .map((item, idx) => (
+                                <div key={idx}>{renderMenuItem(item)}</div>
+                            ))}
                     </nav>
 
                     {/* Usuario pie de sidebar */}
                     {!collapsed && (
                         <div className="p-4 border-t border-primary-slate">
-                            <p className="text-gray-400 text-sm">
-                                Conectado como
-                            </p>
-                            <p className="text-white font-medium truncate">
-                                {nombreCompleto}
-                            </p>
-                            <p className="text-primary-sky-blue text-xs">
-                                Gerente
-                            </p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue flex items-center justify-center text-white font-bold overflow-hidden">
+                                    {auth.user?.avatar_url ? (
+                                        <img
+                                            src={auth.user.avatar_url}
+                                            alt="Avatar"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <span>{getInitials(auth.user)}</span>
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-white font-medium truncate">
+                                        {nombreCompleto}
+                                    </p>
+                                    <p className="text-primary-sky-blue text-xs">
+                                        Gerente
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </aside>
@@ -357,10 +447,104 @@ export default function GerenteLayout({ children }) {
                             </Link>
 
                             {/* Notificaciones placeholder */}
-                            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors relative">
+                            <button
+                                ref={notifButtonRef}
+                                onClick={() => setNotifOpen(!notifOpen)}
+                                className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors relative"
+                            >
                                 <Bell size={20} />
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+                                {noLeidas > 0 && (
+                                    <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                                        {noLeidas > 9 ? "9+" : noLeidas}
+                                    </span>
+                                )}
                             </button>
+                            {/* Dropdown de notificaciones */}
+                            {notifOpen && (
+                                <div
+                                    ref={notifDropdownRef}
+                                    className="absolute right-40 -mt-6 w-90 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+                                    style={{
+                                        maxHeight: "calc(100vh - 100px)",
+                                        top: "100%",
+                                    }}
+                                >
+                                    <div className="flex justify-between items-center p-3 border-b bg-gray-50 sticky top-0 z-10">
+                                        <h3 className="font-semibold text-gray-900">
+                                            Notificaciones
+                                        </h3>
+                                        {noLeidas > 0 && (
+                                            <button
+                                                onClick={marcarTodasLeidas}
+                                                className="text-xs text-primary-blue hover:underline flex items-center gap-1"
+                                            >
+                                                <CheckCheck size={14} /> Marcar
+                                                todas
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div
+                                        className="overflow-y-auto"
+                                        style={{
+                                            maxHeight: "calc(100vh - 160px)",
+                                        }}
+                                    >
+                                        {notificaciones.length === 0 ? (
+                                            <div className="text-center py-8 text-gray-400">
+                                                <Bell
+                                                    size={32}
+                                                    className="mx-auto mb-2 opacity-30"
+                                                />
+                                                <p className="text-sm">
+                                                    No hay notificaciones
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            notificaciones.map((notif) => (
+                                                <div
+                                                    key={notif.id}
+                                                    onClick={() => {
+                                                        if (notif.url)
+                                                            window.location.href =
+                                                                notif.url;
+                                                        if (!notif.leido)
+                                                            marcarLeida(
+                                                                notif.id,
+                                                            );
+                                                        setNotifOpen(false);
+                                                    }}
+                                                    className={`p-3 border-b hover:bg-gray-50 cursor-pointer transition ${!notif.leido ? "bg-blue-50" : ""}`}
+                                                >
+                                                    <div className="flex gap-3">
+                                                        <div className="text-xl">
+                                                            {getNotifIcon(
+                                                                notif.tipo,
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className="text-sm font-semibold text-gray-900">
+                                                                {notif.titulo}
+                                                            </p>
+                                                            <p className="text-xs text-gray-600 mt-0.5">
+                                                                {notif.mensaje}
+                                                            </p>
+                                                            <p className="text-xs text-gray-400 mt-1">
+                                                                {
+                                                                    notif.fecha_formateada
+                                                                }{" "}
+                                                                {notif.hora}
+                                                            </p>
+                                                        </div>
+                                                        {!notif.leido && (
+                                                            <div className="w-2 h-2 bg-primary-blue rounded-full mt-2"></div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Menú de usuario */}
                             <div className="relative user-menu">
@@ -370,8 +554,16 @@ export default function GerenteLayout({ children }) {
                                     }
                                     className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
                                 >
-                                    <div className="h-9 w-9 rounded-full bg-primary-blue flex items-center justify-center text-white font-bold shadow-md">
-                                        {primeraLetra}
+                                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue flex items-center justify-center text-white font-bold shadow-md overflow-hidden">
+                                        {auth.user?.avatar_url ? (
+                                            <img
+                                                src={auth.user.avatar_url}
+                                                alt="Avatar"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span>{primeraLetra}</span>
+                                        )}
                                     </div>
                                     <span className="hidden md:block text-sm font-medium text-gray-700">
                                         {auth.user?.nombre?.split(" ")[0] ||
@@ -387,8 +579,18 @@ export default function GerenteLayout({ children }) {
                                 {userMenuOpen && (
                                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
                                         <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
-                                            <div className="h-12 w-12 rounded-full bg-primary-blue flex items-center justify-center text-white font-bold text-lg shadow-md">
-                                                {primeraLetra}
+                                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue flex items-center justify-center text-white font-bold shadow-md overflow-hidden">
+                                                {auth.user?.avatar_url ? (
+                                                    <img
+                                                        src={
+                                                            auth.user.avatar_url
+                                                        }
+                                                        alt="Avatar"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <span>{primeraLetra}</span>
+                                                )}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-semibold text-gray-900 truncate">
@@ -495,21 +697,25 @@ export default function GerenteLayout({ children }) {
             )}
 
             {/* Estilos para Scrollbar */}
-            <style jsx>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.1);
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(255, 255, 255, 0.2);
-                }
-            `}</style>
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
+                            .custom-scrollbar::-webkit-scrollbar {
+                                width: 4px;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-track {
+                                background: transparent;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-thumb {
+                                background: rgba(255, 255, 255, 0.1);
+                                border-radius: 10px;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                                background: rgba(255, 255, 255, 0.2);
+                            }
+                        `,
+                }}
+            />
         </>
     );
 }

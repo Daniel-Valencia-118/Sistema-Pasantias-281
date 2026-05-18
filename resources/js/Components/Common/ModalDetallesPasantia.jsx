@@ -37,14 +37,6 @@ export default function ModalDetallesPasantia({ isOpen, onClose, pasantia }) {
                     <div className="grid md:grid-cols-2 gap-4">
                         <div className="bg-gray-50 rounded-lg p-3">
                             <label className="block text-xs font-medium text-gray-500 mb-1">
-                                Mención
-                            </label>
-                            <p className="text-gray-900 font-medium">
-                                {pasantia.mencion}
-                            </p>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-3">
-                            <label className="block text-xs font-medium text-gray-500 mb-1">
                                 Turno
                             </label>
                             <p className="text-gray-900 font-medium">
@@ -65,22 +57,6 @@ export default function ModalDetallesPasantia({ isOpen, onClose, pasantia }) {
                             </label>
                             <p className="text-gray-900 font-medium">
                                 {pasantia.cupos}
-                            </p>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-3">
-                            <label className="block text-xs font-medium text-gray-500 mb-1">
-                                Fecha de Inicio
-                            </label>
-                            <p className="text-gray-900 font-medium">
-                                {formatDate(pasantia.fecha_ini)}
-                            </p>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-3">
-                            <label className="block text-xs font-medium text-gray-500 mb-1">
-                                Fecha de Fin
-                            </label>
-                            <p className="text-gray-900 font-medium">
-                                {formatDate(pasantia.fecha_fin)}
                             </p>
                         </div>
                     </div>

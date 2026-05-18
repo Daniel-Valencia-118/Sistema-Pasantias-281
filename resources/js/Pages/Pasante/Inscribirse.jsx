@@ -6,16 +6,22 @@ import PasanteLayout from "@/Components/Layout/PasanteLayout";
 import ModalDetallesEmpresa from "@/Components/Common/ModalDetallesEmpresa";
 import ModalHorario from "@/Components/Common/ModalHorario";
 import ModalActividadesPasante from "@/Components/Common/ModalActividadesPasante";
+import ModalScoreEmpresa from "@/Components/Common/ModalScoreEmpresa";
 import ModalConfirmacion from "@/Components/Common/ModalConfirmacion";
 import ModalAlerta from "@/Components/Common/ModalAlerta";
 import BadgeFecha from "@/Components/Common/BadgeFecha";
 import {
+    CheckCircle,
+    XCircle,
+    AlertTriangle,
+    Users,
     Search,
     Building2,
     Clock,
     Calendar as CalendarIcon,
     ChevronUp,
     ChevronDown,
+    Star,
     ArrowUpDown,
 } from "lucide-react";
 
@@ -43,7 +49,11 @@ export default function Inscribirse({
     const [filtroMencion, setFiltroMencion] = useState(mencionPorDefecto);
     const [sortField, setSortField] = useState("fecha_ini");
     const [sortDirection, setSortDirection] = useState("asc");
-
+    const [modalScore, setModalScore] = useState({
+        isOpen: false,
+        empresaId: null,
+        empresaNombre: null,
+    });
     // Modales
     const [modalEmpresa, setModalEmpresa] = useState({
         isOpen: false,
@@ -202,16 +212,40 @@ export default function Inscribirse({
     ]);
 
     // Determinar el estado del botón de acción
+    // Determinar el estado del botón de acción
     const getBotonEstado = (pasantia) => {
+        // Si ya está inscrito
         if (pasantia.ya_inscrito) {
-            return { text: "INSCRITO", color: "bg-green-700", isButton: false };
+            return {
+                text: "INSCRITO",
+                color: "bg-gradient-to-r from-green-600 to-emerald-600",
+                icon: <CheckCircle size={14} className="-mr-1" />,
+                isButton: false,
+            };
         }
+        // Si no hay cupos disponibles
         if (pasantia.cupos_disponibles <= 0) {
-            return { text: "SIN CUPO", color: "bg-red-500", isButton: false };
+            return {
+                text: "SIN CUPO",
+                color: "bg-gradient-to-r from-red-600 to-rose-500",
+                icon: <XCircle size={14} className="-mr-1" />,
+                isButton: false,
+            };
         }
+        // Si la mención del pasante NO coincide con la mención de la pasantía
+        if (!pasantia.mencion_coincide) {
+            return {
+                text: "Inhabilitado",
+                color: "bg-gradient-to-r from-orange-500 to-amber-500",
+                icon: <AlertTriangle size={14} className="-mr-1" />,
+                isButton: false,
+            };
+        }
+        // Botón normal para inscribirse
         return {
             text: "INSCRIBIRSE",
-            color: "bg-green-500 hover:bg-green-600",
+            color: "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-md hover:shadow-lg",
+            icon: <Users size={14} className="-mr-1" />,
             isButton: true,
         };
     };
@@ -221,14 +255,20 @@ export default function Inscribirse({
             <Head title="Inscribirse a Pasantía" />
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="bg-gradient-to-r from-primary-navy to-primary-slate px-6 py-4">
-                    <h2 className="text-xl font-semibold text-white">
-                        Pasantías Disponibles en Oferta
-                    </h2>
-                    <p className="text-primary-sky-blue text-sm">
-                        Inscríbete a las pasantías de tu interés (Puedes estar
-                        inscrito maximo a 2 pasantias)
-                    </p>
+                {/* Hero Section */}
+                <div className="bg-gradient-to-br from-primary-navy via-primary-slate to-gray-800 rounded-2xl shadow-xl p-6 mb-1 text-white relative overflow-hidden">
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm"></div>
+                            <h1 className="text-3xl font-bold">
+                                Ofertas de Pasantías
+                            </h1>
+                        </div>
+                        <p className="text-white/80 text-lg mb-6">
+                            Inscríbete a las pasantías de tu mencion (Puedes
+                            estar inscrito maximo a 2 pasantias)
+                        </p>
+                    </div>
                 </div>
 
                 {/* Filtros y búsqueda */}
@@ -298,7 +338,7 @@ export default function Inscribirse({
                                     onClick={() => handleSort("nombre")}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Nombre Pasantía{" "}
+                                        NOMBRE PASANTÍA{" "}
                                         <SortIcon field="nombre" />
                                     </div>
                                 </th>
@@ -307,25 +347,29 @@ export default function Inscribirse({
                                     onClick={() => handleSort("empresa_nombre")}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Empresa{" "}
+                                        EMPRESA{" "}
                                         <SortIcon field="empresa_nombre" />
                                     </div>
                                 </th>
+                                <th className="px-3 py-3 text-center text-xs font-bold text-white">
+                                    SCORE
+                                </th>
+
                                 <th className="px-3 py-3 text-left text-xs font-bold text-white">
-                                    Mención
+                                    MENCIÓN
                                 </th>
                                 <th className="px-3 py-3 text-center text-xs font-bold text-white">
-                                    Actividades
+                                    ACTVIDA.
                                 </th>
                                 <th className="px-3 py-3 text-center text-xs font-bold text-white">
-                                    Hrs./Fechas
+                                    HRS./FECHAS
                                 </th>
                                 <th
                                     className="px-3 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
                                     onClick={() => handleSort("fecha_ini")}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Fecha Inicio{" "}
+                                        FECHA INICIO{" "}
                                         <SortIcon field="fecha_ini" />
                                     </div>
                                 </th>
@@ -339,10 +383,10 @@ export default function Inscribirse({
                                     </div>
                                 </th> */}
                                 <th className="px-3 py-3 text-center text-xs font-bold text-white">
-                                    Cupos Disponibles
+                                    CUPOS DISPONIBLES
                                 </th>
                                 <th className="px-3 py-3 text-center text-xs font-bold text-white">
-                                    Acción
+                                    INSCRIBIRSE
                                 </th>
                             </tr>
                         </thead>
@@ -361,25 +405,49 @@ export default function Inscribirse({
                                             {pasantia.nombre}
                                         </td>
                                         <td className="px-3 py-3 text-sm text-gray-600">
-                                            <div className="flex items-center gap-2">
-                                                <span>
+                                            <button
+                                                onClick={() =>
+                                                    setModalEmpresa({
+                                                        isOpen: true,
+                                                        empresa:
+                                                            pasantia.empresa,
+                                                    })
+                                                }
+                                                className="inline-flex items-center gap-1 text-gray-700 hover:text-primary-blue transition-colors group"
+                                                title="Ver detalles de la empresa"
+                                            >
+                                                <span className="group-hover:text-primary-blue">
                                                     {pasantia.empresa.nombre}
                                                 </span>
-                                                <button
-                                                    onClick={() =>
-                                                        setModalEmpresa({
-                                                            isOpen: true,
-                                                            empresa:
-                                                                pasantia.empresa,
-                                                        })
-                                                    }
-                                                    className="text-primary-blue hover:text-primary-sky-blue"
-                                                    title="Ver detalles de la empresa"
-                                                >
-                                                    <Building2 size={16} />
-                                                </button>
-                                            </div>
+                                                <Building2
+                                                    size={20}
+                                                    className="text-primary-blue"
+                                                />
+                                            </button>
                                         </td>
+
+                                        <td className="px-3 py-3 text-center">
+                                            <button
+                                                onClick={() =>
+                                                    setModalScore({
+                                                        isOpen: true,
+                                                        empresaId:
+                                                            pasantia.empresa.id,
+                                                        empresaNombre:
+                                                            pasantia.empresa
+                                                                .nombre,
+                                                    })
+                                                }
+                                                className="text-yellow-500 hover:text-yellow-600 transition-transform hover:scale-110"
+                                                title="Ver calificaciones de la empresa"
+                                            >
+                                                <Star
+                                                    size={18}
+                                                    fill="currentColor"
+                                                />
+                                            </button>
+                                        </td>
+
                                         <td className="px-3 py-3 text-sm text-gray-600">
                                             <span
                                                 className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -403,10 +471,13 @@ export default function Inscribirse({
                                                             [],
                                                     })
                                                 }
-                                                className="text-primary-blue hover:text-primary-sky-blue"
+                                                className="flex flex-col items-center gap-0.5 text-primary-blue hover:text-primary-sky-blue transition-colors"
                                                 title="Ver actividades"
                                             >
-                                                <CalendarIcon size={18} />
+                                                <CalendarIcon size={20} />
+                                                <span className="text-[9px] font-medium">
+                                                    Actividades
+                                                </span>
                                             </button>
                                         </td>
                                         <td className="px-3 py-3 text-center">
@@ -423,10 +494,13 @@ export default function Inscribirse({
                                                             pasantia.fecha_fin,
                                                     })
                                                 }
-                                                className="text-primary-blue hover:text-primary-sky-blue"
-                                                title="Ver horario"
+                                                className="flex flex-col items-center gap-0.5 text-gray-500 hover:text-primary-blue transition-colors"
+                                                title="Ver fecha y horario"
                                             >
-                                                <Clock size={18} />
+                                                <Clock size={20} />
+                                                <span className="text-[9px] font-medium">
+                                                    Hora/Fecha
+                                                </span>
                                             </button>
                                         </td>
                                         <td className="px-3 py-3">
@@ -440,17 +514,20 @@ export default function Inscribirse({
                                             />
                                         </td> */}
                                         <td className="px-3 py-3 text-center">
-                                            <span
-                                                className={`inline-flex px-2 py-1 rounded-full text-base font-medium ${
-                                                    pasantia.cupos_disponibles >
-                                                    0
-                                                        ? "bg-green-100 text-green-900"
-                                                        : "bg-red-100 text-red-800"
-                                                }`}
-                                            >
-                                                {pasantia.cupos_disponibles}
-                                            </span>
+                                            <div className="flex flex-col items-center gap-0.5">
+                                                <span
+                                                    className={`inline-flex items-center justify-center w-10 h-10 rounded-xl text-base font-bold shadow-sm ${
+                                                        pasantia.cupos_disponibles >
+                                                        0
+                                                            ? "bg-gradient-to-br from-green-100 to-green-200 text-green-700 border border-green-200"
+                                                            : "bg-gradient-to-br from-red-100 to-red-200 text-red-700 border border-red-200"
+                                                    }`}
+                                                >
+                                                    {pasantia.cupos_disponibles}
+                                                </span>
+                                            </div>
                                         </td>
+
                                         <td className="px-3 py-3 text-center">
                                             {boton.isButton ? (
                                                 <button
@@ -463,22 +540,31 @@ export default function Inscribirse({
                                                         inscribiendoId ===
                                                         pasantia.id
                                                     }
-                                                    className={`px-3 py-1 text-white text-xs font-medium rounded-lg transition-all ${boton.color} ${
+                                                    className={`inline-flex items-center gap-1.5 px-4 py-2 text-white text-xs font-semibold rounded-lg transition-all duration-200 ${boton.color} ${
                                                         inscribiendoId ===
                                                         pasantia.id
                                                             ? "opacity-50 cursor-not-allowed"
-                                                            : ""
+                                                            : "transform hover:scale-105 active:scale-95"
                                                     }`}
                                                 >
                                                     {inscribiendoId ===
-                                                    pasantia.id
-                                                        ? "INSCRIBIENDO..."
-                                                        : boton.text}
+                                                    pasantia.id ? (
+                                                        <>
+                                                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                            INSCRIBIENDO...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            {boton.icon}
+                                                            {boton.text}
+                                                        </>
+                                                    )}
                                                 </button>
                                             ) : (
                                                 <span
-                                                    className={`inline-flex px-3 py-1 text-white text-xs font-medium rounded-lg ${boton.color}`}
+                                                    className={`inline-flex items-center gap-1.5 px-4 py-2 text-white text-xs font-semibold rounded-lg shadow-sm ${boton.color}`}
                                                 >
+                                                    {boton.icon}
                                                     {boton.text}
                                                 </span>
                                             )}
@@ -547,7 +633,18 @@ export default function Inscribirse({
                 type="info"
                 confirmText="Sí, inscribirme"
             />
-
+            <ModalScoreEmpresa
+                isOpen={modalScore.isOpen}
+                onClose={() =>
+                    setModalScore({
+                        isOpen: false,
+                        empresaId: null,
+                        empresaNombre: null,
+                    })
+                }
+                empresaId={modalScore.empresaId}
+                empresaNombre={modalScore.empresaNombre}
+            />
             <ModalAlerta
                 isOpen={modalAlerta.isOpen}
                 onClose={() =>

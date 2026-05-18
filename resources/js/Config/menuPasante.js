@@ -23,6 +23,7 @@ export const menuPasante = [
     {
         name: "Perfil",
         icon: UserCircle,
+        hide: true,
         submenus: [
             { name: "Perfil", href: "/pasante/perfil", icon: Eye },
             { name: "Cuenta", href: "/pasante/cuenta", icon: Settings },
@@ -33,12 +34,6 @@ export const menuPasante = [
         name: "Inscribirse a Pasantía",
         icon: FileText,
         href: "/pasante/inscribirse",
-        single: true,
-    },
-    {
-        name: "Actividades",
-        icon: Calendar,
-        href: "/pasante/actividades",
         single: true,
     },
     {
@@ -56,6 +51,12 @@ export const menuPasante = [
                 icon: CheckCircle,
             },
         ],
+    },
+    {
+        name: "Actividades",
+        icon: Calendar,
+        href: "/pasante/actividades",
+        single: true,
     },
     {
         name: "Mensajes",

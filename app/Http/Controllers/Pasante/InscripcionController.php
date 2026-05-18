@@ -11,16 +11,19 @@ use App\Models\User;
 use App\Models\JefePas;
 use App\Models\BitacoraEva;
 use App\Models\Comentario;
+use App\Models\Empresa;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 //use App\Models\InformeFin;
 use App\Models\HistorialInforme;
+use App\Traits\Notificable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class InscripcionController extends Controller
-{
+{   
+    use Notificable;
     // Vista de pasantías disponibles para inscribirse
     public function index()
     {
@@ -208,6 +211,45 @@ class InscripcionController extends Controller
             
             DB::commit();
             
+            // =============================================
+            // NOTIFICACIÓN #1: Nuevo inscrito para el GERENTE
+            // =============================================
+            // Obtener el gerente de la empresa
+            $gerente = $pasantia->empresa->gerente;
+
+            $gerente = $pasantia->empresa->gerente;
+            if ($gerente) {
+                $this->crearNotificacion(
+                    $gerente->idU_gerente,
+                    'gerente',
+                    'Nuevo pasante inscrito',
+                    "El Pasante {$pasante->user->nombre} {$pasante->user->ap_paterno} se ha inscrito en la pasantía \"{$pasantia->nombre_pas}\".",
+                    'inscripcion',
+                    "/gerente/pasantias/"
+                );
+            }
+
+            // =============================================
+            // NOTIFICACIÓN #2: Cupos completados (si aplica)
+            // =============================================
+            // Contar inscritos activos (inscrito + iniciado)
+            
+            $totalInscritos = Inscripcion::where('id_pasantia', $idPasantia)
+                ->whereIn('estado', ['inscrito', 'iniciado','finalizado'])
+                ->count();
+            
+            $cuposTotales = $pasantia->cupos;
+            if ($totalInscritos == $cuposTotales) {
+                $this->crearNotificacion(
+                    $gerente->idU_gerente,
+                    'gerente',
+                    '¡Cupos completados!',
+                    "La pasantía \"{$pasantia->nombre_pas}\" ha completado todos sus cupos ({$totalInscritos}/{$cuposTotales}).",
+                    'cupos_completados',
+                    "/gerente/pasantias/"
+                );
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => '¡Te has inscrito correctamente a la pasantía!',
@@ -312,7 +354,7 @@ class InscripcionController extends Controller
             
             // Total de inscritos (activos + inscritos)
             $totalInscritos = $pasantia->inscripciones()
-                ->whereIn('estado', ['inscrito', 'iniciado'])
+                ->whereIn('estado', ['inscrito', 'iniciado','finalizado'])
                 ->count();
             
             // Actividades ordenadas
@@ -401,7 +443,7 @@ class InscripcionController extends Controller
         // Obtener todas las inscripciones de esta pasantía
         $inscripciones = Inscripcion::with(['pasante.user', 'jefe.user'])
             ->where('id_pasantia', $idPasantia)
-            ->whereIn('estado', ['inscrito', 'iniciado'])
+            ->whereIn('estado', ['inscrito', 'iniciado','finalizado'])
             ->get();
         
         $companeros = $inscripciones->map(function($insc) use ($pasante) {
@@ -807,4 +849,54 @@ class InscripcionController extends Controller
 
         return $pdf->download($nombreArchivo);
     }    
+
+    /**
+ * Obtener calificaciones de una empresa (para el modal Score)
+ */
+    public function getCalificacionesEmpresa($idEmpresa)
+    {
+        // Verificar que la empresa existe
+        $empresa = Empresa::findOrFail($idEmpresa);
+        
+        // Obtener todas las pasantías FINALIZADAS de esta empresa
+        $pasantias = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->where('estado', 'FINALIZADO')
+            ->with(['comentarios.pasante.user'])
+            ->orderBy('fecha_fin', 'desc')
+            ->get();
+        
+        $data = $pasantias->map(function ($pasantia) {
+            // Calcular promedio de calificaciones
+            $promedio = $pasantia->comentarios->avg('calificacion') ?? 0;
+            $totalComentarios = $pasantia->comentarios->count();
+            
+            // Comentarios ordenados por fecha más reciente primero
+            $comentarios = $pasantia->comentarios
+                ->sortByDesc('fecha')
+                ->map(function ($comentario) {
+                    return [
+                        'id' => $comentario->id_comentario,
+                        'nombre_pasante' => $comentario->pasante->user->nombre . ' ' . $comentario->pasante->user->ap_paterno,
+                        'calificacion' => $comentario->calificacion,
+                        'comentario' => $comentario->descripcion,
+                        'fecha' => $comentario->fecha,
+                    ];
+                })->values();
+            
+            return [
+                'id' => $pasantia->id_pasantia,
+                'nombre' => $pasantia->nombre_pas,
+                'fecha_ini' => $pasantia->fecha_ini,
+                'fecha_fin' => $pasantia->fecha_fin,
+                'promedio' => round($promedio, 1),
+                'total_comentarios' => $totalComentarios,
+                'comentarios' => $comentarios,
+            ];
+        });
+        
+        return response()->json([
+            'empresa_nombre' => $empresa->nombre,
+            'pasantias' => $data,
+        ]);
+    }
 }

@@ -7,6 +7,7 @@ use App\Models\JefePas;
 use App\Models\User;
 use App\Models\Inscripcion;
 use App\Models\Pasantia;
+use App\Traits\Notificable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -15,6 +16,7 @@ use Inertia\Inertia;
 
 class JefeController extends Controller
 {
+    use Notificable;
     // Lista de jefes
     public function index()
     {
@@ -254,9 +256,22 @@ class JefeController extends Controller
         
         if ($request->accion == 'asignar') {
             $inscripcion->update(['idU_jefe' => $request->idJefe]);
+            
+            $this->crearNotificacion(
+                $request->idPasante,  // id del pasante
+                'pasante',
+                'Jefe asignado',
+                "Te han asignado un nuevo jefe: {$jefe->user->nombre} {$jefe->user->ap_paterno}",
+                'inscripcion',
+                '/pasante/inscripciones/activas'
+            );            
+            
             return response()->json(['message' => 'Pasante asignado correctamente']);
+                    
         } else {
+        
             $inscripcion->update(['idU_jefe' => null]);
+            
             return response()->json(['message' => 'Pasante desasignado correctamente']);
         }
     }

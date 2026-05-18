@@ -14,6 +14,7 @@ import {
     Edit2,
     X,
     ArrowLeft,
+    Camera,
 } from "lucide-react";
 
 const MENCIONES = [
@@ -51,6 +52,11 @@ export default function Index({ auth, user, pasante }) {
     const [originalForm, setOriginalForm] = useState({ ...form });
     const [errors, setErrors] = useState({});
     const { flash } = usePage().props;
+
+    // AVATAR
+    const [avatarPreview, setAvatarPreview] = useState(null);
+    const [avatarFile, setAvatarFile] = useState(null);
+    const [subiendoAvatar, setSubiendoAvatar] = useState(false);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -102,6 +108,57 @@ export default function Index({ auth, user, pasante }) {
             window.history.back();
         }
     };
+    // =============================================
+    // Funciones para avatar
+    // =============================================
+    // Función para subir avatar
+    const handleAvatarChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (
+                !file.type.match("image/jpeg") &&
+                !file.type.match("image/png")
+            ) {
+                alert("Solo se permiten archivos JPG y PNG");
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                alert("La imagen no debe superar los 2MB");
+                return;
+            }
+            setAvatarFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatarPreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    const handleAvatarSubmit = async () => {
+        if (!avatarFile) return;
+
+        const formData = new FormData();
+        formData.append("avatar", avatarFile);
+
+        setSubiendoAvatar(true);
+        try {
+            await axios.post("/avatar/actualizar", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            window.location.reload();
+        } catch (error) {
+            alert(error.response?.data?.message || "Error al subir la foto");
+        } finally {
+            setSubiendoAvatar(false);
+        }
+    };
+    const cancelAvatar = () => {
+        setAvatarFile(null);
+        setAvatarPreview(null);
+    };
+
+    // Obtener URL del avatar actual
+    const avatarUrl = auth.user?.avatar_url;
 
     return (
         <PasanteLayout auth={auth}>
@@ -112,7 +169,74 @@ export default function Index({ auth, user, pasante }) {
                         {flash.success}
                     </div>
                 )}
+                {/* Sección Avatar */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                    <div className="bg-gradient-to-r from-primary-navy to-primary-blue px-6 py-4">
+                        <h2 className="text-xl font-semibold text-white">
+                            Foto de Perfil
+                        </h2>
+                        <p className="text-primary-sky-blue text-sm">
+                            Tu imagen personal
+                        </p>
+                    </div>
+                    <div className="p-6 flex flex-col items-center">
+                        <div className="relative">
+                            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue flex items-center justify-center text-white text-3xl font-bold shadow-md overflow-hidden">
+                                {avatarPreview ? (
+                                    <img
+                                        src={avatarPreview}
+                                        alt="Preview"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : avatarUrl ? (
+                                    <img
+                                        src={avatarUrl}
+                                        alt="Avatar"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <span>
+                                        {user.nombre?.charAt(0)}
+                                        {user.ap_paterno?.charAt(0)}
+                                    </span>
+                                )}
+                            </div>
+                            <label className="absolute bottom-0 right-0 p-1.5 bg-primary-blue rounded-full cursor-pointer hover:bg-primary-sky-blue transition shadow-md">
+                                <Camera size={16} className="text-white" />
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/jpeg,image/png"
+                                    onChange={handleAvatarChange}
+                                />
+                            </label>
+                        </div>
 
+                        {avatarFile && (
+                            <div className="mt-4 flex gap-3">
+                                <button
+                                    onClick={handleAvatarSubmit}
+                                    disabled={subiendoAvatar}
+                                    className="px-4 py-2 bg-primary-blue text-white text-sm rounded-lg hover:bg-primary-sky-blue transition"
+                                >
+                                    {subiendoAvatar
+                                        ? "Subiendo..."
+                                        : "Guardar foto"}
+                                </button>
+                                <button
+                                    onClick={cancelAvatar}
+                                    className="px-4 py-2 bg-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-400 transition"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        )}
+
+                        <p className="text-xs text-gray-400 mt-3">
+                            Formatos: JPG, PNG | Máximo: 2MB
+                        </p>
+                    </div>
+                </div>
                 {/* Formulario */}
                 <form
                     onSubmit={handleSubmit}

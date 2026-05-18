@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { router } from "@inertiajs/react";
+import { useEffect } from "react";
 import GerenteLayout from "@/Components/Layout/GerenteLayout";
 import ModalActividad from "@/Components/Common/ModalActividad";
 import { ArrowLeft, Plus, Edit, Trash2, Save, XCircle } from "lucide-react";
@@ -65,7 +66,40 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
         }
         return { valid: true };
     };
+    // Dentro del componente, después de los useState:
+    useEffect(() => {
+        // Verificar si hay datos clonados en sessionStorage
+        const datosClonados = sessionStorage.getItem("pasantia_clonada");
 
+        if (datosClonados) {
+            const { pasantia, actividades } = JSON.parse(datosClonados);
+
+            // Llenar el formulario con los datos clonados
+            setForm({
+                nombre_pas: pasantia.nombre_pas || "",
+                mencion: pasantia.mencion || "",
+                cupos: pasantia.cupos || "",
+                turno: pasantia.turno || "",
+                carga_horaria: pasantia.carga_horaria || "",
+                fecha_ini: "", // Vacío
+                fecha_fin: "", // Vacío
+            });
+
+            // Convertir actividades al formato esperado
+            const actividadesClonadas = actividades.map((act) => ({
+                nombre_act: act.nombre_act,
+                tipo: act.tipo,
+                descripcion: act.descripcion || "sin descripción",
+                fecha_ini: "", // Vacío
+                fecha_fin: "", // Vacío
+            }));
+
+            setActividades(actividadesClonadas);
+
+            // Limpiar sessionStorage para que no se reutilice accidentalmente
+            sessionStorage.removeItem("pasantia_clonada");
+        }
+    }, []); // Solo se ejecuta una vez al montar el componente
     const handleAgregarActividad = (actividad) => {
         if (actividadEditando !== null) {
             // Editar actividad existente

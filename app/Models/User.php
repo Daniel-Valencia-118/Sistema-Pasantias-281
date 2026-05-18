@@ -76,6 +76,18 @@ class User extends Authenticatable
         return $this->hasOne(Pasante::class, 'idU_pasante', 'idUser');
     }
     
+
+        public function avatar()
+    {
+        return $this->hasOne(Avatar::class, 'id_usuario', 'idUser');
+    }
+
+    // Método helper para obtener la URL del avatar
+    public function getAvatarUrlAttribute()
+    {
+        return $this->avatar ? asset('storage/' . $this->avatar->ruta) : null;
+    }
+    
     // Método para obtener el rol del usuario
     public function getRolAttribute()
     {

@@ -240,4 +240,46 @@ class PasantiaFinalizadaController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+    public function clonarPasantia($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        // Verificar que la pasantía pertenece a la empresa
+        $pasantiaOriginal = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->where('id_pasantia', $id)
+            ->with('actividades')
+            ->firstOrFail();
+        
+        // Preparar datos para la copia (sin fechas)
+        $datosPasantia = [
+            'nombre_pas' => $pasantiaOriginal->nombre_pas,
+            'mencion' => $pasantiaOriginal->mencion,
+            'turno' => $pasantiaOriginal->turno,
+            'carga_horaria' => $pasantiaOriginal->carga_horaria,
+            'cupos' => $pasantiaOriginal->cupos,
+            // Las fechas se dejan vacías
+            'fecha_ini' => null,
+            'fecha_fin' => null,
+        ];
+        
+        // Preparar actividades (sin fechas)
+        $actividades = [];
+        foreach ($pasantiaOriginal->actividades as $actividad) {
+            $actividades[] = [
+                'nombre_act' => $actividad->nombre_act,
+                'tipo' => $actividad->tipo,
+                'descripcion' => $actividad->descripcion,
+                // Las fechas se dejan vacías
+                'fecha_ini' => null,
+                'fecha_fin' => null,
+            ];
+        }
+        
+        return response()->json([
+            'pasantia' => $datosPasantia,
+            'actividades' => $actividades
+        ]);
+    }
 }

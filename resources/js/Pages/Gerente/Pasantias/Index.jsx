@@ -3,8 +3,9 @@ import { Head, router, usePage } from "@inertiajs/react";
 import { Play, Flag } from "lucide-react";
 import ModalConfirmacion from "@/Components/Common/ModalConfirmacion";
 import GerenteLayout from "@/Components/Layout/GerenteLayout";
-import ModalDetallesPasantia from "@/Components/Common/ModalDetallesPasantia";
+import ModalHorario from "@/Components/Common/ModalHorario";
 import ModalActividadesPasantia from "@/Components/Common/ModalActividadesPasantia";
+import ModalEditarPasantia from "@/Components/Common/ModalEditarPasantia";
 import ModalInscritos from "@/Components/Common/ModalInscritos";
 import axios from "axios";
 import {
@@ -15,18 +16,25 @@ import {
     AlertTriangle,
     CheckCircle,
     Minus,
+    Clock,
     Plus,
     XCircle,
     Search,
     ArrowUpDown,
     ChevronUp,
     ChevronDown,
+    Edit,
+    Briefcase,
 } from "lucide-react";
 
 export default function Index({ auth, pasantias }) {
     const [pasantiasData, setPasantiasData] = useState(pasantias);
     const [searchTerm, setSearchTerm] = useState("");
     const [sortField, setSortField] = useState("fecha_ini");
+    const [modalEditar, setModalEditar] = useState({
+        isOpen: false,
+        pasantia: null,
+    });
     const [sortDirection, setSortDirection] = useState("asc");
     const [modalDetalles, setModalDetalles] = useState({
         isOpen: false,
@@ -42,12 +50,27 @@ export default function Index({ auth, pasantias }) {
         pasantiaId: null,
         infoInicio: null,
     });
+    const [modalHorario, setModalHorario] = useState({
+        isOpen: false,
+        turno: null,
+        cargaHoraria: null,
+        fechaIni: null,
+        fechaFin: null,
+    });
     const [loadingIniciar, setLoadingIniciar] = useState(false);
     const formatDate = (date) => {
         if (!date) return "-";
         return date.split("-").reverse().join("/");
     };
-
+    const handlePasantiaEditada = (pasantiaActualizada) => {
+        setPasantiasData((prev) =>
+            prev.map((p) =>
+                p.id === pasantiaActualizada.id
+                    ? { ...p, ...pasantiaActualizada }
+                    : p,
+            ),
+        );
+    };
     const handleSort = (field) => {
         if (sortField === field) {
             setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -186,6 +209,7 @@ export default function Index({ auth, pasantias }) {
                 `/gerente/pasantias/${modalIniciar.pasantiaId}/iniciar`,
             );
             if (response.data.message) {
+                alert(response.data.message); // ← Mostrar mensaje de éxito
                 window.location.reload();
             }
         } catch (error) {
@@ -272,15 +296,23 @@ export default function Index({ auth, pasantias }) {
         <GerenteLayout auth={auth}>
             <Head title="Pasantías Publicadas" />
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="bg-gradient-to-r from-primary-navy to-primary-slate px-6 py-4">
-                    <h2 className="text-xl font-semibold text-white">
-                        Pasantías Publicadas
-                    </h2>
-                    <p className="text-primary-sky-blue text-sm">
-                        Pasantías en estado ABIERTA
-                    </p>
+                <div className="bg-gradient-to-r from-primary-navy to-primary-slate px-6 py-5">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-white/10 rounded-xl backdrop-blur-sm">
+                            <Briefcase size={22} className="text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-white tracking-tight">
+                                PASANTÍAS PUBLICADAS
+                            </h2>
+                            <p className="text-white/70 text-sm mt-0.5 flex items-center gap-1.5">
+                                <span className="inline-block w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                                Pasantías en publicadas, gestiona a los nuevos
+                                inscritos y asígnales un jefe de pasante
+                            </p>
+                        </div>
+                    </div>
                 </div>
-
                 {/* Barra de búsqueda */}
                 <div className="p-4 border-b">
                     <div className="relative w-80">
@@ -302,43 +334,47 @@ export default function Index({ auth, pasantias }) {
                     <table className="w-full">
                         <thead className="bg-gradient-to-r from-primary-navy to-primary-slate">
                             <tr>
-                                <th className="px-4 py-3 text-left text-xs font-bold text-white">
-                                    Nro
+                                <th className="px-1 py-3 text-center text-xs font-bold text-white w-8">
+                                    #
                                 </th>
                                 <th
                                     className="px-4 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
                                     onClick={() => handleSort("nombre")}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Nombre <SortIcon field="nombre" />
+                                        NOMBRE PASANTÍA
+                                        <SortIcon field="nombre" />
                                     </div>
+                                </th>
+                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                    MENCIÓN
+                                </th>
+                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                    Hrs./Fechas
+                                </th>
+                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                    ACTIVIDADES
+                                </th>
+                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                    CUPOS DISPONIBLES
+                                </th>
+                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                    INSCRITOS
+                                </th>
+                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                    ESTADO
                                 </th>
                                 <th
                                     className="px-4 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
                                     onClick={() => handleSort("fecha_ini")}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Fecha Inicio{" "}
+                                        FECHA INI.{" "}
                                         <SortIcon field="fecha_ini" />
                                     </div>
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Detalles
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Actividades
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Cupos Disponibles
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Inscritos
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Estado
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Iniciar
+                                    INICIAR
                                 </th>
                             </tr>
                         </thead>
@@ -348,27 +384,58 @@ export default function Index({ auth, pasantias }) {
                                     key={pasantia.id}
                                     className="hover:bg-gray-50"
                                 >
-                                    <td className="px-4 py-3 text-sm text-gray-500">
+                                    <td className="px-1 py-3 text-center text-xs text-gray-500">
                                         {index + 1}
                                     </td>
-                                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                        {pasantia.nombre}
+                                    <td className="px-4 py-3">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-semibold text-gray-800">
+                                                {pasantia.nombre}
+                                            </span>
+                                            <button
+                                                onClick={() =>
+                                                    setModalEditar({
+                                                        isOpen: true,
+                                                        pasantia: pasantia,
+                                                    })
+                                                }
+                                                className="text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer p-1 hover:bg-primary-blue/10 rounded-lg"
+                                                title="Editar pasantía"
+                                            >
+                                                <Edit size={15} />
+                                            </button>
+                                        </div>
                                     </td>
-                                    <td className="px-4 py-3 text-sm text-gray-600">
-                                        {formatDate(pasantia.fecha_ini)}
+                                    <td className="px-4 py-3">
+                                        <span className="inline-flex px-2.5 py-1 text-xs font-medium text-primary-blue bg-primary-blue/10 rounded-lg border border-primary-blue/20">
+                                            {pasantia.mencion}
+                                        </span>
                                     </td>
-                                    <td className="px-4 py-3 text-center">
+
+                                    <td className="px-3 py-3 text-center">
                                         <button
                                             onClick={() =>
-                                                setModalDetalles({
+                                                setModalHorario({
                                                     isOpen: true,
-                                                    pasantia: pasantia,
+                                                    turno: pasantia.turno,
+                                                    cargaHoraria:
+                                                        pasantia.carga_horaria,
+                                                    fechaIni:
+                                                        pasantia.fecha_ini,
+                                                    fechaFin:
+                                                        pasantia.fecha_fin,
                                                 })
                                             }
-                                            className="text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer"
-                                            title="Ver detalles"
+                                            className="flex flex-col items-center gap-0.5 mx-auto text-primary-blue hover:text-primary-sky-blue transition-colors group"
+                                            title="Ver horario y fechas"
                                         >
-                                            <Eye size={18} />
+                                            <Clock
+                                                size={22}
+                                                className="text-primary-blue group-hover:text-primary-sky-blue"
+                                            />
+                                            <span className="text-[12px] font-medium text-primary-blue/80 group-hover:text-primary-sky-blue transition-colors">
+                                                Fechas/Horario
+                                            </span>
                                         </button>
                                     </td>
                                     <td className="px-4 py-3 text-center">
@@ -381,10 +448,16 @@ export default function Index({ auth, pasantias }) {
                                                         pasantia.nombre,
                                                 })
                                             }
-                                            className="text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer"
-                                            title="Ver actividades"
+                                            className="flex flex-col items-center gap-0.5 mx-auto text-primary-blue hover:text-primary-sky-blue transition-colors group"
+                                            title="Ver actividades de la pasantía"
                                         >
-                                            <Calendar size={18} />
+                                            <Calendar
+                                                size={22}
+                                                className="text-primary-blue group-hover:text-primary-sky-blue"
+                                            />
+                                            <span className="text-[12px] font-medium text-primary-blue/80 group-hover:text-primary-sky-blue transition-colors">
+                                                Actividades
+                                            </span>
                                         </button>
                                     </td>
                                     <td className="px-4 py-3 text-center">
@@ -401,9 +474,9 @@ export default function Index({ auth, pasantias }) {
                                                     pasantia.cupos <=
                                                     pasantia.inscritos
                                                 }
-                                                className="p-1 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="p-1 rounded-lg bg-red-300 text-red-800 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
-                                                <Minus size={14} />
+                                                <Minus size={15} />
                                             </button>
                                             <span className="font-medium">
                                                 {pasantia.cupos_disponibles}
@@ -416,30 +489,43 @@ export default function Index({ auth, pasantias }) {
                                                         pasantia.inscritos,
                                                     )
                                                 }
-                                                className="p-1 rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition-all"
+                                                className="p-1 rounded-lg bg-green-300 text-green-800 hover:bg-green-200 transition-all"
                                             >
-                                                <Plus size={14} />
+                                                <Plus size={15} />
                                             </button>
                                         </div>
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        <button
-                                            onClick={() =>
-                                                setModalInscritos({
-                                                    isOpen: true,
-                                                    pasantiaId: pasantia.id,
-                                                    pasantiaNombre:
-                                                        pasantia.nombre,
-                                                })
-                                            }
-                                            className="text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer flex items-center justify-center gap-1 mx-auto"
-                                            title="Ver inscritos"
-                                        >
-                                            <Users size={16} />
-                                            <span className="text-sm">
-                                                {pasantia.inscritos}
-                                            </span>
-                                        </button>
+                                        <div className="flex flex-col items-center gap-0.5">
+                                            <button
+                                                onClick={() =>
+                                                    setModalInscritos({
+                                                        isOpen: true,
+                                                        pasantiaId: pasantia.id,
+                                                        pasantiaNombre:
+                                                            pasantia.nombre,
+                                                    })
+                                                }
+                                                className="text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer flex items-center justify-center gap-1"
+                                                title="Ver inscritos"
+                                            >
+                                                <Users size={20} />
+                                                <span className="text-base font-semibold">
+                                                    {pasantia.inscritos}
+                                                </span>
+                                            </button>
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-xs font-bold text-green-600">
+                                                    +
+                                                </span>
+                                                <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">
+                                                    ASIGNAR
+                                                </span>
+                                                <span className="text-xs font-bold text-red-600">
+                                                    -
+                                                </span>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td className="px-4 py-3 text-center">
                                         {(() => {
@@ -472,6 +558,11 @@ export default function Index({ auth, pasantias }) {
                                             );
                                         })()}
                                     </td>
+                                    <td className="px-4 py-3">
+                                        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 bg-gray-50 px-2 py-1 rounded-lg border border-gray-200">
+                                            {formatDate(pasantia.fecha_ini)}
+                                        </span>
+                                    </td>
                                     <td className="px-4 py-3 text-center">
                                         <button
                                             onClick={() =>
@@ -479,10 +570,14 @@ export default function Index({ auth, pasantias }) {
                                                     pasantia.id,
                                                 )
                                             }
-                                            className="p-2 text-green-500 hover:bg-green-50 rounded-lg transition-all cursor-pointer"
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300 rounded-lg transition-all duration-200 font-medium text-sm cursor-pointer shadow-sm hover:shadow"
                                             title="Iniciar pasantía"
                                         >
-                                            <Play size={18} />
+                                            <Play
+                                                size={11}
+                                                className="text-green-600"
+                                            />
+                                            Iniciar
                                         </button>
                                     </td>
                                 </tr>
@@ -492,18 +587,75 @@ export default function Index({ auth, pasantias }) {
                 </div>
 
                 {filteredAndSortedData.length === 0 && (
-                    <div className="text-center py-12 text-gray-500">
-                        No hay pasantías que coincidan con la búsqueda
+                    <div className="text-center py-16">
+                        <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
+                            <Briefcase size={32} className="text-gray-400" />
+                        </div>
+
+                        {pasantiasData.length === 0 ? (
+                            // No hay pasantías en absoluto
+                            <>
+                                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                                    No hay pasantías Publicadas
+                                </h3>
+                                <p className="text-sm text-gray-500 mb-6">
+                                    Aún no has creado ninguna pasantía. ¿Deseas
+                                    crear una y publicarla?
+                                </p>
+                                <a
+                                    href="/gerente/pasantias/crear"
+                                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary-blue to-primary-sky-blue text-white rounded-xl font-medium hover:shadow-lg transition-all duration-200"
+                                >
+                                    <Plus size={18} />
+                                    Crear una nueva pasantía
+                                </a>
+                            </>
+                        ) : (
+                            // Hay pasantías pero no coinciden con los filtros
+                            <>
+                                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                                    No se encontraron resultados
+                                </h3>
+                                <p className="text-sm text-gray-500 mb-4">
+                                    No hay pasantías que coincidan con tu
+                                    búsqueda.
+                                </p>
+                                <button
+                                    onClick={() => setSearchTerm("")}
+                                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all duration-200"
+                                >
+                                    <Search size={16} />
+                                    Limpiar búsqueda
+                                </button>
+                            </>
+                        )}
                     </div>
                 )}
             </div>
             {/* Modales */}
-            <ModalDetallesPasantia
-                isOpen={modalDetalles.isOpen}
+            <ModalHorario
+                isOpen={modalHorario.isOpen}
                 onClose={() =>
-                    setModalDetalles({ isOpen: false, pasantia: null })
+                    setModalHorario({
+                        isOpen: false,
+                        turno: null,
+                        cargaHoraria: null,
+                        fechaIni: null,
+                        fechaFin: null,
+                    })
                 }
-                pasantia={modalDetalles.pasantia}
+                turno={modalHorario.turno}
+                cargaHoraria={modalHorario.cargaHoraria}
+                fechaIni={modalHorario.fechaIni}
+                fechaFin={modalHorario.fechaFin}
+            />
+            <ModalEditarPasantia
+                isOpen={modalEditar.isOpen}
+                onClose={() =>
+                    setModalEditar({ isOpen: false, pasantia: null })
+                }
+                pasantia={modalEditar.pasantia}
+                onUpdate={handlePasantiaEditada}
             />
             <ModalInscritos
                 isOpen={modalInscritos.isOpen}

@@ -38,7 +38,6 @@ Route::get('/login', function () {
     ]);
 })->name('login');
 
-
 Route::post('/login', [LoginController::class, 'store'])->name('login.store');
 
 // Cerrar sesión
@@ -213,7 +212,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::middleware(['auth', 'role:gerente'])->group(function () {
     Route::get('/gerente', function () {
         return Inertia::render('Gerente/Dashboard');
-        })->name('gerente.dashboard');
+    })->name('gerente.dashboard');
         //---------> not id
         Route::put('/gerente/perfil', [App\Http\Controllers\Gerente\PerfilController::class, 'update'])->name('gerente.perfil.update');   
         Route::get('/gerente/perfil', [App\Http\Controllers\Gerente\PerfilController::class, 'index'])->name('gerente.perfil');  
@@ -235,6 +234,11 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         
         Route::get('/gerente/pasantias/activas', [App\Http\Controllers\Gerente\PasantiaActivaController::class, 'index'])->name('gerente.pasantias.activas');
         
+        Route::get('/gerente/cuenta', [App\Http\Controllers\Gerente\CuentaController::class, 'index'])->name('gerente.cuenta');
+        Route::put('/gerente/cuenta', [App\Http\Controllers\Gerente\CuentaController::class, 'update'])->name('gerente.cuenta.update');
+        
+        Route::get('/gerente/estadisticas', [App\Http\Controllers\Gerente\EstadisticaController::class, 'index'])->name('gerente.estadisticas');
+        
         //------> id
         Route::get('/gerente/jefes/{id}/pasantes', [App\Http\Controllers\Gerente\JefeController::class, 'getPasantesAsignacion'])->name('gerente.jefes.pasantes');
         Route::patch('/gerente/jefes/{id}/toggle-estado', [App\Http\Controllers\Gerente\JefeController::class, 'toggleEstado'])->name('gerente.jefes.toggle-estado');
@@ -251,6 +255,7 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         Route::post('/gerente/pasantias/{id}/actividades', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'storeActividad'])->name('gerente.pasantias.actividades.store');
         Route::put('/gerente/pasantias/actividades/{id}', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'updateActividad'])->name('gerente.pasantias.actividades.update');
         Route::delete('/gerente/pasantias/actividades/{id}', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'destroyActividad'])->name('gerente.pasantias.actividades.destroy');
+        
         Route::patch('/gerente/pasantias/{id}/cupos', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'updateCupos'])->name('gerente.pasantias.cupos');
         
         Route::patch('/gerente/pasantias/{idPasantia}/asignar-jefe/{idPasante}', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'asignarJefePasante'])->name('gerente.pasantias.asignar-jefe');
@@ -262,11 +267,6 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         Route::get('/gerente/pasantias/{id}/pasantes-promedio', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'getPasantesConPromedio'])->name('gerente.pasantias.pasantes-promedio');
         Route::get('/gerente/pasantias/{id}/calificaciones', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'getCalificaciones'])->name('gerente.pasantias.calificaciones');
 
-        Route::get('/gerente/cuenta', [App\Http\Controllers\Gerente\CuentaController::class, 'index'])->name('gerente.cuenta');
-        Route::put('/gerente/cuenta', [App\Http\Controllers\Gerente\CuentaController::class, 'update'])->name('gerente.cuenta.update');
-
-        Route::get('/gerente/estadisticas', [App\Http\Controllers\Gerente\EstadisticaController::class, 'index'])->name('gerente.estadisticas');
-
         // Iniciar pasantía (desde Pasantías Publicadas)
         Route::patch('/gerente/pasantias/{id}/iniciar', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'iniciarPasantia'])->name('gerente.pasantias.iniciar');
         Route::get('/gerente/pasantias/{id}/info-inicio', [App\Http\Controllers\Gerente\PasantiaActivaController::class, 'getInfoInicio'])->name('gerente.pasantias.info-inicio');
@@ -275,6 +275,9 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         Route::patch('/gerente/pasantias-activas/{id}/finalizar', [App\Http\Controllers\Gerente\PasantiaActivaController::class, 'finalizarPasantia'])->name('gerente.pasantias-activas.finalizar');
         Route::get('/gerente/pasantias-activas/{id}/info-fin', [App\Http\Controllers\Gerente\PasantiaActivaController::class, 'getInfoFin'])->name('gerente.pasantias-activas.info-fin');
 
+        Route::put('/gerente/pasantias/{id}', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'updatePasantia'])->name('gerente.pasantias.update');
+
+        Route::get('/gerente/pasantias/finalizadas/{id}/clonar', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'clonarPasantia'])->name('gerente.pasantias.finalizadas.clonar');
 });
 
 
@@ -322,5 +325,17 @@ Route::middleware(['auth', 'role:pasante'])->group(function () {
     Route::get('/pasante/informe-final/{idPasantia}', [App\Http\Controllers\Pasante\InscripcionController::class, 'generarInformeFinal'])->name('pasante.informe-final');
     
     Route::get('/pasante/mensajes/{tipo}/{id}', [App\Http\Controllers\Pasante\MensajeController::class, 'getMensajes'])->name('pasante.mensajes.get');
+    
+    Route::get('/pasante/inscribirse/{id}/calificaciones', [App\Http\Controllers\Pasante\InscripcionController::class, 'getCalificacionesEmpresa'])->name('pasante.inscribirse.calificaciones');
+});
 
+Route::middleware('auth:sanctum')->group(function () {
+    // Notificaciones
+    Route::get('/notificaciones', [App\Http\Controllers\NotificacionController::class, 'index']);
+    Route::patch('/notificaciones/{id}/leer', [App\Http\Controllers\NotificacionController::class, 'marcarLeida']);
+    Route::patch('/notificaciones/marcar-todas', [App\Http\Controllers\NotificacionController::class, 'marcarTodasLeidas']);
+    Route::delete('/notificaciones/{id}', [App\Http\Controllers\NotificacionController::class, 'destroy']);
+
+    //avatar
+    Route::post('/avatar/actualizar', [App\Http\Controllers\AvatarController::class, 'update'])->name('avatar.update');
 });

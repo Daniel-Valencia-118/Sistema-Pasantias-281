@@ -176,7 +176,14 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
     };
 
     const formatFechaLabel = (fecha) => {
-        const d = new Date(fecha);
+        if (!fecha) return "";
+
+        // Separamos el string por los guiones (ej: "2026-05-15" -> ["2026", "05", "15"])
+        const [year, month, day] = fecha.split("-").map(Number);
+
+        // Creamos la fecha usando el constructor local.
+        // Ojo: los meses en JavaScript van de 0 a 11, por eso restamos 1 al mes.
+        const d = new Date(year, month - 1, day);
 
         return d.toLocaleDateString("es-ES", {
             day: "numeric",
@@ -412,9 +419,23 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                 >
                                                     {/* Comentario */}
                                                     <div className="flex gap-2">
-                                                        <div className="flex-shrink-0 w-10 h-10 rounded-2xl bg-gradient-to-br from-primary-blue to-blue-400 text-white flex items-center justify-center text-sm font-bold shadow-md">
-                                                            {com.autor_nombre.charAt(
-                                                                0,
+                                                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-blue-400 text-white flex items-center justify-center text-sm font-bold shadow-md overflow-hidden">
+                                                            {com.autor_avatar_url ? (
+                                                                <img
+                                                                    src={
+                                                                        com.autor_avatar_url
+                                                                    }
+                                                                    alt={
+                                                                        com.autor_nombre
+                                                                    }
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <span>
+                                                                    {com.autor_nombre.charAt(
+                                                                        0,
+                                                                    )}
+                                                                </span>
                                                             )}
                                                         </div>
 
@@ -526,8 +547,26 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                     {com.respuesta_jefe && (
                                                         <div className="ml-8 pl-12 border-l-2 border-blue-200">
                                                             <div className="flex gap-2">
-                                                                <div className="flex-shrink-0 w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 text-white flex items-center justify-center text-sm font-bold shadow-md">
-                                                                    J
+                                                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold overflow-hidden">
+                                                                    {com
+                                                                        .respuesta_jefe
+                                                                        .jefe_avatar_url ? (
+                                                                        <img
+                                                                            src={
+                                                                                com
+                                                                                    .respuesta_jefe
+                                                                                    .jefe_avatar_url
+                                                                            }
+                                                                            alt="Jefe"
+                                                                            className="w-full h-full object-cover"
+                                                                        />
+                                                                    ) : (
+                                                                        <span>
+                                                                            {com.respuesta_jefe.jefe_nombre.charAt(
+                                                                                0,
+                                                                            )}
+                                                                        </span>
+                                                                    )}
                                                                 </div>
 
                                                                 <div className="flex-1 rounded-2xl border border-amber-100 bg-amber-50 p-4 shadow-sm">

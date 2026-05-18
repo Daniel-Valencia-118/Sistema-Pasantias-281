@@ -3,6 +3,7 @@
 
 namespace App\Http\Controllers\Pasante;
 
+
 use App\Http\Controllers\Controller;
 use App\Models\Mensaje;
 use App\Models\MensajePas;
@@ -10,13 +11,15 @@ use App\Models\Inscripcion;
 use App\Models\User;
 use App\Models\JefePas;
 use App\Models\Pasante;
+use App\Traits\Notificable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class MensajeController extends Controller
-{
+{   
+    use Notificable;
     /**
      * Muestra la lista de conversaciones y el chat
      */
@@ -28,7 +31,7 @@ class MensajeController extends Controller
         // Obtener todas las inscripciones activas (INICIADO) del pasante
         $inscripcionesActivas = Inscripcion::with(['pasantia.empresa', 'jefe.user'])
             ->where('idU_pasante', $pasante->idU_pasante)
-            ->where('estado', 'iniciado')
+            ->where('estado', 'iniciado','finalizado')
             ->get();
         
         // Colección para almacenar contactos únicos
@@ -65,6 +68,7 @@ class MensajeController extends Controller
                         'ultimo_mensaje_hora' => $ultimoMensaje ? $ultimoMensaje->hora : null,
                         'ultimo_mensaje_enviado_por_mi' => $enviadoPorMi,
                         'finalizada' => false,
+                        'avatar_url' => $jefe->user->avatar_url, // agregar esta línea
                     ]);
                 }
             }
@@ -76,7 +80,7 @@ class MensajeController extends Controller
             $otrosPasantes = Inscripcion::with('pasante.user')
                 ->where('id_pasantia', $inscripcion->id_pasantia)
                 ->where('idU_pasante', '!=', $pasante->idU_pasante)
-                ->where('estado', 'iniciado')
+                ->where('estado', 'iniciado','finalizado')
                 ->get();
             
             foreach ($otrosPasantes as $otro) {
@@ -111,6 +115,7 @@ class MensajeController extends Controller
                         'ultimo_mensaje_hora' => $ultimoMensaje ? $ultimoMensaje->hora : null,
                         'ultimo_mensaje_enviado_por_mi' => $enviadoPorMi,
                         'finalizada' => false,
+                        'avatar_url' => $companero->user->avatar_url, // agregar esta línea
                     ]);
                 }
             }
@@ -223,6 +228,7 @@ class MensajeController extends Controller
                 'ap_materno' => $jefe->user->ap_materno ?? '',
                 'nombre_user' => $jefe->user->nombre_user,
                 'tipo' => 'jefe',
+                'avatar_url' => $jefe->user->avatar_url,
             ];
         } else {
             // Obtener mensajes con otro pasante
@@ -253,6 +259,7 @@ class MensajeController extends Controller
                 'ap_materno' => $otroPasante->user->ap_materno ?? '',
                 'nombre_user' => $otroPasante->user->nombre_user,
                 'tipo' => 'pasante',
+                'avatar_url' => $otroPasante->user->avatar_url,
             ];
         }
         
@@ -285,6 +292,17 @@ class MensajeController extends Controller
                     'idU_pasante' => $pasante->idU_pasante,
                     'idU_jefe' => $request->id_contacto,
                 ]);
+                // =============================================
+                // NOTIFICACIÓN: Nuevo mensaje para el JEFE
+                // =============================================
+                $this->crearNotificacion(
+                    $request->id_contacto,  // id del jefe
+                    'jefe',
+                    'Nuevo mensaje',
+                    "El pasante {$pasante->user->nombre} {$pasante->user->ap_paterno} te ha enviado un mensaje.",
+                    'mensaje',
+                    '/jefe/mensajes' // Ajusta si la ruta del jefe es diferente
+                );
             } else {
                 $mensaje = MensajePas::create([
                     'descripcion' => $request->mensaje,
@@ -293,6 +311,17 @@ class MensajeController extends Controller
                     'idU_pasanteA' => $pasante->idU_pasante,
                     'idU_pasanteB' => $request->id_contacto,
                 ]);
+                 // =============================================
+                 // NOTIFICACIÓN: Nuevo mensaje para el otro PASANTE
+                // =============================================
+                $this->crearNotificacion(
+                        $request->id_contacto,  // id del otro pasante
+                        'pasante',
+                        'Nuevo mensaje',
+                        "El pasante {$pasante->user->nombre} {$pasante->user->ap_paterno} te ha enviado un mensaje.",
+                        'mensaje',
+                        '/pasante/mensajes'
+                 );
             }
             
             return response()->json([
@@ -311,5 +340,9 @@ class MensajeController extends Controller
                 'message' => 'Error al enviar el mensaje: ' . $e->getMessage()
             ], 500);
         }
+
     }
+
+        
 }
+

@@ -11,6 +11,8 @@ import {
     ArrowLeft,
     UserCheck,
     UserX,
+    Users,
+    XCircle,
 } from "lucide-react";
 
 export default function Solicitudes({ auth, solicitudes }) {
@@ -96,15 +98,27 @@ export default function Solicitudes({ auth, solicitudes }) {
     const getEstadoBadge = (estado) => {
         if (estado === "pendiente") {
             return (
-                <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                    Pendiente
-                </span>
+                <div className="flex flex-col items-center gap-0.5">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-yellow-50 border border-yellow-200 text-yellow-700 shadow-sm">
+                        <span className="inline-block w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span>
+                        Pendiente
+                    </span>
+                    <span className="text-[9px] text-gray-400 uppercase tracking-wide">
+                        Esperando revisión
+                    </span>
+                </div>
             );
         }
         return (
-            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                Rechazado
-            </span>
+            <div className="flex flex-col items-center gap-0.5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-red-50 border border-red-200 text-red-700 shadow-sm">
+                    <XCircle size={12} className="text-red-500" />
+                    Rechazado
+                </span>
+                <span className="text-[9px] text-gray-400 uppercase tracking-wide">
+                    Solicitud denegada
+                </span>
+            </div>
         );
     };
 
@@ -114,13 +128,20 @@ export default function Solicitudes({ auth, solicitudes }) {
                 {/* Header */}
                 <div className="bg-gradient-to-r from-primary-navy to-primary-slate px-6 py-4">
                     <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-xl font-semibold text-white">
-                                Solicitudes de Registro
-                            </h2>
-                            <p className="text-primary-sky-blue text-sm">
-                                Aprobar o rechazar solicitudes de nuevos jefes
-                            </p>
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white/10 rounded-xl backdrop-blur-sm">
+                                <Users size={22} className="text-white" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-white tracking-tight">
+                                    SOLICITUDES DE REGISTRO
+                                </h2>
+                                <p className="text-white/70 text-sm mt-0.5 flex items-center gap-1.5">
+                                    <span className="inline-block w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse"></span>
+                                    Aprobar o rechazar solicitudes de nuevos
+                                    jefes
+                                </p>
+                            </div>
                         </div>
                         <button
                             onClick={() => window.history.back()}
@@ -142,7 +163,7 @@ export default function Solicitudes({ auth, solicitudes }) {
                             />
                             <input
                                 type="text"
-                                placeholder="Buscar por nombre/apellido..."
+                                placeholder="Buscar..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-10 pr-4 py-2 w-64 border border-gray-200 rounded-lg focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all cursor-pointer"
@@ -169,25 +190,25 @@ export default function Solicitudes({ auth, solicitudes }) {
                                     Nro
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-white">
-                                    Apellido Paterno
+                                    APELLIDO PATERNO
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-white">
-                                    Apellido Materno
+                                    APELLIDO MATERNO
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-white">
-                                    Nombres
+                                    NOMBRES
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-bold text-white">
                                     CI
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Perfil
+                                    PERFIL
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Estado
+                                    ESTADO APROB.
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Acciones
+                                    Aceptar/Rechazar
                                 </th>
                             </tr>
                         </thead>
@@ -220,11 +241,18 @@ export default function Solicitudes({ auth, solicitudes }) {
                                                     usuario: solicitud,
                                                 })
                                             }
-                                            className="text-primary-blue hover:text-primary-sky-blue transition-colors cursor-pointer"
-                                            title="Ver Perfil"
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300 rounded-lg transition-all duration-200 font-medium text-sm cursor-pointer shadow-sm hover:shadow"
+                                            title="Ver perfil completo con datos y hora de registro"
                                         >
-                                            <Eye size={18} />
+                                            <Eye
+                                                size={14}
+                                                className="text-blue-600"
+                                            />
+                                            Ver Perfil
                                         </button>
+                                        <div className="text-[9px] text-gray-400 mt-1">
+                                            Datos | Hora registro
+                                        </div>
                                     </td>
                                     <td className="px-4 py-3 text-center">
                                         {getEstadoBadge(
@@ -276,7 +304,7 @@ export default function Solicitudes({ auth, solicitudes }) {
 
                 {filteredData.length === 0 && (
                     <div className="text-center py-12 text-gray-500">
-                        No hay solicitudes que coincidan con los filtros
+                        No hay solicitudes solicitudes de registros de jefes
                     </div>
                 )}
             </div>

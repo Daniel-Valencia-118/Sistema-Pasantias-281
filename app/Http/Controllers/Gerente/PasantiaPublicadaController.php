@@ -7,6 +7,8 @@ use App\Models\Pasantia;
 use App\Models\Actividad;
 use App\Models\Inscripcion;
 use App\Models\JefePas;
+use App\Traits\Notificable;
+use App\Traits\SincronizaEstadosInscripciones; // ← Agregar
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +16,9 @@ use Inertia\Inertia;
 
 class PasantiaPublicadaController extends Controller
 {
+    use Notificable;
+    use SincronizaEstadosInscripciones; // ← Agregar
+    
     public function index()
     {
         $user = Auth::user();
@@ -110,6 +115,23 @@ class PasantiaPublicadaController extends Controller
             'id_pasantia' => $pasantia->id_pasantia,
         ]);
         
+        $pasantesIds = Inscripcion::where('id_pasantia', $id)
+            ->whereIn('estado', ['iniciado'])
+            ->pluck('idU_pasante')
+            ->toArray();
+        // =============================================
+        // NOTIFICACIÓN: Nueva actividad
+        // =============================================
+        $this->crearNotificacionesMultiples(
+            $pasantesIds,
+            'pasante',
+            'Nueva actividad',
+            "Se agregó \"{$actividad->nombre_act}\" a tu pasantía \"{$pasantia->nombre_pas}\".",
+            'actividad',
+            "/pasante/actividades/{$pasantia->id_pasantia}"
+        );
+
+
         return response()->json([
             'message' => 'Actividad agregada correctamente',
             'actividad' => $actividad
@@ -126,6 +148,35 @@ class PasantiaPublicadaController extends Controller
             'fecha_ini' => 'required|date|after_or_equal:' . $pasantia->fecha_ini,
             'fecha_fin' => 'required|date|before_or_equal:' . $pasantia->fecha_fin . '|after:fecha_ini',
         ]);
+        
+        $pasantesIds = Inscripcion::where('id_pasantia', $pasantia->id_pasantia)
+            ->whereIn('estado', ['iniciado'])
+            ->pluck('idU_pasante')
+            ->toArray();
+
+        // Si cambió fecha_ini
+        if ($actividad->fecha_ini != $request->fecha_ini) {
+            $this->crearNotificacionesMultiples(
+                $pasantesIds,
+                'pasante',
+                'Fecha de actividad cambiada',
+                "La actividad \"{$actividad->nombre_act}\" cambió su fecha de inicio al " . date('d/m/Y', strtotime($request->fecha_ini)),
+                'actividad',
+                "/pasante/actividades/{$pasantia->id_pasantia}"
+            );
+        }
+         // Si cambió fecha_fin (similar)
+        if ($actividad->fecha_fin != $request->fecha_fin) {
+            $this->crearNotificacionesMultiples(
+                $pasantesIds,
+                'pasante',
+                'Fecha de actividad cambiada',
+                "La actividad \"{$actividad->nombre_act}\" cambió su fecha final al " . date('d/m/Y', strtotime($request->fecha_fin)),
+                'actividad',
+                "/pasante/actividades/{$pasantia->id_pasantia}"
+            );
+        }
+
         
         $actividad->update([
             'descripcion' => $request->descripcion ?? 'sin descripción',
@@ -294,7 +345,17 @@ class PasantiaPublicadaController extends Controller
             ->firstOrFail();
         
         $inscripcion->update(['idU_jefe' => $request->idU_jefe]);
-        
+        // =============================================
+        // NOTIFICACIÓN: Jefe asignado
+        // =============================================
+        $this->crearNotificacion(
+            $idPasante,  // id del pasante
+            'pasante',
+            'Jefe asignado',
+            "Te han asignado un jefe para \"{$pasantia->nombre_pas}\": {$jefe->user->nombre} {$jefe->user->ap_paterno}",
+            'inscripcion',
+            '/pasante/inscripciones/activas'
+        );        
         return response()->json(['message' => 'Jefe asignado correctamente']);
     }
 
@@ -314,6 +375,18 @@ class PasantiaPublicadaController extends Controller
             ->firstOrFail();
         
         $inscripcion->update(['idU_jefe' => null]);
+
+        // =============================================
+        // NOTIFICACIÓN: Jefe desasignado
+        // =============================================
+        $this->crearNotificacion(
+            $idPasante,
+            'pasante',
+            'Jefe removido',
+            "Te han desasignado el jefe para la pasantía \"{$pasantia->nombre_pas}\".",
+            'inscripcion',
+            '/pasante/inscripciones/activas'
+        );
         
         return response()->json(['message' => 'Jefe desasignado correctamente']);
     }    
@@ -358,12 +431,115 @@ class PasantiaPublicadaController extends Controller
             return response()->json(['message' => 'Existen pasantes sin tener un jefe de pasante asignado'], 400);
         }
         
+
         // Cambiar estado de la pasantía a INICIADO
         $pasantia->update(['estado' => 'INICIADO']);
         
-        // Opcional: Actualizar estados de inscripción a 'iniciado'
-        // (Esto lo hará el rol JEFE más adelante, por ahora no)
+        // Sincronizar inscripciones (cambiará 'inscrito' a 'iniciado')
+        $inscripciones = Inscripcion::where('id_pasantia', $id)->get();
+        $this->sincronizarEstadosInscripciones($inscripciones);
         
+        // Obtener IDs de pasantes para notificaciones
+        $pasantesIds = Inscripcion::where('id_pasantia', $id)
+            ->where('estado', 'iniciado','inscrito')
+            ->pluck('idU_pasante')
+            ->toArray();
+
+        // =============================================
+        // NOTIFICACIÓN: Pasantía iniciada
+        // =============================================
+        $this->crearNotificacionesMultiples(
+            $pasantesIds,
+            'pasante',
+            '¡Pasantía comenzó!',
+            "La pasantía \"{$pasantia->nombre_pas}\" ha comenzado. ¡Muchos éxitos!",
+            'pasantia',
+            "/pasante/actividades/{$pasantia->id_pasantia}"
+        );
+    
         return response()->json(['message' => 'Pasantía iniciada correctamente']);
+    
     }    
+
+
+        public function updatePasantia(Request $request, $id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        // Verificar que la pasantía pertenece a la empresa
+        $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->where('id_pasantia', $id)
+            ->firstOrFail();
+        
+        $request->validate([
+            'mencion' => 'required|string',
+            'turno' => 'required|string|in:tiempo completo,medio tiempo,mañana,tarde,noche',
+            'carga_horaria' => 'nullable|integer|min:0',
+            'fecha_ini' => 'required|date',
+            'fecha_fin' => 'required|date|after:fecha_ini',
+        ]);
+        
+        // Obtener la actividad con fecha de inicio más temprana
+        $actividadMinFecha = $pasantia->actividades()
+            ->orderBy('fecha_ini', 'asc')
+            ->first();
+        
+        // Obtener la actividad con fecha de fin más tardía
+        $actividadMaxFecha = $pasantia->actividades()
+            ->orderBy('fecha_fin', 'desc')
+            ->first();
+        
+        // Validar que la nueva fecha inicio no sea mayor que la fecha inicio de la actividad más temprana
+        if ($actividadMinFecha && $request->fecha_ini > $actividadMinFecha->fecha_ini) {
+            return response()->json([
+                'message' => "La fecha de inicio no puede ser mayor a la fecha de inicio de la actividad más temprana ({$actividadMinFecha->fecha_ini})."
+            ], 400);
+        }
+        
+        // Validar que la nueva fecha fin no sea menor que la fecha fin de la actividad más tardía
+        if ($actividadMaxFecha && $request->fecha_fin < $actividadMaxFecha->fecha_fin) {
+            return response()->json([
+                'message' => "La fecha de fin no puede ser menor a la fecha de fin de la actividad más tardía ({$actividadMaxFecha->fecha_fin})."
+            ], 400);
+        }
+        
+        $pasantia->update([
+            'mencion' => $request->mencion,
+            'turno' => $request->turno,
+            'carga_horaria' => $request->carga_horaria ?? 0,
+            'fecha_ini' => $request->fecha_ini,
+            'fecha_fin' => $request->fecha_fin,
+        ]);
+        
+         $pasantesIds = Inscripcion::where('id_pasantia', $id)
+            ->whereIn('estado', ['inscrito', 'iniciado'])
+            ->pluck('idU_pasante')
+            ->toArray();
+        
+        // Si cambió fecha_ini
+        $this->crearNotificacionesMultiples(
+            $pasantesIds,
+            'pasante',
+            'Hrs./Fechas actualizadas de una Pasantia',
+            "La pasantía \"{$pasantia->nombre_pas}\" actualizó sus fechas o detalles ¡¡¡REVISALO!!!",
+            'pasantia',
+            "/pasante/inscripciones/activas"
+        );
+        
+
+        return response()->json([
+            'message' => 'Pasantía actualizada correctamente',
+            'pasantia' => [
+                'id' => $pasantia->id_pasantia,
+                'nombre' => $pasantia->nombre_pas,
+                'mencion' => $pasantia->mencion,
+                'turno' => $pasantia->turno,
+                'carga_horaria' => $pasantia->carga_horaria,
+                'fecha_ini' => $pasantia->fecha_ini,
+                'fecha_fin' => $pasantia->fecha_fin,
+            ]
+        ]);
+
+    }
 }
