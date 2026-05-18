@@ -134,7 +134,11 @@ export default function ModalApuntes({
                     {progresos && progresos.length > 0 ? (
                         <div className="flex flex-col gap-4">
                             {progresos
-                                .slice() // Mantenemos el orden original (ascendente)
+                                .slice() // Copiamos el array para no mutar el original
+                                .sort(
+                                    (a, b) =>
+                                        new Date(b.fecha) - new Date(a.fecha),
+                                ) // Orden descendente (más reciente primero)
                                 .map((p) => {
                                     // Conversión a zona horaria local
                                     const fechaLocal = new Date(
@@ -144,7 +148,6 @@ export default function ModalApuntes({
                                         month: "long",
                                         year: "numeric",
                                     });
-
                                     return (
                                         <div
                                             key={p.id_progresoact}

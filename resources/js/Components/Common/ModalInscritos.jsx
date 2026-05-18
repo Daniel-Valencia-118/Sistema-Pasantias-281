@@ -128,22 +128,24 @@ export default function ModalInscritos({
 
     return (
         <>
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                <div className="bg-white rounded-xl shadow-2xl max-w-7xl w-full mx-4 my-8">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
+                <div className="bg-white rounded-2xl border border-gray-200 max-w-7xl w-full overflow-hidden">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-primary-navy to-primary-blue px-6 py-4 rounded-t-xl">
-                        <div className="flex items-center justify-between">
+                    <div className="bg-gradient-to-r from-primary-navy to-primary-blue px-6 py-5">
+                        <div className="flex items-start justify-between gap-4">
                             <div>
-                                <h3 className="text-xl font-bold text-white">
+                                <h3 className="text-2xl font-bold text-white">
                                     Pasantes Inscritos
                                 </h3>
-                                <p className="text-primary-sky-blue text-sm">
+
+                                <p className="text-white/80 text-base mt-0.5 font-medium">
                                     {pasantiaNombre}
                                 </p>
                             </div>
+
                             <button
                                 onClick={onClose}
-                                className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
+                                className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 text-white hover:bg-white/20"
                             >
                                 <X size={20} />
                             </button>
@@ -151,14 +153,28 @@ export default function ModalInscritos({
                     </div>
 
                     {/* Contenido */}
-                    <div className="p-6 max-h-[70vh] overflow-y-auto">
+                    <div className="bg-gray-50 p-6 max-h-[70vh] overflow-y-auto">
                         {/* Buscador */}
-                        <div className="mb-4">
-                            <div className="relative w-80">
+                        <div className="mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div>
+                                <h4 className="text-lg font-semibold text-gray-800">
+                                    Lista de Inscritos
+                                </h4>
+
+                                <p className="text-sm text-gray-500">
+                                    Total registrados:{" "}
+                                    <span className="font-semibold text-gray-700">
+                                        {filteredAndSorted.length}
+                                    </span>
+                                </p>
+                            </div>
+
+                            <div className="relative w-full md:w-96">
                                 <Search
                                     size={18}
                                     className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
                                 />
+
                                 <input
                                     type="text"
                                     placeholder="Buscar por apellido o nombre..."
@@ -166,208 +182,266 @@ export default function ModalInscritos({
                                     onChange={(e) =>
                                         setSearchTerm(e.target.value)
                                     }
-                                    className="pl-10 pr-4 py-2 w-full border border-gray-200 rounded-lg focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20"
+                                    className="pl-10 pr-4 py-3 w-full bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-blue"
                                 />
                             </div>
                         </div>
 
                         {loading ? (
-                            <div className="text-center py-12 text-gray-500">
-                                Cargando inscritos...
+                            <div className="flex flex-col items-center justify-center py-16 text-center">
+                                <div className="w-12 h-12 border-4 border-gray-200 border-t-primary-blue rounded-full animate-spin"></div>
+
+                                <p className="mt-4 text-gray-500 font-medium">
+                                    Cargando inscritos...
+                                </p>
                             </div>
                         ) : filteredAndSorted.length === 0 ? (
-                            <div className="text-center py-12 text-gray-500">
-                                No hay pasantes inscritos
+                            <div className="flex flex-col items-center justify-center py-16 text-center">
+                                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                                    <UserX
+                                        size={28}
+                                        className="text-gray-400"
+                                    />
+                                </div>
+
+                                <h4 className="text-lg font-semibold text-gray-700">
+                                    No hay pasantes inscritos
+                                </h4>
+
+                                <p className="mt-2 text-sm text-gray-500">
+                                    Todavía no existen registros para esta
+                                    pasantía.
+                                </p>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-gradient-to-r from-primary-navy to-primary-slate">
-                                        <tr>
-                                            <th className="px-3 py-3 text-left text-xs font-bold text-white">
-                                                Nro
-                                            </th>
-                                            <th
-                                                className="px-3 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
-                                                onClick={() =>
-                                                    handleSort("ap_paterno")
-                                                }
-                                            >
-                                                <div className="flex items-center gap-1">
-                                                    Apellido Paterno{" "}
-                                                    <SortIcon field="ap_paterno" />
-                                                </div>
-                                            </th>
-                                            <th
-                                                className="px-3 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
-                                                onClick={() =>
-                                                    handleSort("ap_materno")
-                                                }
-                                            >
-                                                <div className="flex items-center gap-1">
-                                                    Apellido Materno{" "}
-                                                    <SortIcon field="ap_materno" />
-                                                </div>
-                                            </th>
-                                            <th
-                                                className="px-3 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
-                                                onClick={() =>
-                                                    handleSort("nombre")
-                                                }
-                                            >
-                                                <div className="flex items-center gap-1">
-                                                    Nombres{" "}
-                                                    <SortIcon field="nombre" />
-                                                </div>
-                                            </th>
-                                            <th
-                                                className="px-3 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
-                                                onClick={() => handleSort("ci")}
-                                            >
-                                                <div className="flex items-center gap-1">
-                                                    CI <SortIcon field="ci" />
-                                                </div>
-                                            </th>
-                                            <th className="px-3 py-3 text-center text-xs font-bold text-white">
-                                                Perfil
-                                            </th>
-                                            <th className="px-3 py-3 text-left text-xs font-bold text-white">
-                                                Fec. Inscripción
-                                            </th>
-                                            <th className="px-3 py-3 text-left text-xs font-bold text-white">
-                                                Hora Inscripción
-                                            </th>
-                                            <th className="px-3 py-3 text-center text-xs font-bold text-white">
-                                                Jefe de Pasante
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-200">
-                                        {filteredAndSorted.map(
-                                            (inscrito, index) => (
-                                                <tr
-                                                    key={inscrito.id}
-                                                    className="hover:bg-gray-50"
+                            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full border-separate border-spacing-0">
+                                        <thead>
+                                            <tr className="bg-gradient-to-r from-primary-navy to-primary-slate">
+                                                <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                    Nro
+                                                </th>
+
+                                                <th
+                                                    className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white cursor-pointer hover:bg-white/10"
+                                                    onClick={() =>
+                                                        handleSort("ap_paterno")
+                                                    }
                                                 >
-                                                    <td className="px-3 py-3 text-gray-500">
-                                                        {index + 1}
-                                                    </td>
-                                                    <td className="px-3 py-3 text-gray-900">
-                                                        {inscrito.ap_paterno}
-                                                    </td>
-                                                    <td className="px-3 py-3 text-gray-900">
-                                                        {inscrito.ap_materno}
-                                                    </td>
-                                                    <td className="px-3 py-3 text-gray-900">
-                                                        {inscrito.nombre}
-                                                    </td>
-                                                    <td className="px-3 py-3 text-gray-600">
-                                                        {inscrito.ci}
-                                                    </td>
-                                                    <td className="px-3 py-3 text-center">
-                                                        <button
-                                                            onClick={() =>
-                                                                setModalPerfil({
-                                                                    isOpen: true,
-                                                                    usuario:
-                                                                        inscrito,
-                                                                    tipo: "pasante",
-                                                                })
+                                                    <div className="flex items-center gap-1">
+                                                        Apellido Paterno
+                                                        <SortIcon field="ap_paterno" />
+                                                    </div>
+                                                </th>
+
+                                                <th
+                                                    className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white cursor-pointer hover:bg-white/10"
+                                                    onClick={() =>
+                                                        handleSort("ap_materno")
+                                                    }
+                                                >
+                                                    <div className="flex items-center gap-1">
+                                                        Apellido Materno
+                                                        <SortIcon field="ap_materno" />
+                                                    </div>
+                                                </th>
+
+                                                <th
+                                                    className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white cursor-pointer hover:bg-white/10"
+                                                    onClick={() =>
+                                                        handleSort("nombre")
+                                                    }
+                                                >
+                                                    <div className="flex items-center gap-1">
+                                                        Nombres
+                                                        <SortIcon field="nombre" />
+                                                    </div>
+                                                </th>
+
+                                                <th
+                                                    className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white cursor-pointer hover:bg-white/10"
+                                                    onClick={() =>
+                                                        handleSort("ci")
+                                                    }
+                                                >
+                                                    <div className="flex items-center gap-1">
+                                                        CI
+                                                        <SortIcon field="ci" />
+                                                    </div>
+                                                </th>
+
+                                                <th className="px-4 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-white">
+                                                    Perfil
+                                                </th>
+
+                                                <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                    Fec. Inscripción
+                                                </th>
+
+                                                <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                    Hora Inscripción
+                                                </th>
+
+                                                <th className="px-4 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-white">
+                                                    Jefe de Pasante
+                                                </th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody className="bg-white">
+                                            {filteredAndSorted.map(
+                                                (inscrito, index) => (
+                                                    <tr
+                                                        key={inscrito.id}
+                                                        className="hover:bg-gray-50"
+                                                    >
+                                                        <td className="px-4 py-4 border-b border-gray-100">
+                                                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-xs font-bold text-gray-600">
+                                                                {index + 1}
+                                                            </div>
+                                                        </td>
+
+                                                        <td className="px-4 py-4 text-sm font-medium text-gray-800 border-b border-gray-100">
+                                                            {
+                                                                inscrito.ap_paterno
                                                             }
-                                                            className="text-primary-blue hover:text-primary-sky-blue transition-all"
-                                                            title="Ver perfil"
-                                                        >
-                                                            <Eye size={18} />
-                                                        </button>
-                                                    </td>
-                                                    <td className="px-3 py-3 text-gray-600">
-                                                        {formatFecha(
-                                                            inscrito.fecha_insc,
-                                                        )}
-                                                    </td>
-                                                    <td className="px-3 py-3 text-gray-600">
-                                                        {inscrito.hora_insc ||
-                                                            "-"}
-                                                    </td>
-                                                    <td className="px-3 py-3 text-center">
-                                                        {inscrito.jefe ? (
-                                                            <div className="flex items-center justify-center gap-2">
+                                                        </td>
+
+                                                        <td className="px-4 py-4 text-sm font-medium text-gray-800 border-b border-gray-100">
+                                                            {
+                                                                inscrito.ap_materno
+                                                            }
+                                                        </td>
+
+                                                        <td className="px-4 py-4 text-sm font-medium text-gray-800 border-b border-gray-100">
+                                                            {inscrito.nombre}
+                                                        </td>
+
+                                                        <td className="px-4 py-4 text-sm text-gray-600 border-b border-gray-100">
+                                                            {inscrito.ci}
+                                                        </td>
+
+                                                        <td className="px-4 py-4 text-center border-b border-gray-100">
+                                                            <button
+                                                                onClick={() =>
+                                                                    setModalPerfil(
+                                                                        {
+                                                                            isOpen: true,
+                                                                            usuario:
+                                                                                inscrito,
+                                                                            tipo: "pasante",
+                                                                        },
+                                                                    )
+                                                                }
+                                                                className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-blue-100 text-primary-blue hover:bg-blue-200"
+                                                                title="Ver perfil"
+                                                            >
+                                                                <Eye
+                                                                    size={18}
+                                                                />
+                                                            </button>
+                                                        </td>
+
+                                                        <td className="px-4 py-4 border-b border-gray-100">
+                                                            <span className="inline-flex px-3 py-1 rounded-lg bg-green-50 text-green-700 text-sm font-medium">
+                                                                {formatFecha(
+                                                                    inscrito.fecha_insc,
+                                                                )}
+                                                            </span>
+                                                        </td>
+
+                                                        <td className="px-4 py-4 text-sm text-gray-600 border-b border-gray-100">
+                                                            {inscrito.hora_insc ||
+                                                                "-"}
+                                                        </td>
+
+                                                        <td className="px-4 py-4 text-center border-b border-gray-100">
+                                                            {inscrito.jefe ? (
+                                                                <div className="flex items-center justify-center gap-2 flex-wrap">
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            setModalPerfil(
+                                                                                {
+                                                                                    isOpen: true,
+                                                                                    usuario:
+                                                                                        inscrito.jefe,
+                                                                                    tipo: "jefe",
+                                                                                },
+                                                                            )
+                                                                        }
+                                                                        className="px-3 py-1.5 bg-blue-50 text-primary-blue rounded-lg text-xs font-medium hover:bg-blue-100"
+                                                                        title="Ver perfil del jefe"
+                                                                    >
+                                                                        {
+                                                                            inscrito
+                                                                                .jefe
+                                                                                .ap_paterno
+                                                                        }{" "}
+                                                                        {
+                                                                            inscrito
+                                                                                .jefe
+                                                                                .nombre
+                                                                        }
+                                                                    </button>
+
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            handleDesignarJefe(
+                                                                                inscrito,
+                                                                            )
+                                                                        }
+                                                                        className="flex items-center justify-center w-9 h-9 rounded-lg bg-red-500 text-white hover:bg-red-600"
+                                                                        title="Desasignar jefe"
+                                                                    >
+                                                                        <UserX
+                                                                            size={
+                                                                                16
+                                                                            }
+                                                                        />
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
                                                                 <button
                                                                     onClick={() =>
-                                                                        setModalPerfil(
-                                                                            {
-                                                                                isOpen: true,
-                                                                                usuario:
-                                                                                    inscrito.jefe,
-                                                                                tipo: "jefe",
-                                                                            },
-                                                                        )
-                                                                    }
-                                                                    className="text-primary-blue hover:text-primary-sky-blue transition-all text-sm"
-                                                                    title="Ver perfil del jefe"
-                                                                >
-                                                                    {
-                                                                        inscrito
-                                                                            .jefe
-                                                                            .ap_paterno
-                                                                    }{" "}
-                                                                    {
-                                                                        inscrito
-                                                                            .jefe
-                                                                            .ap_materno
-                                                                    }{" "}
-                                                                    {
-                                                                        inscrito
-                                                                            .jefe
-                                                                            .nombre
-                                                                    }
-                                                                </button>
-                                                                <button
-                                                                    onClick={() =>
-                                                                        handleDesignarJefe(
+                                                                        handleAsignarJefe(
                                                                             inscrito,
                                                                         )
                                                                     }
-                                                                    className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-all"
-                                                                    title="Desasignar jefe"
+                                                                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary-blue text-white text-xs font-semibold rounded-xl hover:bg-primary-sky-blue"
                                                                 >
-                                                                    <UserX
+                                                                    <UserCheck
                                                                         size={
-                                                                            18
+                                                                            15
                                                                         }
                                                                     />
+                                                                    Asignar
                                                                 </button>
-                                                            </div>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() =>
-                                                                    handleAsignarJefe(
-                                                                        inscrito,
-                                                                    )
-                                                                }
-                                                                className="inline-flex items-center gap-1 px-2 py-1 bg-primary-blue text-white text-xs rounded hover:bg-primary-sky-blue transition-all"
-                                                            >
-                                                                <UserCheck
-                                                                    size={15}
-                                                                />
-                                                                Asignar
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ),
-                                        )}
-                                    </tbody>
-                                </table>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ),
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         )}
                     </div>
 
                     {/* Footer */}
-                    <div className="flex justify-end p-4 border-t bg-gray-50 rounded-b-xl">
+                    <div className="flex items-center justify-between px-6 py-4 border-t bg-white">
+                        <div className="text-sm text-gray-500">
+                            Mostrando{" "}
+                            <span className="font-semibold text-gray-700">
+                                {filteredAndSorted.length}
+                            </span>{" "}
+                            registros
+                        </div>
+
                         <button
                             onClick={onClose}
-                            className="px-5 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all"
+                            className="px-6 py-2.5 bg-gray-600 text-white text-sm font-semibold rounded-xl hover:bg-gray-700"
                         >
                             Cerrar
                         </button>

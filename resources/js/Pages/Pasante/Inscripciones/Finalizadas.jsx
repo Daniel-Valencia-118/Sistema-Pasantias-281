@@ -16,6 +16,12 @@ import {
     Star,
     FileText,
     Calendar as CalendarIcon,
+    Search,
+    Award,
+    TrendingUp,
+    CheckCircle,
+    XCircle,
+    Info,
 } from "lucide-react";
 
 export default function Finalizadas({ auth, inscripciones }) {
@@ -45,11 +51,23 @@ export default function Finalizadas({ auth, inscripciones }) {
     });
 
     const getPromedioColor = (promedio, abandono) => {
-        if (abandono) return "bg-orange-100 text-orange-800";
-        if (promedio >= 80) return "bg-green-100 text-green-800";
-        if (promedio >= 60) return "bg-blue-100 text-blue-800";
-        if (promedio >= 40) return "bg-yellow-100 text-yellow-800";
-        return "bg-red-100 text-red-800";
+        if (abandono)
+            return "bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-md";
+        if (promedio >= 80)
+            return "bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-md";
+        if (promedio >= 60)
+            return "bg-gradient-to-r from-blue-400 to-cyan-500 text-white shadow-md";
+        if (promedio >= 40)
+            return "bg-gradient-to-r from-yellow-400 to-amber-500 text-white shadow-md";
+        return "bg-gradient-to-r from-red-400 to-rose-500 text-white shadow-md";
+    };
+
+    const getPromedioIcon = (promedio, abandono) => {
+        if (abandono) return <XCircle size={16} className="mr-1" />;
+        if (promedio >= 80) return <Award size={16} className="mr-1" />;
+        if (promedio >= 60) return <TrendingUp size={16} className="mr-1" />;
+        if (promedio >= 40) return <Info size={16} className="mr-1" />;
+        return <XCircle size={16} className="mr-1" />;
     };
 
     const abrirModalCalificar = (inscripcion) => {
@@ -66,199 +84,285 @@ export default function Finalizadas({ auth, inscripciones }) {
         ins.pasantia.nombre.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
+    // Estadísticas rápidas
+    const totalFinalizadas = inscripciones.length;
+    const promedioGeneral =
+        inscripciones
+            .filter((i) => !i.abandono)
+            .reduce((acc, i) => acc + i.promedio, 0) /
+        (inscripciones.filter((i) => !i.abandono).length || 1);
+    const totalAbandonos = inscripciones.filter((i) => i.abandono).length;
+
     return (
         <PasanteLayout auth={auth}>
             <Head title="Pasantías Finalizadas" />
 
-            <div className="mb-6 flex justify-between items-center flex-wrap gap-3">
-                <div>
-                    <h1 className="text-2xl font-bold text-primary-navy">
-                        Pasantías Finalizadas
-                    </h1>
-                    <p className="text-gray-500">
-                        Historial de pasantías completadas
-                    </p>
+            <div className="mb-8">
+                {/* Hero Section */}
+                <div className="bg-gradient-to-br from-primary-navy via-primary-slate to-gray-800 rounded-2xl shadow-xl p-6 mb-6 text-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full transform translate-x-32 -translate-y-32"></div>
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full transform -translate-x-24 translate-y-24"></div>
+
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                                <Award size={28} />
+                            </div>
+                            <h1 className="text-3xl font-bold">
+                                Pasantías Finalizadas
+                            </h1>
+                        </div>
+                        <p className="text-white/80 text-lg mb-6">
+                            Historial completo de tus pasantías completadas
+                        </p>
+
+                        {/* Stats Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-white/70 text-sm">
+                                            Total Pasantías
+                                        </p>
+                                        <p className="text-2xl font-bold mt-1">
+                                            {totalFinalizadas}
+                                        </p>
+                                    </div>
+                                    <CheckCircle
+                                        size={32}
+                                        className="text-green-300"
+                                    />
+                                </div>
+                            </div>
+                            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-white/70 text-sm">
+                                            Promedio General
+                                        </p>
+                                        <p className="text-2xl font-bold mt-1">
+                                            {promedioGeneral.toFixed(1)}/100
+                                        </p>
+                                    </div>
+                                    <TrendingUp
+                                        size={32}
+                                        className="text-blue-300"
+                                    />
+                                </div>
+                            </div>
+                            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-white/70 text-sm">
+                                            Abandonos
+                                        </p>
+                                        <p className="text-2xl font-bold mt-1">
+                                            {totalAbandonos}
+                                        </p>
+                                    </div>
+                                    <XCircle
+                                        size={32}
+                                        className="text-red-300"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div className="relative">
+
+                {/* Search Bar */}
+                <div className="relative max-w-md">
+                    <Search
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={20}
+                    />
                     <input
                         type="text"
-                        placeholder="Buscar por nombre..."
+                        placeholder="Buscar pasantía por nombre..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg w-64 focus:border-primary-blue"
+                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all duration-200 bg-white shadow-sm"
                     />
-                    <span className="absolute left-3 top-2.5 text-gray-400">
-                        🔍
-                    </span>
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gradient-to-r from-primary-navy to-primary-slate">
-                            <tr>
-                                <th className="px-4 py-3 text-left text-xs font-bold text-white">
-                                    Nro
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-bold text-white">
-                                    Nombre Pasantía
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-bold text-white">
-                                    Empresa
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Hrs./Fechas
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Promedio Actividades
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Informe Final
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Estado
-                                </th>
-                                <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Calificar
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                            {filteredInscripciones.map((ins, idx) => {
-                                const p = ins.pasantia;
-                                const promedio = ins.promedio;
-                                const abandono = ins.abandono;
-                                return (
-                                    <tr
-                                        key={ins.id_inscripcion}
-                                        className="hover:bg-gray-50"
+            {/* Cards Grid View */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredInscripciones.map((ins, idx) => {
+                    const p = ins.pasantia;
+                    const promedio = ins.promedio;
+                    const abandono = ins.abandono;
+                    return (
+                        <div
+                            key={ins.id_inscripcion}
+                            className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-primary-blue/20"
+                        >
+                            {/* Card Header */}
+                            <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b border-gray-200">
+                                <div className="flex items-start justify-between gap-3 mb-2">
+                                    <h3 className="font-bold text-base text-gray-800 break-words flex-1 min-w-0">
+                                        {p.nombre}
+                                    </h3>
+                                    <span className="flex-shrink-0 px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full shadow-sm">
+                                        FINALIZADO
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <button
+                                        onClick={() =>
+                                            setModalEmpresa({
+                                                isOpen: true,
+                                                empresa: p.empresa,
+                                            })
+                                        }
+                                        className="flex items-center gap-2 flex-1 min-w-0 text-left hover:bg-primary-blue/5 rounded-lg p-1 -ml-1 transition-colors group"
+                                        title="Ver detalles empresa"
                                     >
-                                        <td className="px-4 py-3 text-sm text-gray-500">
-                                            {idx + 1}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                            {p.nombre}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-gray-600">
-                                            <div className="flex items-center gap-2">
-                                                {p.empresa.nombre}
-                                                <button
-                                                    onClick={() =>
-                                                        setModalEmpresa({
-                                                            isOpen: true,
-                                                            empresa: p.empresa,
-                                                        })
-                                                    }
-                                                    className="text-primary-blue hover:text-primary-sky-blue"
-                                                >
-                                                    <Building2 size={16} />
-                                                </button>
+                                        <Building2
+                                            size={16}
+                                            className="text-primary-blue flex-shrink-0"
+                                        />
+                                        <span className="text-gray-700 font-medium break-words flex-1 min-w-0 group-hover:text-primary-blue transition-colors">
+                                            {p.empresa.nombre}
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Card Body */}
+                            <div className="p-4 space-y-3">
+                                {/* Horario */}
+                                <button
+                                    onClick={() =>
+                                        setModalHorario({
+                                            isOpen: true,
+                                            turno: p.turno,
+                                            cargaHoraria: p.carga_horaria,
+                                            fechaIni: p.fecha_ini,
+                                            fechaFin: p.fecha_fin,
+                                        })
+                                    }
+                                    className="w-full flex items-center justify-between text-sm hover:bg-gray-50 rounded-lg p-2 -mx-2 transition-colors group"
+                                    title="Ver horario y fechas completas"
+                                >
+                                    <div className="flex items-center gap-2 text-gray-600">
+                                        <Clock
+                                            size={18}
+                                            className="text-primary-blue"
+                                        />
+                                        <span>Hrs. y Fechas</span>
+                                    </div>
+                                    <div className="text-primary-blue group-hover:text-primary-sky-blue font-medium flex items-center gap-1">
+                                        {p.fecha_fin?.substring(0, 4)}
+                                    </div>
+                                </button>
+
+                                {/* Promedio */}
+                                <div className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center gap-2 text-gray-600">
+                                        <Award
+                                            size={16}
+                                            className="text-primary-blue"
+                                        />
+                                        <span>Promedio Actividades</span>
+                                    </div>
+                                    {abandono ? (
+                                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 shadow-sm">
+                                            ABANDONO
+                                        </span>
+                                    ) : (
+                                        <div className="flex items-center gap-2">
+                                            <div
+                                                className={`px-3 py-1 rounded-full text-sm font-bold flex items-center ${getPromedioColor(promedio, false)}`}
+                                            >
+                                                {getPromedioIcon(
+                                                    promedio,
+                                                    false,
+                                                )}
+                                                {promedio}/100
                                             </div>
-                                        </td>
-                                        <td className="px-1 py-3 text-center">
                                             <button
                                                 onClick={() =>
-                                                    setModalHorario({
+                                                    setModalDetallePromedio({
                                                         isOpen: true,
-                                                        turno: p.turno,
-                                                        cargaHoraria:
-                                                            p.carga_horaria,
-                                                        fechaIni: p.fecha_ini,
-                                                        fechaFin: p.fecha_fin,
+                                                        pasantiaId: p.id,
+                                                        pasantiaNombre:
+                                                            p.nombre,
                                                     })
                                                 }
-                                                className="text-primary-blue hover:text-primary-sky-blue"
+                                                className="text-primary-blue hover:text-primary-sky-blue p-1 hover:bg-primary-blue/10 rounded-lg transition-colors"
+                                                title="Ver detalle promedios"
                                             >
-                                                {p.fecha_fin.substring(0, 4)}
-                                                {""}
-                                                <Clock size={15} />
+                                                <CalendarIcon size={16} />
+                                                ver
                                             </button>
-                                        </td>
-                                        <td className="px-4 py-3 text-center">
-                                            {abandono ? (
-                                                <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-800">
-                                                    ABANDONO
-                                                </span>
-                                            ) : (
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <span
-                                                        className={`inline-flex px-2 py-1 rounded-full text-base font-bold ${getPromedioColor(promedio, false)}`}
-                                                    >
-                                                        {promedio}/100
-                                                    </span>
-                                                    <button
-                                                        onClick={() =>
-                                                            setModalDetallePromedio(
-                                                                {
-                                                                    isOpen: true,
-                                                                    pasantiaId:
-                                                                        p.id,
-                                                                    pasantiaNombre:
-                                                                        p.nombre,
-                                                                },
-                                                            )
-                                                        }
-                                                        className="text-primary-blue hover:text-primary-sky-blue text-sm flex items-center gap-1"
-                                                    >
-                                                        <CalendarIcon
-                                                            size={18}
-                                                        />
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 text-center">
-                                            {abandono ? (
-                                                <span className="text-gray-400 text-xs">
-                                                    no disponible
-                                                </span>
-                                            ) : (
-                                                <a
-                                                    href={route(
-                                                        "pasante.informe-final",
-                                                        { idPasantia: p.id },
-                                                    )}
-                                                    target="_blank"
-                                                    className="inline-flex px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition"
-                                                >
-                                                    GENERAR INFORME
-                                                </a>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 text-center">
-                                            <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">
-                                                FINALIZADO
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 text-center">
-                                            <button
-                                                onClick={() =>
-                                                    abrirModalCalificar(ins)
-                                                }
-                                                className="flex items-center gap-1 mx-auto text-yellow-500 hover:text-yellow-600"
-                                            >
-                                                <Star size={18} />
-                                                <span className="text-xs">
-                                                    {ins.ya_califico
-                                                        ? "Ver"
-                                                        : "Calificar"}
-                                                </span>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
+                                        </div>
+                                    )}
+                                </div>
 
-                {filteredInscripciones.length === 0 && (
-                    <div className="text-center py-12 text-gray-500">
-                        No hay pasantías finalizadas.
-                    </div>
-                )}
+                                {/* Informe Final */}
+                                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                                    <div className="flex items-center gap-2 text-gray-600">
+                                        <FileText
+                                            size={16}
+                                            className="text-primary-blue"
+                                        />
+                                        <span className="text-sm">
+                                            Informe Final
+                                        </span>
+                                    </div>
+                                    {abandono ? (
+                                        <span className="text-gray-400 text-xs italic">
+                                            no disponible
+                                        </span>
+                                    ) : (
+                                        <a
+                                            href={route(
+                                                "pasante.informe-final",
+                                                { idPasantia: p.id },
+                                            )}
+                                            target="_blank"
+                                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                                        >
+                                            <FileText size={16} />
+                                            GENERAR INFORME
+                                        </a>
+                                    )}
+                                </div>
+
+                                {/* Calificar Button */}
+                                <div className="pt-2">
+                                    <button
+                                        onClick={() => abrirModalCalificar(ins)}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-xl font-medium hover:from-yellow-500 hover:to-amber-600 transition-all duration-200 shadow-md hover:shadow-lg"
+                                    >
+                                        <Star size={18} />
+                                        <span>
+                                            {ins.ya_califico
+                                                ? "Ver Calificación"
+                                                : "Calificar Pasantía"}
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
+
+            {filteredInscripciones.length === 0 && (
+                <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
+                        <Search size={32} className="text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                        No hay resultados
+                    </h3>
+                    <p className="text-gray-500">
+                        No tienes ninguna pasantía finalizada
+                    </p>
+                </div>
+            )}
 
             {/* Modales */}
             <ModalDetallesEmpresa

@@ -44,9 +44,9 @@ export const menuGerente = [
         icon: Briefcase,
         submenus: [
             {
-                name: "Pasantías Iniciadas",
-                href: "/gerente/pasantias/activas",
-                icon: Play,
+                name: "Publicar Pasantía",
+                href: "/gerente/pasantias/crear",
+                icon: FileText,
             },
             {
                 name: "Pasantías Publicadas",
@@ -54,9 +54,9 @@ export const menuGerente = [
                 icon: ClipboardList,
             },
             {
-                name: "Publicar Pasantía",
-                href: "/gerente/pasantias/crear",
-                icon: FileText,
+                name: "Pasantías Iniciadas",
+                href: "/gerente/pasantias/activas",
+                icon: Play,
             },
             {
                 name: "Pasantías Finalizadas",
@@ -70,11 +70,12 @@ export const menuGerente = [
         icon: Users,
         submenus: [
             { name: "Jefes de Pasantes", href: "/gerente/jefes", icon: Users },
-            {
-                name: "Registrar Jefe",
-                href: "/gerente/jefes/crear",
-                icon: UserPlus,
-            },
+            // {
+            //     name: "Registrar Jefe",
+            //     href: "/gerente/jefes/crear",
+            //     icon: UserPlus,
+            //     hide: true,
+            // },
             {
                 name: "Solicitudes de Registro",
                 href: "/gerente/jefes/solicitudes",

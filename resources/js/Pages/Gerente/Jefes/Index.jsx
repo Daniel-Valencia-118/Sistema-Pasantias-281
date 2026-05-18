@@ -119,13 +119,21 @@ export default function Index({ auth, jefes }) {
         <GerenteLayout auth={auth}>
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 {/* Header */}
-                <div className="bg-primary-navy px-6 py-4">
-                    <h2 className="text-xl font-semibold text-white">
-                        Jefes de Pasantes
-                    </h2>
-                    <p className="text-primary-sky-blue text-sm">
-                        Gestión de jefes de tu empresa
-                    </p>
+                <div className="bg-gradient-to-r from-primary-navy to-primary-slate px-6 py-5">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-white/10 rounded-xl backdrop-blur-sm">
+                            <Users size={22} className="text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-white tracking-tight">
+                                JEFES DE PASANTES
+                            </h2>
+                            <p className="text-white/70 text-sm mt-0.5 flex items-center gap-1.5">
+                                <span className="inline-block w-1.5 h-1.5 bg-primary-sky-blue rounded-full"></span>
+                                Gestión de jefes de tu empresa
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Filtros y búsqueda */}
@@ -206,7 +214,7 @@ export default function Index({ auth, jefes }) {
                                     }
                                 >
                                     <div className="flex items-center justify-center gap-1 cursor-pointer hover:bg-white/10 py-1 rounded transition-colors">
-                                        Pasantes{" "}
+                                        Pasantes ASIGNADOS{" "}
                                         <SortIcon field="pasantes_asignados" />
                                     </div>
                                 </th>
@@ -238,26 +246,44 @@ export default function Index({ auth, jefes }) {
                                                     usuario: jefe,
                                                 })
                                             }
-                                            className="text-primary-blue hover:text-primary-sky-blue transition-colors"
-                                            title="Ver Perfil"
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300 rounded-lg transition-all duration-200 font-medium text-sm cursor-pointer shadow-sm hover:shadow"
+                                            title="Ver perfil del jefe"
                                         >
-                                            <Eye size={18} />
+                                            <Eye
+                                                size={14}
+                                                className="text-blue-600"
+                                            />
+                                            Ver Perfil
                                         </button>
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        <div className="flex items-center justify-center gap-2">
+                                        <div className="flex items-center justify-center gap-3">
                                             <button
                                                 onClick={() =>
                                                     handleToggleEstado(jefe.id)
                                                 }
-                                                className="text-gray-400 hover:text-yellow-600 transition-colors"
+                                                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all duration-200 text-sm font-medium ${
+                                                    jefe.estado_cuenta
+                                                        ? "bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 hover:border-red-300"
+                                                        : "bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300"
+                                                }`}
                                                 title={
                                                     jefe.estado_cuenta
                                                         ? "Desactivar cuenta"
                                                         : "Activar cuenta"
                                                 }
                                             >
-                                                <Power size={16} />
+                                                <Power
+                                                    size={14}
+                                                    className={
+                                                        jefe.estado_cuenta
+                                                            ? "text-red-600"
+                                                            : "text-green-600"
+                                                    }
+                                                />
+                                                {jefe.estado_cuenta
+                                                    ? "Desactivar"
+                                                    : "Activar"}
                                             </button>
                                             <BadgeEstado
                                                 estado={
@@ -269,10 +295,7 @@ export default function Index({ auth, jefes }) {
                                         </div>
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        <div className="flex items-center justify-center gap-1">
-                                            <span className="text-sm font-medium">
-                                                {jefe.pasantes_asignados}
-                                            </span>
+                                        <div className="flex flex-col items-center gap-1">
                                             <button
                                                 onClick={() =>
                                                     setModalAsignar({
@@ -281,11 +304,23 @@ export default function Index({ auth, jefes }) {
                                                         jefeNombre: `${jefe.ap_paterno} ${jefe.ap_materno}, ${jefe.nombre}`,
                                                     })
                                                 }
-                                                className="text-primary-blue hover:text-primary-sky-blue transition-colors cursor-pointer"
-                                                title="Asignar/Designar Pasantes"
+                                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-blue/10 border border-primary-blue/20 rounded-lg hover:bg-primary-blue/20 transition-all duration-200 cursor-pointer group"
+                                                title="Asignar o desasignar pasantes"
                                             >
-                                                <Users size={16} />
+                                                <Users
+                                                    size={16}
+                                                    className="text-primary-blue"
+                                                />
+                                                <span className="text-sm font-semibold text-primary-blue">
+                                                    {jefe.pasantes_asignados}
+                                                </span>
+                                                <span className="text-xs text-gray-500 group-hover:text-primary-blue transition-colors">
+                                                    pasantes
+                                                </span>
                                             </button>
+                                            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+                                                Gestionar Pasantes
+                                            </span>
                                         </div>
                                     </td>
                                 </tr>
@@ -296,7 +331,7 @@ export default function Index({ auth, jefes }) {
 
                 {filteredData.length === 0 && (
                     <div className="text-center py-12 text-gray-500">
-                        No se encontraron jefes
+                        No tiene registrado ningún jefe en el sistema
                     </div>
                 )}
             </div>
