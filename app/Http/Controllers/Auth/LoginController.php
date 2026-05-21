@@ -50,6 +50,12 @@ class LoginController extends Controller
 
         // Redirigir según el rol
         $role = $this->getUserRole($user);
+
+        // si el rol es 'tutor' hacer logout y mostrar mensaje de proximamente disponible
+        if ($role === 'tutor') {
+            Auth::logout();
+            return back()->withErrors(['login' => 'El acceso para tutores académicos estará disponible próximamente.']);
+        }
         
         return redirect()->intended($this->redirectTo($role));
     }

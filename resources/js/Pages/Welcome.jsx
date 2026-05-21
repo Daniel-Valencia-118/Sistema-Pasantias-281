@@ -5,6 +5,7 @@ import HeroSection from '@/Components/Home/HeroSection';
 import MissionSection from '@/Components/Home/MissionSection';
 import VisionSection from '@/Components/Home/VisionSection';
 import AboutSection from '@/Components/Home/AboutSection';
+import NosotrosContainer from '@/Components/Home/NosotrosContainer';
 
 export default function Welcome() {
   return (
@@ -12,8 +13,7 @@ export default function Welcome() {
       <Head title="Inicio" />
       <PublicLayout>
         <HeroSection />
-        <MissionSection />
-        <VisionSection />
+        <NosotrosContainer />
         <AboutSection />
       </PublicLayout>
     </>

@@ -4,11 +4,11 @@ import DashboardLayout from '@/Components/Layout/DashboardLayout';
 import { 
     Users, Briefcase, GraduationCap, ClipboardList, 
     UserCheck, MessageSquare, Star, Clock, ArrowRight,
-    TrendingUp, Building2, ShieldCheck
+    TrendingUp, Building2, ShieldCheck, Eye
 } from 'lucide-react';
 import { 
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
-    BarChart, Bar, XAxis, YAxis, CartesianGrid 
+    BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from 'recharts';
 
 export default function Dashboard({ stats, auth, distribucion_roles, ultimos_comentarios, usuarios_recientes }) {
@@ -114,8 +114,8 @@ export default function Dashboard({ stats, auth, distribucion_roles, ultimos_com
                                                 {new Date(user.fecha_registro).toLocaleDateString()}
                                             </td>
                                             <td className="py-3 text-right">
-                                                <Link href={`/admin/usuarios/${user.idUser}`} className="text-gray-400 hover:text-primary-blue">
-                                                    <ArrowRight size={18} />
+                                                <Link href={`/admin/usuarios/`} className="text-gray-400 hover:text-primary-blue">
+                                                    <Eye size={18} />
                                                 </Link>
                                             </td>
                                         </tr>

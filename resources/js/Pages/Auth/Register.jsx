@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import RegisterLayout from '@/Components/Layout/RegisterLayout';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
@@ -18,23 +18,23 @@ const roleOptions = [
 ];
 
 const mencionOptions = [
-    'Ingeniería de Sistemas',
-    'Ingeniería Informática',
+    'Desarrollo de Software e Innovación Tecnológica',
+    'Inteligencia Artificial y Ciencias de Datos',
     'Ciencias de la Computación',
-    'Inteligencia Artificial',
-    'Ingeniería de Software',
-    'Telecomunicaciones',
-    'Otra',
+    'Informática Industrial',
+    'Ingeniería de Sistemas',
+    'Redes y TIC',
+    'Seguridad de la Información'
 ];
 
 const gradoOptions = ['Lic.', 'Ing.', 'M.Sc.', 'Mg.', 'Dr.', 'Ph.D.'];
 
-export default function Register() {
+export default function Register({ empresas = [] }) {
     const [step, setStep] = useState(1);
-    const [selectedRole, setSelectedRole] = useState('pasante');
     
+    // Añadimos 'role' directamente al estado inicial del formulario
     const { data, setData, post, processing, errors, reset } = useForm({
-        // Datos base de usuario
+        role: 'pasante', 
         nombre_user: '',
         password: '',
         password_confirmation: '',
@@ -46,24 +46,20 @@ export default function Register() {
         ap_materno: '',
         fecha_nac: '',
         
-        // Datos específicos de pasante
         ru: '',
         matricula: '',
         semestre: '',
         mencion: '',
         
-        // Datos específicos de jefe
         cargo: '',
         area: '',
+        id_empresa: '', // <--- NUEVO CAMPO AÑADIDO
         
-        // Datos específicos de tutor
         especialidad: '',
         grado_aca: '',
         
-        // Datos específicos de gerente
         nro_secun: '',
         
-        // Datos de empresa (solo para gerente)
         empresa_nombre: '',
         empresa_direccion: '',
         empresa_email: '',
@@ -72,16 +68,17 @@ export default function Register() {
     });
 
     const handleRoleChange = (e) => {
-        setSelectedRole(e.target.value);
-        // Resetear campos específicos al cambiar de rol
-        reset('ru', 'matricula', 'semestre', 'mencion', 'cargo', 'area', 
+        const roleSelected = e.target.value;
+        setData('role', roleSelected);
+        
+        // Resetear exclusivamente campos variables
+        reset('ru', 'matricula', 'semestre', 'mencion', 'cargo', 'area', 'id_empresa',
               'especialidad', 'grado_aca', 'nro_secun', 'empresa_nombre', 
               'empresa_direccion', 'empresa_email', 'empresa_nit', 'empresa_telefono');
     };
 
     const nextStep = () => {
         if (step === 1) {
-            // Validar campos base
             if (!data.nombre_user || !data.password || !data.numero_cel || 
                 !data.ci || !data.correo || !data.nombre || !data.ap_paterno || 
                 !data.ap_materno || !data.fecha_nac) {
@@ -101,80 +98,9 @@ export default function Register() {
     const submit = (e) => {
         e.preventDefault();
         
-        let endpoint = '';
-        switch (selectedRole) {
-            case 'pasante':
-                endpoint = route('registro.pasante');
-                break;
-            case 'jefe':
-                endpoint = route('registro.jefe');
-                break;
-            case 'tutor':
-                endpoint = route('registro.tutor');
-                break;
-            case 'gerente':
-                endpoint = route('registro.gerente');
-                break;
-            default:
-                return;
-        }
-        
-        // Construir payload según rol
-        let payload = {
-            nombre_user: data.nombre_user,
-            password: data.password,
-            password_confirmation: data.password_confirmation,
-            numero_cel: data.numero_cel,
-            ci: data.ci,
-            correo: data.correo,
-            nombre: data.nombre,
-            ap_paterno: data.ap_paterno,
-            ap_materno: data.ap_materno,
-            fecha_nac: data.fecha_nac,
-        };
-
-        if (selectedRole === 'pasante') {
-            payload = {
-                ...payload,
-                ru: data.ru,
-                matricula: data.matricula,
-                semestre: data.semestre,
-                mencion: data.mencion,
-            };
-        } else if (selectedRole === 'jefe') {
-            payload = {
-                ...payload,
-                cargo: data.cargo,
-                area: data.area,
-            };
-        } else if (selectedRole === 'tutor') {
-            payload = {
-                ...payload,
-                especialidad: data.especialidad,
-                grado_aca: data.grado_aca,
-            };
-        } else if (selectedRole === 'gerente') {
-            payload = {
-                ...payload,
-                nro_secun: data.nro_secun,
-                empresa_nombre: data.empresa_nombre,
-                empresa_direccion: data.empresa_direccion,
-                empresa_email: data.empresa_email,
-                empresa_nit: data.empresa_nit,
-                empresa_telefono: data.empresa_telefono,
-            };
-        }
-
-        post(endpoint, {
-            data: payload,
-            onSuccess: () => {
-                // Redirigir a login con mensaje de éxito
-                router.visit(route('login'), {
-                    only: ['flash'],
-                    data: { flash: { success: 'Registro exitoso. Por favor inicie sesión.' } }
-                });
-            },
-        });
+        // Con el Endpoint Único ya no necesitas armar payloads manuales parciales, 
+        // Inertia enviará todo el bloque estructurado y el Backend filtrará según el 'role'
+        post(route('registro.store'));
     };
 
     return (
@@ -187,7 +113,7 @@ export default function Register() {
                     {step === 1 ? 'Ingresa tus datos personales' : 'Completa tu perfil según tu rol'}
                 </p>
 
-                {/* Indicador de paso */}
+                {/* Indicador de pasos */}
                 <div className="mb-8">
                     <div className="flex items-center justify-center">
                         <div className={`flex items-center ${step === 1 ? 'text-primary-blue' : 'text-gray-400'}`}>
@@ -319,7 +245,6 @@ export default function Register() {
                                         id="fecha_nac"
                                         value={data.fecha_nac}
                                         onChange={(e) => setData('fecha_nac', e.target.value)}
-                                        placeholder="Fecha de Nacimiento"
                                         required
                                     />
                                     <InputError message={errors.fecha_nac} />
@@ -341,14 +266,14 @@ export default function Register() {
                                 <RadioGroup
                                     name="role"
                                     options={roleOptions}
-                                    selected={selectedRole}
+                                    selected={data.role}
                                     onChange={handleRoleChange}
                                     className="mt-2 grid grid-cols-2 gap-3"
                                 />
                             </div>
 
-                            {/* Campos dinámicos según rol */}
-                            {selectedRole === 'pasante' && (
+                            {/* Campos de Pasante */}
+                            {data.role === 'pasante' && (
                                 <div className="grid md:grid-cols-2 gap-6 animate-fade-in">
                                     <div>
                                         <InputLabel htmlFor="ru" value="Número de Registro Universitario *" />
@@ -357,8 +282,9 @@ export default function Register() {
                                             value={data.ru}
                                             onChange={(e) => setData('ru', e.target.value)}
                                             required
-                                            placeholder="Número de Registro Universitario"
+                                            placeholder="Registro Universitario"
                                         />
+                                        <InputError message={errors.ru} />
                                     </div>
                                     <div>
                                         <InputLabel htmlFor="matricula" value="Matrícula *" />
@@ -369,6 +295,7 @@ export default function Register() {
                                             placeholder="Matrícula"
                                             required
                                         />
+                                        <InputError message={errors.matricula} />
                                     </div>
                                     <div>
                                         <InputLabel htmlFor="semestre" value="Semestre *" />
@@ -376,7 +303,6 @@ export default function Register() {
                                             id="semestre"
                                             value={data.semestre}
                                             onChange={(e) => setData('semestre', e.target.value)}
-                                            placeholder="Semestre"
                                             required
                                         >
                                             <option value="">Seleccionar</option>
@@ -384,6 +310,7 @@ export default function Register() {
                                                 <option key={n} value={n}>{n}</option>
                                             ))}
                                         </SelectInput>
+                                        <InputError message={errors.semestre} />
                                     </div>
                                     <div>
                                         <InputLabel htmlFor="mencion" value="Mención *" />
@@ -391,7 +318,6 @@ export default function Register() {
                                             id="mencion"
                                             value={data.mencion}
                                             onChange={(e) => setData('mencion', e.target.value)}
-                                            placeholder="Mención"
                                             required
                                         >
                                             <option value="">Seleccionar</option>
@@ -399,12 +325,14 @@ export default function Register() {
                                                 <option key={m} value={m}>{m}</option>
                                             ))}
                                         </SelectInput>
+                                        <InputError message={errors.mencion} />
                                     </div>
                                 </div>
                             )}
 
-                            {selectedRole === 'jefe' && (
-                                <div className="grid md:grid-cols-2 gap-6">
+                            {/* Campos de Jefe de pasante */}
+                            {data.role === 'jefe' && (
+                                <div className="grid md:grid-cols-2 gap-6 animate-fade-in">
                                     <div>
                                         <InputLabel htmlFor="cargo" value="Cargo *" />
                                         <TextInput
@@ -414,6 +342,7 @@ export default function Register() {
                                             placeholder="Cargo"
                                             required
                                         />
+                                        <InputError message={errors.cargo} />
                                     </div>
                                     <div>
                                         <InputLabel htmlFor="area" value="Área *" />
@@ -424,11 +353,32 @@ export default function Register() {
                                             placeholder="Área"
                                             required
                                         />
+                                        <InputError message={errors.area} />
+                                    </div>
+
+                                    {/* SECCIÓN NUEVA: Desplegable de Empresas Ya Registradas */}
+                                    <div className="md:col-span-2">
+                                        <InputLabel htmlFor="id_empresa" value="Empresa a la que pertenece *" />
+                                        <SelectInput
+                                            id="id_empresa"
+                                            value={data.id_empresa}
+                                            onChange={(e) => setData('id_empresa', e.target.value)}
+                                            required
+                                        >
+                                            <option value="">-- Seleccione la empresa asignada --</option>
+                                            {empresas.map((emp) => (
+                                                <option key={emp.id_empresa} value={emp.id_empresa}>
+                                                    {emp.nombre}
+                                                </option>
+                                            ))}
+                                        </SelectInput>
+                                        <InputError message={errors.id_empresa} />
                                     </div>
                                 </div>
                             )}
 
-                            {selectedRole === 'tutor' && (
+                            {/* Campos de Tutor */}
+                            {data.role === 'tutor' && (
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div>
                                         <InputLabel htmlFor="especialidad" value="Especialidad *" />
@@ -439,6 +389,7 @@ export default function Register() {
                                             placeholder="Especialidad"
                                             required
                                         />
+                                        <InputError message={errors.especialidad} />
                                     </div>
                                     <div>
                                         <InputLabel htmlFor="grado_aca" value="Grado Académico *" />
@@ -446,7 +397,6 @@ export default function Register() {
                                             id="grado_aca"
                                             value={data.grado_aca}
                                             onChange={(e) => setData('grado_aca', e.target.value)}
-                                            placeholder="Grado Académico"
                                             required
                                         >
                                             <option value="">Seleccionar</option>
@@ -454,23 +404,26 @@ export default function Register() {
                                                 <option key={g} value={g}>{g}</option>
                                             ))}
                                         </SelectInput>
+                                        <InputError message={errors.grado_aca} />
                                     </div>
                                 </div>
                             )}
 
-                            {selectedRole === 'gerente' && (
+                            {/* Campos de Gerente */}
+                            {data.role === 'gerente' && (
                                 <>
                                     <div className="border-t pt-6">
                                         <h3 className="text-lg font-medium text-primary-navy mb-4">Datos del Gerente</h3>
                                         <div className="grid md:grid-cols-2 gap-6">
                                             <div>
-                                                <InputLabel htmlFor="nro_secun" value="Número de celular secundario (opcional)" />
+                                                <InputLabel htmlFor="nro_secun" value="Celular secundario (opcional)" />
                                                 <TextInput
                                                     id="nro_secun"
                                                     value={data.nro_secun}
                                                     onChange={(e) => setData('nro_secun', e.target.value)}
-                                                    placeholder="Número de Celular Secundario (opcional)"
+                                                    placeholder="Número de Celular Secundario"
                                                 />
+                                                <InputError message={errors.nro_secun} />
                                             </div>
                                         </div>
                                     </div>
@@ -504,7 +457,7 @@ export default function Register() {
                                                     type="email"
                                                     value={data.empresa_email}
                                                     onChange={(e) => setData('empresa_email', e.target.value)}
-                                                    placeholder="Email de Empresa"
+                                                    placeholder="Email corporativo"
                                                     required
                                                 />
                                             </div>
@@ -530,6 +483,13 @@ export default function Register() {
                                         </div>
                                     </div>
                                 </>
+                            )}
+
+                            {/* Mostrar errores generales globales si la BD los arroja */}
+                            {errors.error && (
+                                <div className="text-red-600 font-medium text-sm text-center bg-red-50 p-2 rounded-lg">
+                                    {errors.error}
+                                </div>
                             )}
 
                             <div className="flex justify-between pt-4">

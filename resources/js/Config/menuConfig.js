@@ -35,14 +35,14 @@ export const menuConfig = {
             single: true,
             href: '/admin',
         },
-        {
-            name: 'Perfil',
-            icon: UserCircle,
-            submenus: [
-                { name: 'Ver Perfil', href: '/admin/perfil', icon: Eye },
-                { name: 'Cerrar Sesión', action: 'logout', icon: LogOut },
-            ],
-        },
+        // {
+        //     name: 'Perfil',
+        //     icon: UserCircle,
+        //     submenus: [
+        //         { name: 'Ver Perfil', href: '/admin/perfil', icon: Eye },
+        //         { name: 'Cerrar Sesión', action: 'logout', icon: LogOut },
+        //     ],
+        // },
         {
             name: 'Gestión de Usuarios',
             icon: Users,
@@ -138,19 +138,25 @@ export const menuConfig = {
     ],
 
     jefe: [
+        // {
+        //     name: 'Perfil',
+        //     icon: UserCircle,
+        //     submenus: [
+        //         { name: 'Ver Perfil', href: '/jefe/perfil', icon: Eye },
+        //         { name: 'Cerrar Sesión', action: 'logout', icon: LogOut },
+        //     ],
+        // },
         {
-            name: 'Perfil',
-            icon: UserCircle,
-            submenus: [
-                { name: 'Ver Perfil', href: '/jefe/perfil', icon: Eye },
-                { name: 'Cerrar Sesión', action: 'logout', icon: LogOut },
-            ],
+            name: 'Home',
+            icon: LayoutDashboard,
+            single: true,
+            href: '/jefe/',
         },
         {
             name: 'Dashboard',
             icon: LayoutDashboard,
             single: true,
-            href: '/jefe',
+            href: '/jefe/dashboard',
         },
         {
             name: 'Mis Pasantías',

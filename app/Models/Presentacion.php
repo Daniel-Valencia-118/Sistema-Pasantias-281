@@ -13,35 +13,30 @@ class Presentacion extends Model
     protected $primaryKey = 'id_presentacion';
     
     protected $fillable = [
-        'mision',
-        'vision',
-        'url_logo',
         'nombre_sistema',
         'descripcion_corta',
+        'url_logo',
+        'mision',
+        'vision',
+        // 'correo_contacto',
+        // 'telefono_contacto',
+        // 'direccion',
+        // 'url_facebook',
+        // 'url_linkedin',
+        // 'copyright',
+        // 'terminos_condiciones',
     ];
 
-    /**
-     * Obtener la URL completa del logo
-     */
+    // Forzar la serialización del accesor para Inertia/API
+    protected $appends = ['logo_url'];
+
     public function getLogoUrlAttribute()
     {
-        if ($this->url_logo) {
-            return asset('storage/' . $this->url_logo);
-        }
-        
-        // Retornar null para que el frontend use el logo por defecto
-        return null;
+        return $this->url_logo ? asset('storage/' . $this->url_logo) : null;
     }
 
-    /**
-     * Obtener la configuración de presentación (singleton)
-     */
     public static function getConfiguracion()
     {
-        return self::first() ?? self::create([
-            'mision' => 'Facilitar la conexión entre estudiantes, empresas y la universidad.',
-            'vision' => 'Ser el sistema líder en gestión de pasantías universitarias.',
-            'nombre_sistema' => 'Sistema de Gestión de Pasantías',
-        ]);
+        return self::first() ?? self::create(['nombre_sistema' => 'Sistema de Gestión de Pasantías']);
     }
 }

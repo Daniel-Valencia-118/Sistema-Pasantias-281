@@ -349,7 +349,7 @@ public function dashboard()
                 'nit' => $empresa->nit ?? 'S/N',
                 'direccion' => $empresa->direccion ?? 'No especificada',
                 'telefono' => $empresa->telefono ?? 'S/N',
-                'correo' => $empresa->correo ?? 'S/N',
+                'email' => $empresa->email ?? 'S/N',
                 'rubro' => $empresa->rubro ?? 'General',
             ] : null,
         ]);

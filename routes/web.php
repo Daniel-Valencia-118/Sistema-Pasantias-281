@@ -22,6 +22,10 @@ use App\Http\Controllers\Api\MensajeJefeController;
 use App\Http\Controllers\Api\ComentarioController;
 use App\Http\Controllers\Api\MensajeController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Api\ConfiguracionController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Models\Presentacion;
+use App\Models\Empresa;
 
 
 Route::get('auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('google.login');
@@ -50,8 +54,21 @@ Route::post('/logout', function () {
 
 // Página de Registro
 Route::get('/register', function () {
-    return Inertia::render('Auth/Register');
+    // Jalamos únicamente el ID y el Nombre de las empresas de la base de datos
+    $empresas = Empresa::select('id_empresa', 'nombre')->orderBy('nombre', 'asc')->get();
+
+    return Inertia::render('Auth/Register', [
+        'empresas' => $empresas // Enviamos la lista a React
+    ]);
 })->name('register');
+
+// Ruta del formulario (Endpoint único)
+Route::post('/registro', [RegisterController::class, 'store'])->name('registro.store');
+
+// Ruta de la página amigable de aviso
+Route::get('/registro/pendiente', function () {
+    return Inertia::render('Auth/RegistroPendiente');
+})->name('registro.pendiente');
 
 // Mostrar página de solicitud de enlace
 Route::get('/forgot-password', function () {
@@ -59,9 +76,7 @@ Route::get('/forgot-password', function () {
 })->middleware('guest')->name('password.request');
 
 // Enviar enlace de restablecimiento (usa el controlador de Laravel)
-Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
-    ->middleware('guest')
-    ->name('password.email');
+Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->middleware('guest')->name('password.email');
 
 // Página para verificar código (nuestra implementación personalizada)
 Route::post('/password/verify', function (Request $request) {
@@ -84,12 +99,19 @@ Route::post('/reset-password', [NewPasswordController::class, 'store'])
     ->middleware('guest')
     ->name('password.update');
 
+Route::get('/api/configuracion-publica', function () {
+    return response()->json(Presentacion::getConfiguracion());
+});
+
 Route::middleware(['auth', 'role:admin'])->group(function () {
     // Dashboard Admin y perfil
     Route::get('/admin', [DashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/admin/alertas', [DashboardController::class, 'alertas'])->name('admin.alertas');
     Route::get('/admin/perfil', [AdminController::class, 'perfil'])->name('admin.perfil');
     Route::put('/admin/perfil', [AdminController::class, 'updatePerfil'])->name('admin.perfil.update');
+    Route::get('/admin/configuracion', [ConfiguracionController::class, 'edit'])->name('admin.configuracion.edit');
+    // Usamos POST en lugar de PUT porque la carga de archivos multipart/form-data suele dar problemas con PUT en Laravel
+    Route::post('/admin/configuracion', [ConfiguracionController::class, 'update'])->name('admin.configuracion.update');
 
     // Listar, crear y actualizar Usuarios 
     Route::get('/admin/usuarios', [AdminController::class, 'listarTodosUsuarios'])->name('admin.usuarios.index');
@@ -160,18 +182,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ]);
 });
 
-// Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-//     // ... anteriores
-//     Route::get('/admin/usuarios', [UsuarioController::class, 'index'])->name('admin.usuarios.index');
-//     Route::post('/admin/usuarios', [UsuarioController::class, 'store'])->name('admin.usuarios.store');
-//     Route::put('/admin/usuarios/{id}', [UsuarioController::class, 'update'])->name('admin.usuarios.update');
-//     Route::patch('/admin/usuarios/{id}/estado', [UsuarioController::class, 'toggleEstado'])->name('admin.usuarios.estado');
-// });
-
 Route::middleware(['auth', 'role:jefe'])->group(function () {
     Route::get('/jefe/perfil', [JefeController::class, 'perfil'])->name('jefe.perfil');
     Route::put('/jefe/perfil', [JefeController::class, 'actualizarPerfil'])->name('jefe.actualizarPerfil');
-    Route::get('/jefe', [JefeController::class, 'dashboard'])->name('jefe.dashboard');
+    Route::get('/jefe/dashboard', [JefeController::class, 'dashboard'])->name('jefe.dashboard');
+    Route::get('/jefe', function () {
+        return Inertia::render('Jefe/Home');
+    })->name('jefe.home');
 
     Route::get('/jefe/pasantes', [JefeController::class, 'misPasantes'])->name('jefe.pasantes');
     Route::get('/jefe/pasantes/{id_pasantia}', [JefeController::class, 'misPasantes'])->name('jefe.pasantes.show');

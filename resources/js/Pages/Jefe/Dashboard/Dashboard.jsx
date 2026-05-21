@@ -160,7 +160,7 @@ export default function Dashboard({ auth, stats, rendimiento_pasantes, bitacoras
                         </div>
                         <div className="grid gap-3 mt-6">
                             <Link 
-                                href="/jefe/comunicacion/mensajes"
+                                href="/jefe/mensajes"
                                 className="bg-blue-600 hover:bg-blue-700 py-2.5 px-3 rounded-lg text-center text-sm font-medium transition-colors"
                             >
                                 Redactar Mensaje

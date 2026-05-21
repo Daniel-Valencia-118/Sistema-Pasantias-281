@@ -41,3 +41,57 @@ return new class extends Migration
         Schema::dropIfExists('presentacion');
     }
 };
+
+// <?php
+
+// use Illuminate\Database\Migrations\Migration;
+// use Illuminate\Database\Schema\Blueprint;
+// use Illuminate\Support\Facades\Schema;
+// use Illuminate\Support\Facades\DB;
+
+// return new class extends Migration
+// {
+//     public function up(): void
+//     {
+//         Schema::create('presentacion', function (Blueprint $table) {
+//             $table->id('id_presentacion');
+//             $table->string('nombre_sistema')->default('Sistema de Gestión de Pasantías');
+//             $table->string('descripcion_corta')->nullable();
+//             $table->string('url_logo')->nullable();
+            
+//             // Institucional
+//             $table->text('mision')->nullable();
+//             $table->text('vision')->nullable();
+            
+//             // Contacto & Redes
+//             $table->string('correo_contacto')->nullable();
+//             $table->string('telefono_contacto')->nullable();
+//             $table->string('direccion')->nullable();
+//             $table->string('url_facebook')->nullable();
+//             $table->string('url_linkedin')->nullable();
+            
+//             // Extras
+//             $table->string('copyright')->nullable();
+//             $table->text('terminos_condiciones')->nullable();
+            
+//             $table->timestamps();
+//         });
+
+//         // Registro inicial (Singleton)
+//         DB::table('presentacion')->insert([
+//             'nombre_sistema' => 'Sistema de Gestión de Pasantías',
+//             'descripcion_corta' => 'Conectando talento con oportunidades',
+//             'mision' => 'Facilitar la conexión entre estudiantes, empresas y la universidad...',
+//             'vision' => 'Ser el sistema líder en gestión de pasantías universitarias...',
+//             'correo_contacto' => 'soporte@universidad.edu',
+//             'copyright' => '© ' . date('Y') . ' Universidad. Todos los derechos reservados.',
+//             'created_at' => now(),
+//             'updated_at' => now(),
+//         ]);
+//     }
+
+//     public function down(): void
+//     {
+//         Schema::dropIfExists('presentacion');
+//     }
+// };

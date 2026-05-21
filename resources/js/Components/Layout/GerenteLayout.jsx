@@ -15,7 +15,7 @@ import {
     Settings,
 } from "lucide-react";
 
-export default function GerenteLayout({ children }) {
+export default function GerenteLayout({ children, header}) {
     // Estados notificaciones
     const [notificaciones, setNotificaciones] = useState([]);
     const [noLeidas, setNoLeidas] = useState(0);
@@ -409,31 +409,37 @@ export default function GerenteLayout({ children }) {
                     {/* Top Header */}
                     <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 sticky top-0 z-30">
                         {/* Izquierda: botón hamburguesa para móvil */}
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setMobileMenuOpen(true)}
-                                className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-full"
-                            >
-                                <Menu size={20} />
-                            </button>
-                            <div className="lg:hidden flex items-center gap-2">
-                                <img
-                                    src="/images/logo.png"
-                                    alt="SGP"
-                                    className="h-7 w-auto rounded-full"
-                                    onError={(e) => {
-                                        e.target.onerror = null;
-                                        e.target.style.display = "none";
-                                    }}
-                                />
-                                <span className="font-bold text-gray-800">
-                                    SGP
-                                </span>
-                            </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setSidebarOpen(true)}
+                            className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                            <Menu size={20} />
+                        </button>
+                        
+                        <div className="lg:hidden flex items-center gap-2">
+                            <img
+                                src="/images/logo.png"
+                                alt="SGP"
+                                className="h-7 w-auto rounded-full"
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.style.display = "none";
+                                }}
+                            />
                         </div>
 
-                        {/* Centro: vacío */}
-                        <div className="flex-1" />
+                        {/* Título dinámico */}
+                        <div className="hidden sm:block">
+                            {header ? (
+                                <h1 className="text-xl font-bold text-gray-800">{header}</h1>
+                            ) : (
+                                <h1 className="text-xl font-bold text-gray-800">Sistema de Gestión</h1>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex-1" />
 
                         {/* Derecha: íconos y menú de usuario */}
                         <div className="flex items-center gap-2">

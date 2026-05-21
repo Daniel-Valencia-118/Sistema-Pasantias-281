@@ -16,6 +16,9 @@ export default function MisPasantias({ pasantias = [], empresa = null, auth }) {
     const [modalPasantiaOpen, setModalPasantiaOpen] = useState(false);
     const [modalEmpresaOpen, setModalEmpresaOpen] = useState(false);
 
+    console.log(empresa);
+    
+
     // Helper: Cálculo dinámico de fechas y días restantes
     const obtenerTiempoRestante = (fechaIni, fechaFin) => {
         const hoy = new Date();
@@ -233,7 +236,7 @@ export default function MisPasantias({ pasantias = [], empresa = null, auth }) {
                             </div>
                             <div className="flex items-center gap-2.5 py-1.5">
                                 <Mail size={16} className="text-slate-400" />
-                                <span><strong className="text-slate-700">Correo Electrónico:</strong> {empresa.correo}</span>
+                                <span><strong className="text-slate-700">Correo Electrónico:</strong> {empresa.email}</span>
                             </div>
                         </div>
                     </div>

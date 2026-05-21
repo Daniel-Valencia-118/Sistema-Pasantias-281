@@ -137,6 +137,7 @@ export default function DashboardLayout({ children, auth, header }) {
 
                                         <div className="py-1">
                                             <Link
+                                            
                                                 href={route(`${user?.rol}.perfil`)}
                                                 className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                                 onClick={() => setUserMenuOpen(false)}
@@ -144,13 +145,26 @@ export default function DashboardLayout({ children, auth, header }) {
                                                 <User size={16} className="text-gray-400" />
                                                 Mi Perfil
                                             </Link>
-                                            <Link
+                                            {/* Si es admin mostrar configuración si no no mostrar nada*/}
+                                            {user?.rol === 'admin' && (
+                                                <Link
+                                                    href={route('admin.configuracion.edit')}
+                                                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                                    onClick={() => setUserMenuOpen(false)}
+                                                >
+                                                    <Settings size={16} className="text-gray-400" />
+                                                    Configuración
+                                                </Link>
+                                            )}
+                                            {/* <Link
+                                                // Si es admin llevar a configuracion, si es otro rol llevar a perfil
+                                                href={user?.rol === 'admin' ? route('admin.configuracion') : route(`${user?.rol}.perfil`)}
                                                 className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                                 onClick={() => setUserMenuOpen(false)}
                                             >
                                                 <Settings size={16} className="text-gray-400" />
-                                                Configuración
-                                            </Link>
+                                                {user?.rol === 'admin' ? 'Configuración' : 'Cuenta'}
+                                            </Link> */}
                                             <div className="border-t border-gray-100 my-1"></div>
                                             <button
                                                 onClick={handleLogout}

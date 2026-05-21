@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
-import PresentacionService from '@/Services/PresentacionService';
+// import PresentacionService from '@/Services/PresentacionService';
 
 export default function ApplicationLogo({ className = "", showText = false }) {
     return (
