@@ -20,6 +20,9 @@ export default function Gerentes({ gerentes, auth }) {
     const [editUser, setEditUser] = useState(null);
     const [confirmState, setConfirmState] = useState({ show: false, user: null });
 
+    console.log(gerentes);
+    
+
     // Formulario adaptado a la lógica de negocio (Usuario + Gerente + Empresa)
     const { data, setData, post, put, processing, errors, reset } = useForm({
         // Datos Usuario
@@ -167,10 +170,10 @@ export default function Gerentes({ gerentes, auth }) {
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-bold text-primary-navy">Gestión de Gerentes</h1>
-                <PrimaryButton onClick={openCreateModal}>
+                {/* <PrimaryButton onClick={openCreateModal}>
                     <UserPlus className="h-4 w-4 mr-2" />
                     Nuevo Gerente
-                </PrimaryButton>
+                </PrimaryButton> */}
             </div>
 
             {/* Buscador */}

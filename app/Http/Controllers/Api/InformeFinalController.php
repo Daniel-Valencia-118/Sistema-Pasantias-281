@@ -11,9 +11,49 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use App\Models\Pasante;
+use App\Models\JefePas;
+use App\Models\User;
+
 
 class InformeFinalController extends Controller
 {
+    public function index()
+    {
+        // Se asume la existencia de relaciones hacia el usuario final en inscripcion y jefe
+        $informes = InformeFin::with([
+            'inscripcion.pasante.user', 
+            'jefe.user'
+        ])->get();
+
+        return Inertia::render('Admin/Monitoreo/InformesFinales', [
+            'informes' => $informes
+        ]);
+    }
+
+    public function update(Request $request, $id_informe)
+    {
+        $informe = InformeFin::findOrFail($id_informe);
+
+        $validated = $request->validate([
+            'nota_final' => ['required', 'numeric', 'min:0', 'max:100'],
+            'promedio'   => ['required', 'numeric', 'min:0', 'max:100'],
+            'resultado'  => ['required', 'string', 'max:50'],
+        ]);
+
+        $informe->update($validated);
+
+        return back()->with('success', 'Informe final modificado con éxito.');
+    }
+
+    public function destroy($id_informe)
+    {
+        $informe = InformeFin::findOrFail($id_informe);
+        $informe->delete();
+
+        return back()->with('success', 'Informe eliminado permanentemente.');
+    }
     // GET /api/informe-final/{idInscripcion}
     // Puede verlo: GERENTE, JEFE, TUTOR (sin necesidad de resultado)
     public function verInformeFinal($idInscripcion)

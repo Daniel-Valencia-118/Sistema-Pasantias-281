@@ -137,9 +137,9 @@ export default function Publicadas({ pasantias = [], empresas = [], auth }) {
                     <h1 className="text-2xl font-bold text-primary-navy">Pasantías Publicadas</h1>
                     <p className="text-sm text-gray-500">Gestión de ofertas académicas para pasantes.</p>
                 </div>
-                <PrimaryButton onClick={openCreateModal}>
+                {/* <PrimaryButton onClick={openCreateModal}>
                     <Plus className="h-4 w-4 mr-2" /> Publicar Pasantía
-                </PrimaryButton>
+                </PrimaryButton> */}
             </div>
 
             <div className="mb-4 relative">
@@ -194,7 +194,7 @@ export default function Publicadas({ pasantias = [], empresas = [], auth }) {
                                     <ExternalLink className="h-3 w-3 mr-1" /> Gestionar Empresas
                                 </Link>
                             </div>
-                            <select 
+                            {/* <select 
                                 className="w-full border-gray-300 rounded-md text-sm"
                                 value={data.id_empresa}
                                 onChange={e => setData('id_empresa', e.target.value)}
@@ -204,7 +204,7 @@ export default function Publicadas({ pasantias = [], empresas = [], auth }) {
                                 {empresas.map(emp => (
                                     <option key={emp.id_empresa} value={emp.id_empresa}>{emp.nombre}</option>
                                 ))}
-                            </select>
+                            </select> */}
                             <InputError message={errors.id_empresa} />
                         </div>
 
@@ -223,9 +223,13 @@ export default function Publicadas({ pasantias = [], empresas = [], auth }) {
                                 required
                             >
                                 <option value="">Seleccione mención...</option>
-                                <option value="Redes">Redes</option>
-                                <option value="Sistemas">Sistemas</option>
-                                <option value="Ciencia de Datos">Ciencia de Datos</option>
+                                <option value="Desarrollo de Software e Innovación Tecnológica">Desarrollo de Software e Innovación Tecnológica</option>
+                                <option value="Inteligencia Artificial y Ciencias de Datos">Inteligencia Artificial y Ciencias de Datos</option>
+                                <option value="Ciencias de la Computación">Ciencias de la Computación</option>
+                                <option value="Informática Industrial">Informática Industrial</option>
+                                <option value="Ingeniería de Sistemas">Ingeniería de Sistemas</option>
+                                <option value="Redes y TIC">Redes y TIC</option>
+                                <option value="Seguridad de la Información">Seguridad de la Información</option>
                             </select>
                         </div>
 
@@ -241,6 +245,8 @@ export default function Publicadas({ pasantias = [], empresas = [], auth }) {
                                 <option value="mañana">Mañana</option>
                                 <option value="tarde">Tarde</option>
                                 <option value="noche">Noche</option>
+                                <option value="tiempo completo">Tiempo Completo</option>
+                                <option value="medio tiempo">Medio Tiempo</option>
                             </select>
                         </div>
 

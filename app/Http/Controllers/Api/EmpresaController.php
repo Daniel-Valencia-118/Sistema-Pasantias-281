@@ -10,6 +10,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
+
+// auth
+
 
 class EmpresaController extends Controller
 {
@@ -17,44 +21,82 @@ class EmpresaController extends Controller
     public function index()
     {
         $empresas = Empresa::with('gerente.user')->get();
-        return Inertia::render('Admin/Empresas/Index', ['empresas' => $empresas]);
+        $gerentes = Gerente::with('user')->get();
+        return Inertia::render('Admin/Empresas/Index', ['empresas' => $empresas, 'gerentesDisponibles' => $gerentes]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombre' => 'required|string|max:100|unique:EMPRESA,nombre',
+            // CAMBIO: 'EMPRESA' por 'empresa'
+            'nombre' => 'required|string|max:100|unique:empresa,nombre',
             'direccion' => 'nullable|string|max:200',
             'email' => 'required|email|max:100',
-            'nit' => 'required|string|max:20|unique:EMPRESA,nit',
+            // CAMBIO: 'EMPRESA' por 'empresa'
+            'nit' => 'required|string|max:20|unique:empresa,nit',
             'telefono' => 'nullable|string|max:20',
-            'idU_gerente' => 'required|exists:GERENTE,idU_gerente',
+            // CAMBIO: 'GERENTE' por 'gerente'
+            'idU_gerente' => 'required|exists:gerente,idU_gerente',
         ]);
 
-        $empresa = Empresa::create($validated);
-        return response()->json($empresa, 201);
-    }
+        try {
+            DB::beginTransaction();
 
-    public function show($id)
-    {
-        $empresa = Empresa::with(['gerente.user', 'jefesPas.user', 'pasantias'])->findOrFail($id);
-        // volver a la misma pagina desde donde se llamo a la api con detalles de la empresa, incluyendo gerente, jefes y pasantías
+            $empresa = Empresa::create($validated);
+
+            DB::commit();
+            return back()->with('success', 'Empresa creada exitosamente.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al crear la empresa: ' . $e->getMessage());
+        }
     }
 
     public function update(Request $request, $id)
     {
         $empresa = Empresa::findOrFail($id);
+        
         $validated = $request->validate([
-            'nombre' => 'sometimes|string|max:100|unique:EMPRESA,nombre,'.$id.',id_empresa',
+            // CAMBIO: 'EMPRESA' por 'empresa'
+            'nombre' => 'sometimes|string|max:100|unique:empresa,nombre,'.$id.',id_empresa',
             'direccion' => 'nullable|string|max:200',
             'email' => 'sometimes|email|max:100',
-            'nit' => 'sometimes|string|max:20|unique:EMPRESA,nit,'.$id.',id_empresa',
-            'telefono' => 'nullable|string|max:20',
-            'idU_gerente' => 'sometimes|exists:GERENTE,idU_gerente',
+            // CAMBIO: 'EMPRESA' por 'empresa'
+            'nit' => 'sometimes|string|max:20|unique:empresa,nit,'.$id.',id_empresa',
+            // CAMBIO: 'GERENTE' por 'gerente'
+            'idU_gerente' => 'sometimes|exists:gerente,idU_gerente',
         ]);
 
-        $empresa->update($validated);
-        return response()->json($empresa);
+        try {
+            DB::beginTransaction();
+
+            $empresa->update($validated);
+
+            DB::commit();
+            return back()->with('success', 'Empresa actualizada exitosamente.');    
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al actualizar la empresa: ' . $e->getMessage());
+        }
+    }
+
+
+    public function show($id)
+    {
+        try {
+            // Carga la empresa con todas sus relaciones anidadas de forma óptima
+            $empresa = Empresa::with(['gerente.user', 'jefesPas.user', 'pasantias'])->findOrFail($id);
+            
+            // Retorna la vista de Inertia pasando la información como "props"
+            return Inertia::render('Admin/Empresas/Detalles', [
+                'empresa' => $empresa
+            ]);
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'No se pudo cargar la información de la empresa.');
+        }
     }
 
     public function destroy($id)

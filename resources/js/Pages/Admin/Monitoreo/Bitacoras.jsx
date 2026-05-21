@@ -10,6 +10,8 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
+import TextArea from '@/Components/TextArea';
+import Select from '@/Components/Select';
 import { 
     FileText, CheckCircle, Clock, XCircle, HelpCircle, 
     Plus, Eye, Edit, Trash2, Calendar, User, MessageSquare 
@@ -129,9 +131,9 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
                     <h1 className="text-2xl font-black text-primary-navy uppercase">Bitácoras de Evaluación</h1>
                     <p className="text-slate-500 text-sm">Control administrativo de reportes y calificaciones.</p>
                 </div>
-                <PrimaryButton onClick={openCreate}>
+                {/* <PrimaryButton onClick={openCreate}>
                     <Plus className="mr-2 h-4 w-4" /> Nueva Bitácora
-                </PrimaryButton>
+                </PrimaryButton> */}
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -142,7 +144,7 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
                         <div className="flex gap-1">
                             <button onClick={() => openView(row)} className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg"><Eye size={18} /></button>
                             <button onClick={() => openEdit(row)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit size={18} /></button>
-                            <button onClick={() => { setSelectedBit(row); setConfirmDelete(true); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
+                            {/* <button onClick={() => { setSelectedBit(row); setConfirmDelete(true); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button> */}
                         </div>
                     )}
                 />
@@ -153,46 +155,56 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
                 <form onSubmit={handleSubmit} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                         <InputLabel value="Descripción de la Actividad Realizada" />
-                        <textarea 
+                        <TextArea 
                             className="w-full rounded-xl border-slate-200 focus:ring-primary-blue h-24"
                             value={data.descripcion}
                             onChange={e => setData('descripcion', e.target.value)}
                             required
                         />
                     </div>
-
+                    
+                    
                     <div>
-                        <InputLabel value="Pasante" />
-                        <select className="w-full rounded-xl border-slate-200" value={data.idU_pasante} onChange={e => setData('idU_pasante', e.target.value)} required>
-                            <option value="">Seleccionar Pasante...</option>
-                            {pasantes.map(p => <option key={p.idU_pasante} value={p.idU_pasante}>{p.user?.nombre + ' ' + p.user?.ap_paterno + ' ' + p.user?.ap_materno}</option>)}
-                        </select>
+                        {/* <InputLabel value="Pasante" /> */}
+                        {/* mostrar solo al pasante actual no lista */}
+                        <InfoItem 
+                            icon={<User size={16} />} 
+                            label="Pasante" 
+                            value={pasantes.find(p => p.idU_pasante === data.idU_pasante)?.user?.nombre + ' ' + pasantes.find(p => p.idU_pasante === data.idU_pasante)?.user?.ap_paterno + ' ' + pasantes.find(p => p.idU_pasante === data.idU_pasante)?.user?.ap_materno || 'Seleccionar Pasante...'} 
+                        />
+                        
                     </div>
 
                     <div>
-                        <InputLabel value="Actividad Planificada" />
-                        <select className="w-full rounded-xl border-slate-200" value={data.id_actividad} onChange={e => setData('id_actividad', e.target.value)} required>
-                            <option value="">Seleccionar Actividad...</option>
-                            {actividades.map(a => <option key={a.id_actividad} value={a.id_actividad}>{a.nombre_act}</option>)}
-                        </select>
+                        {/* <InputLabel value="Actividad Planificada" /> */}
+                        <InfoItem 
+                            icon={<FileText size={16} />} 
+                            label="Actividad Planificada"
+                            value={actividades.find(a => a.id_actividad === data.id_actividad)?.nombre_act || 'Seleccionar Actividad...'} 
+                        />
                     </div>
 
                     <div>
-                        <InputLabel value="Jefe de Pasantes (Evaluador)" />
-                        <select className="w-full rounded-xl border-slate-200" value={data.idU_jefe} onChange={e => setData('idU_jefe', e.target.value)} required>
+                        {/* <InputLabel value="Jefe de Pasantes (Evaluador)" />
+                        <Select className="w-full rounded-xl border-slate-200" value={data.idU_jefe} onChange={e => setData('idU_jefe', e.target.value)} required>
                             <option value="">Seleccionar Jefe...</option>
                             {jefes.map(j => <option key={j.idU_jefe} value={j.idU_jefe}>{j.user?.nombre + ' ' + j.user?.ap_paterno + ' ' + j.user?.ap_materno}</option>)}
-                        </select>
+                        </Select> */}
+                        <InfoItem 
+                            icon={<User size={16} />} 
+                            label="Jefe Evaluador"
+                            value={jefes.find(j => j.idU_jefe === data.idU_jefe)?.user?.nombre + ' ' + jefes.find(j => j.idU_jefe === data.idU_jefe)?.user?.ap_paterno + ' ' + jefes.find(j => j.idU_jefe === data.idU_jefe)?.user?.ap_materno || 'Seleccionar Jefe...'} 
+                        />
                     </div>
 
                     <div>
                         <InputLabel value="Estado de la Bitácora" />
-                        <select className="w-full rounded-xl border-slate-200" value={data.estado} onChange={e => setData('estado', e.target.value)}>
+                        <Select className="w-full rounded-xl border-slate-200" value={data.estado} onChange={e => setData('estado', e.target.value)}>
                             <option value="sin calificar">Sin calificar</option>
                             <option value="completada">Completada</option>
                             <option value="completada parcialmente">Parcial</option>
                             <option value="no realizada">No realizada</option>
-                        </select>
+                        </Select>
                     </div>
 
                     <div>
@@ -208,11 +220,11 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
                     <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <InputLabel value="Observaciones" />
-                            <textarea className="w-full rounded-xl border-slate-200" value={data.observacion} onChange={e => setData('observacion', e.target.value)} rows="2" />
+                            <TextArea className="w-full rounded-xl border-slate-200" value={data.observacion} onChange={e => setData('observacion', e.target.value)} rows="2" />
                         </div>
                         <div>
                             <InputLabel value="Recomendaciones" />
-                            <textarea className="w-full rounded-xl border-slate-200" value={data.recomendacion} onChange={e => setData('recomendacion', e.target.value)} rows="2" />
+                            <TextArea className="w-full rounded-xl border-slate-200" value={data.recomendacion} onChange={e => setData('recomendacion', e.target.value)} rows="2" />
                         </div>
                     </div>
 
@@ -256,6 +268,17 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
                             <div>
                                 <p className="text-xs font-bold text-slate-500 uppercase">Observación del Jefe</p>
                                 <p className="text-sm text-slate-600">{selectedBit?.observacion || 'Sin observaciones.'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* recomendacion */}
+                    <div className="space-y-4">
+                        <div className="flex gap-2">
+                            <HelpCircle className="text-amber-600 shrink-0" size={18} />
+                            <div>
+                                <p className="text-xs font-bold text-slate-500 uppercase">Recomendaciones del Jefe</p>
+                                <p className="text-sm text-slate-600">{selectedBit?.recomendacion || 'Sin recomendaciones.'}</p>
                             </div>
                         </div>
                     </div>

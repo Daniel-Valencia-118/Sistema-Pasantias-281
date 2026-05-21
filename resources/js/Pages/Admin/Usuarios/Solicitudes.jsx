@@ -55,6 +55,7 @@ export default function Solicitudes({ usuarios, auth }) {
         if (!search.trim()) return usuarios;
         const lowerSearch = search.toLowerCase();
         return usuarios.filter(u =>
+            // nombre completo del usuario
             u.nombre.toLowerCase().includes(lowerSearch) ||
             u.nombre_user.toLowerCase().includes(lowerSearch) ||
             u.correo.toLowerCase().includes(lowerSearch) ||
@@ -62,32 +63,58 @@ export default function Solicitudes({ usuarios, auth }) {
         );
     }, [usuarios, search]);
 
-    // Lógica de Aprobación
-    const handleApprove = () => {
-        setProcessing(true);
-        router.post(route('admin.usuarios.solicitudes.aprobar', confirmApprove.user.id), {}, {
-            onSuccess: () => {
-                setConfirmApprove({ show: false, user: null });
-                setProcessing(false);
-            },
-            onError: () => setProcessing(false)
-        });
-    };
+// Lógica de Aprobación
+const handleApprove = () => {
+    if (!confirmApprove.user) return;
 
-    // Lógica de Rechazo
-    const handleReject = (e) => {
-        e.preventDefault();
-        setProcessing(true);
-        router.post(route('admin.usuarios.solicitudes.rechazar', confirmReject.user.id), {
-            motivo: confirmReject.motivo
-        }, {
-            onSuccess: () => {
-                setConfirmReject({ show: false, user: null, motivo: '' });
-                setProcessing(false);
-            },
-            onError: () => setProcessing(false)
-        });
-    };
+    // 🔍 LINEA DE DIAGNÓSTICO: Revisa tu consola del navegador para ver qué estructura real tiene tu usuario
+    console.log("Datos del usuario a aprobar:", confirmApprove.user);
+
+    // Intentamos obtener el ID probando las 3 variantes más comunes de Laravel/PostgreSQL
+    const userId = confirmApprove.user.idUser || confirmApprove.user.id || confirmApprove.user.id_user;
+
+    if (!userId) {
+        console.error("❌ Error: No se encontró ningún ID válido en el objeto del usuario.");
+        return;
+    }
+
+    setProcessing(true);
+    router.patch(route('admin.usuarios.solicitudes', { user: userId }), {
+        estado: 'aprobado'
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            setConfirmApprove({ show: false, user: null });
+        },
+        onFinish: () => setProcessing(false)
+    });
+};
+
+// Lógica de Rechazo
+const handleReject = (e) => {
+    e.preventDefault();
+    if (!confirmReject.user) return;
+
+    // Intentamos obtener el ID de la misma manera defensiva
+    const userId = confirmReject.user.idUser || confirmReject.user.id || confirmReject.user.id_user;
+
+    if (!userId) {
+        console.error("❌ Error: No se encontró ningún ID válido en el objeto del usuario.");
+        return;
+    }
+
+    setProcessing(true);
+    router.patch(route('admin.usuarios.solicitudes', { user: userId }), {
+        estado: 'rechazado'
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            setConfirmReject({ show: false, user: null });
+        },
+        onFinish: () => setProcessing(false)
+    });
+};
+
 
     return (
         <DashboardLayout auth={auth}>
@@ -179,7 +206,7 @@ export default function Solicitudes({ usuarios, auth }) {
                         Indica el motivo del rechazo para <strong>{confirmReject.user?.nombre}</strong>.
                     </p>
                     
-                    <div className="mb-6">
+                    {/* <div className="mb-6">
                         <InputLabel htmlFor="motivo" value="Motivo de Rechazo (Se enviará por correo)" />
                         <textarea
                             id="motivo"
@@ -190,7 +217,7 @@ export default function Solicitudes({ usuarios, auth }) {
                             required
                             placeholder="Ej: Documentación incompleta o datos inválidos."
                         />
-                    </div>
+                    </div> */}
 
                     <div className="flex justify-center gap-3">
                         <SecondaryButton onClick={() => setConfirmReject({ show: false, user: null, motivo: '' })} disabled={processing}>
@@ -198,7 +225,7 @@ export default function Solicitudes({ usuarios, auth }) {
                         </SecondaryButton>
                         <PrimaryButton 
                             type="submit"
-                            disabled={processing || !confirmReject.motivo.trim()}
+                            // disabled={processing || !confirmReject.motivo.trim()}
                             className="bg-red-600 hover:bg-red-700 active:bg-red-800"
                         >
                             {processing ? 'Procesando...' : 'Confirmar Rechazo'}

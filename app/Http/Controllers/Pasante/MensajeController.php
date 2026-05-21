@@ -44,33 +44,42 @@ class MensajeController extends Controller
                 $contactoId = 'jefe_' . $jefe->idU_jefe;
                 
                 // Evitar duplicados
-                if (!$contactos->has($contactoId)) {
-                    // Obtener último mensaje
-                    $ultimoMensaje = Mensaje::where('idU_pasante', $pasante->idU_pasante)
-                        ->where('idU_jefe', $jefe->idU_jefe)
-                        ->orderBy('fecha', 'desc')
-                        ->orderBy('hora', 'desc')
-                        ->first();
-                    
-                    $enviadoPorMi = $ultimoMensaje ? $ultimoMensaje->idU_pasante === $pasante->idU_pasante : null;
-                    
-                    $contactos->put($contactoId, [
-                        'tipo' => 'jefe',
-                        'id_contacto' => $jefe->idU_jefe,
-                        'nombre' => $jefe->user->nombre,
-                        'ap_paterno' => $jefe->user->ap_paterno,
-                        'ap_materno' => $jefe->user->ap_materno ?? '',
-                        'nombre_user' => $jefe->user->nombre_user,
-                        'empresa_nombre' => $inscripcion->pasantia->empresa->nombre,
-                        'pasantia_nombre' => $inscripcion->pasantia->nombre_pas,
-                        'ultimo_mensaje' => $ultimoMensaje ? $ultimoMensaje->descripcion : null,
-                        'ultimo_mensaje_fecha' => $ultimoMensaje ? $ultimoMensaje->fecha : null,
-                        'ultimo_mensaje_hora' => $ultimoMensaje ? $ultimoMensaje->hora : null,
-                        'ultimo_mensaje_enviado_por_mi' => $enviadoPorMi,
-                        'finalizada' => false,
-                        'avatar_url' => $jefe->user->avatar_url, // agregar esta línea
-                    ]);
-                }
+// --- REEMPLAZAR EN PASANTE: MensajeController.php -> index() (Bloque de Jefes) ---
+if (!$contactos->has($contactoId)) {
+    // Obtener último mensaje
+    $ultimoMensaje = Mensaje::where('idU_pasante', $pasante->idU_pasante)
+        ->where('idU_jefe', $jefe->idU_jefe)
+        ->orderBy('fecha', 'desc')
+        ->orderBy('hora', 'desc')
+        ->first();
+    
+    $textoLimpio = null;
+    $enviadoPorMi = null;
+
+    if ($ultimoMensaje) {
+        // Si empieza con [P], lo envió el Pasante (es_mio = true)
+        $enviadoPorMi = str_starts_with($ultimoMensaje->descripcion, '[P]');
+        // Remover cualquier prefijo de control ([J] o [P])
+        $textoLimpio = preg_replace('/^(\[J\]|\[P\])/', '', $ultimoMensaje->descripcion);
+    }
+    
+    $contactos->put($contactoId, [
+        'tipo' => 'jefe',
+        'id_contacto' => $jefe->idU_jefe,
+        'nombre' => $jefe->user->nombre,
+        'ap_paterno' => $jefe->user->ap_paterno,
+        'ap_materno' => $jefe->user->ap_materno ?? '',
+        'nombre_user' => $jefe->user->nombre_user,
+        'empresa_nombre' => $inscripcion->pasantia->empresa->nombre,
+        'pasantia_nombre' => $inscripcion->pasantia->nombre_pas,
+        'ultimo_mensaje' => $textoLimpio, // <- Pasar texto limpio
+        'ultimo_mensaje_fecha' => $ultimoMensaje ? $ultimoMensaje->fecha : null,
+        'ultimo_mensaje_hora' => $ultimoMensaje ? $ultimoMensaje->hora : null,
+        'ultimo_mensaje_enviado_por_mi' => $enviadoPorMi, // <- Booleano correcto
+        'finalizada' => false,
+        'avatar_url' => $jefe->user->avatar_url,
+    ]);
+}
             }
         }
         
@@ -199,38 +208,40 @@ class MensajeController extends Controller
         
         $mensajes = [];
         
-        if ($tipo === 'jefe') {
-            // Obtener mensajes con el jefe
-            $mensajes = Mensaje::where(function($q) use ($pasante, $idContacto) {
-                    $q->where('idU_pasante', $pasante->idU_pasante)
-                      ->where('idU_jefe', $idContacto);
-                })->orWhere(function($q) use ($pasante, $idContacto) {
-                    $q->where('idU_pasante', $idContacto)
-                      ->where('idU_jefe', $pasante->idU_pasante);
-                })->orderBy('fecha', 'asc')
-                  ->orderBy('hora', 'asc')
-                  ->get()
-                  ->map(function($msg) use ($pasante) {
-                      return [
-                          'id' => $msg->id_mensaje,
-                          'descripcion' => $msg->descripcion,
-                          'fecha' => $msg->fecha,
-                          'hora' => $msg->hora,
-                          'es_mio' => $msg->idU_pasante === $pasante->idU_pasante,
-                      ];
-                  });
-                  
-            // Obtener información del jefe
-            $jefe = JefePas::with('user')->find($idContacto);
-            $contactoInfo = [
-                'nombre' => $jefe->user->nombre,
-                'ap_paterno' => $jefe->user->ap_paterno,
-                'ap_materno' => $jefe->user->ap_materno ?? '',
-                'nombre_user' => $jefe->user->nombre_user,
-                'tipo' => 'jefe',
-                'avatar_url' => $jefe->user->avatar_url,
+// --- REEMPLAZAR EN PASANTE: MensajeController.php -> getMensajes() (Bloque tipo === 'jefe') ---
+if ($tipo === 'jefe') {
+    // Consulta corregida sin inversión de columnas en el orWhere
+    $mensajes = Mensaje::where('idU_pasante', $pasante->idU_pasante)
+        ->where('idU_jefe', $idContacto)
+        ->orderBy('fecha', 'asc')
+        ->orderBy('hora', 'asc')
+        ->get()
+        ->map(function($msg) {
+            // Si el texto inicia con '[P]', el mensaje pertenece al Pasante logueado
+            $esMio = str_starts_with($msg->descripcion, '[P]');
+            // Limpiamos la cadena para la interfaz de usuario
+            $descripcionLimpia = preg_replace('/^(\[J\]|\[P\])/', '', $msg->descripcion);
+
+            return [
+                'id' => $msg->id_mensaje, // Corrección de primary key
+                'descripcion' => $descripcionLimpia,
+                'fecha' => $msg->fecha,
+                'hora' => $msg->hora,
+                'es_mio' => $esMio,
             ];
-        } else {
+        });
+        
+    // Obtener información del jefe
+    $jefe = JefePas::with('user')->find($idContacto);
+    $contactoInfo = [
+        'nombre' => $jefe->user->nombre,
+        'ap_paterno' => $jefe->user->ap_paterno,
+        'ap_materno' => $jefe->user->ap_materno ?? '',
+        'nombre_user' => $jefe->user->nombre_user,
+        'tipo' => 'jefe',
+        'avatar_url' => $jefe->user->avatar_url,
+    ];
+} else {
             // Obtener mensajes con otro pasante
             $mensajes = MensajePas::where(function($q) use ($pasante, $idContacto) {
                     $q->where('idU_pasanteA', $pasante->idU_pasante)
@@ -284,26 +295,48 @@ class MensajeController extends Controller
         $pasante = $user->pasante;
         
         try {
-            if ($request->tipo === 'jefe') {
-                $mensaje = Mensaje::create([
-                    'descripcion' => $request->mensaje,
-                    'fecha' => now()->toDateString(),
-                    'hora' => now()->toTimeString(),
-                    'idU_pasante' => $pasante->idU_pasante,
-                    'idU_jefe' => $request->id_contacto,
-                ]);
-                // =============================================
-                // NOTIFICACIÓN: Nuevo mensaje para el JEFE
-                // =============================================
-                $this->crearNotificacion(
-                    $request->id_contacto,  // id del jefe
-                    'jefe',
-                    'Nuevo mensaje',
-                    "El pasante {$pasante->user->nombre} {$pasante->user->ap_paterno} te ha enviado un mensaje.",
-                    'mensaje',
-                    '/jefe/mensajes' // Ajusta si la ruta del jefe es diferente
-                );
-            } else {
+        // --- REEMPLAZAR EN PASANTE: MensajeController.php -> enviarMensaje() (Bloque tipo === 'jefe') ---
+        if ($request->tipo === 'jefe') {
+            // Buscar la información del jefe para obtener su id de usuario global
+            $jefeOperacional = JefePas::with('user')->findOrFail($request->id_contacto);
+
+            $mensaje = Mensaje::create([
+                'descripcion' => '[P]' . $request->mensaje, // Inserción del prefijo de control del Pasante
+                'fecha' => now()->toDateString(),
+                'hora' => now()->toTimeString(),
+                'idU_pasante' => $pasante->idU_pasante,
+                'idU_jefe' => $request->id_contacto,
+            ]);
+
+            // NOTIFICACIÓN: Se envía usando el ID de la tabla USERS vinculada al jefe
+            // envolver en un try-catch para evitar que falle la respuesta del chat si hay un error en la notificación, ya que no es crítico que la notificación se envíe, pero sí es crítico que el mensaje se guarde y se responda al frontend sin errores.
+            try {
+            $this->crearNotificacion(
+                $jefeOperacional->user->idUser, // ID de usuario de la cuenta general (Evita el desajuste de registros)
+                'jefe',
+                'Nuevo mensaje de pasante',
+                "El pasante {$pasante->user->nombre} {$pasante->user->ap_paterno} te ha enviado un mensaje.",
+                'mensaje',
+                '/jefe/mensajes'
+            );
+            } catch (\Exception $e) {
+                // informar y retornar error ocurrido json
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al enviar la notificación: ' . $e->getMessage()
+                ], 500);
+
+            }
+            
+            // Devolver la estructura limpia al frontend del Pasante
+            $mensajeRetorno = [
+                'id' => $mensaje->id_mensaje,
+                'descripcion' => $request->mensaje,
+                'fecha' => $mensaje->fecha,
+                'hora' => $mensaje->hora,
+                'es_mio' => true,
+            ];
+        } else {
                 $mensaje = MensajePas::create([
                     'descripcion' => $request->mensaje,
                     'fecha' => now()->toDateString(),

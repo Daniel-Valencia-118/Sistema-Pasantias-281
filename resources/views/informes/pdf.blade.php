@@ -41,8 +41,13 @@
     <table class="table">
         <tr><th colspan="2">CALIFICACIÓN</th></tr>
         <tr>
-            <td><strong>Promedio Final:</strong></td>
+            <td><strong>Promedio Calculado:</strong></td>
             <td>{{ $informe['promedio'] }} / 100</td>
+        </tr>
+        <!-- nota final -->
+        <tr>
+            <td><strong>Nota Final:</strong></td>
+            <td>{{ $informe['nota_final'] }} / 100</td>
         </tr>
         <tr>
             <td><strong>Resultado:</strong></td>

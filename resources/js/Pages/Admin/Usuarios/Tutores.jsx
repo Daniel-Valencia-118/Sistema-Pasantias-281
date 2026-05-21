@@ -148,10 +148,10 @@ export default function Tutores({ tutores, auth }) {
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-bold text-primary-navy">Gestión de Tutores</h1>
-                <PrimaryButton onClick={openCreateModal}>
+                {/* <PrimaryButton onClick={openCreateModal}>
                     <UserPlus className="h-4 w-4 mr-2" />
                     Nuevo Tutor
-                </PrimaryButton>
+                </PrimaryButton> */}
             </div>
 
             <div className="mb-4 relative">

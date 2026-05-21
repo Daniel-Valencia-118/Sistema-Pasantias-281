@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Link, router } from '@inertiajs/react';
 import Sidebar from '@/Components/Sidebar';
 import Toast from '@/Components/Toast';
+import NotificationDropdown from '@/Components/NotificationDropdown'; // <-- Importamos el módulo
 import { 
-    Menu, Bell, Home, User, Settings, LogOut, ChevronLeft 
+    Menu, Home, User, Settings, LogOut, ChevronLeft 
 } from 'lucide-react';
 
 export default function DashboardLayout({ children, auth, header }) {
@@ -12,9 +13,10 @@ export default function DashboardLayout({ children, auth, header }) {
 
     // Lógica de datos de usuario
     const user = auth?.user;
-    const nombreCompleto = user?.nombre_user || 'Usuario';
+    const nombreCompleto = user?.nombre || 'Usuario';
     const primeraLetra = nombreCompleto.charAt(0).toUpperCase();
     const rolFormateado = user?.rol?.replace('_', ' ') || 'Invitado';
+    
 
     const handleLogout = () => {
         router.post(route('logout'));
@@ -46,10 +48,9 @@ export default function DashboardLayout({ children, auth, header }) {
             {/* 3. AREA DE CONTENIDO PRINCIPAL */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 
-                {/* TU HEADER MEJORADO E IMPLEMENTADO */}
+                {/* HEADER */}
                 <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 sticky top-0 z-30">
                     
-                    {/* Izquierda: botón hamburguesa para móvil y Logo */}
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setSidebarOpen(true)}
@@ -68,38 +69,32 @@ export default function DashboardLayout({ children, auth, header }) {
                                     e.target.style.display = "none";
                                 }}
                             />
-                            {/* <span className="font-bold text-gray-800">SGP</span> */}
                         </div>
 
-                        {/* Título dinámico (Usando la prop header) */}
-                            <div className="hidden sm:block">
-                                {header ? (
-                                    <h1 className="text-xl font-bold text-gray-800">{header}</h1>
-                                ) : (
-                                    <h1 className="text-xl font-bold text-gray-800">Sistema de Gestión</h1>
-                                )}
-                            </div>
+                        {/* Título dinámico */}
+                        <div className="hidden sm:block">
+                            {header ? (
+                                <h1 className="text-xl font-bold text-gray-800">{header}</h1>
+                            ) : (
+                                <h1 className="text-xl font-bold text-gray-800">Sistema de Gestión</h1>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Centro: vacío */}
                     <div className="flex-1" />
 
                     {/* Derecha: íconos y menú de usuario */}
                     <div className="flex items-center gap-2">
-                        {/* Botón Home Dinámico (ajustado según rol si es necesario) */}
                         <Link
-                            href={route(`${user?.rol}.dashboard`)} // O una ruta base común
+                            href={route(`${user?.rol}.dashboard`)}
                             className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
                             title="Inicio"
                         >
                             <Home size={20} />
                         </Link>
 
-                        {/* Notificaciones */}
-                        <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors relative">
-                            <Bell size={20} />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-                        </button>
+                        {/* ¡MÓDULO DE NOTIFICACIONES REUTILIZABLE E INTEGRADO! */}
+                        <NotificationDropdown />
 
                         {/* Menú de usuario */}
                         <div className="relative user-menu">
@@ -119,12 +114,9 @@ export default function DashboardLayout({ children, auth, header }) {
                                 />
                             </button>
 
-                            {/* Dropdown del usuario */}
                             {userMenuOpen && (
                                 <>
-                                    {/* Cierra el menú al hacer clic fuera */}
                                     <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)}></div>
-                                    
                                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-1">
                                         <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
                                             <div className="h-11 w-11 rounded-full bg-primary-blue flex items-center justify-center text-white font-bold text-lg shadow-md">
@@ -145,7 +137,6 @@ export default function DashboardLayout({ children, auth, header }) {
 
                                         <div className="py-1">
                                             <Link
-                                                //ruta perfil "/rol/perfil" segun rol
                                                 href={route(`${user?.rol}.perfil`)}
                                                 className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                                 onClick={() => setUserMenuOpen(false)}
@@ -154,7 +145,6 @@ export default function DashboardLayout({ children, auth, header }) {
                                                 Mi Perfil
                                             </Link>
                                             <Link
-                                                // href={route(`${user?.rol}.configuracion`)}
                                                 className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                                 onClick={() => setUserMenuOpen(false)}
                                             >

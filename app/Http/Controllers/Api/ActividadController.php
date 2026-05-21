@@ -9,10 +9,13 @@ use App\Models\ProgresoAct;
 use App\Models\AutoEva;
 use App\Models\ComActividad;
 use App\Models\BitacoraEva;
+use App\Models\Pasantia;
+use App\Models\Pasante;
 use App\Traits\SincronizaEstadosInscripciones;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Inertia\Inertia;
 
 class ActividadController extends Controller
@@ -69,58 +72,113 @@ class ActividadController extends Controller
         return redirect()->back()->with('message', 'Actividad eliminada correctamente');
     }
 
-    /**
-     * Muestra las tarjetas de las pasantías a cargo del jefe con inscripciones 'iniciado' o 'finalizado'.
+/**
+     * Muestra las actividades correspondientes a la pasantía seleccionada
      */
-    public function tarjetas()
+    public function actividadesPasantia($id_pasantia)
     {
-        // 1. Obtener el Jefe de Pasantía autenticado
-        $user = Auth::user();
-        $jefe = $user->jefePas; // Relación idU_jefe
+        $jefe = Auth::user()->jefePas;
+        $pasantia = Pasantia::findOrFail($id_pasantia);
+        $ahora = Carbon::now();
 
-        if (!$jefe) {
-            return redirect()->back()->with('error', 'No se encontró un perfil de Supervisor/Jefe asociado a este usuario.');
-        }
+        $actividades = Actividad::where('id_pasantia', $id_pasantia)
+            ->get()
+            ->map(function ($act) use ($ahora) {
+                $inicio = Carbon::parse($act->fecha_ini);
+                $fin = Carbon::parse($act->fecha_fin);
+                $tiempo_restante = '';
 
-        // 2. Traer todas las inscripciones asignadas a este jefe
-        $inscripciones = Inscripcion::with(['pasantia.empresa'])
-            ->where('idU_jefe', $jefe->idU_jefe)
-            ->get();
+                if ($ahora->lt($inicio)) {
+                    // diffInDays con false como segundo parámetro puede traer decimales, usamos float y redondeamos
+                    $dias = (int) ceil($ahora->diffInDays($inicio, false)); 
+                    $tiempo_restante = $dias === 0 ? 'Inicia hoy' : "Inicia en {$dias} " . ($dias == 1 ? 'día' : 'días');
+                } elseif ($ahora->gte($inicio) && $ahora->lte($fin)) {
+                    // ceil() asegura que si quedan 5.1 días, se muestre como "Finaliza en 6 días" (redondeo hacia arriba)
+                    $dias = (int) ceil($ahora->diffInDays($fin, false)); 
+                    $tiempo_restante = $dias === 0 ? 'Finaliza hoy' : "Finaliza en {$dias} " . ($dias == 1 ? 'día' : 'días');
+                } else {
+                    $tiempo_restante = 'Finalizada';
+                }
 
-        // Sincronizar estados (reutilizando tu trait si aplica al flujo del jefe)
-        if (method_exists($this, 'sincronizarEstadosInscripciones')) {
-            $inscripciones = $this->sincronizarEstadosInscripciones($inscripciones);
-        }
+                return [
+                    'id' => $act->id_actividad,
+                    'nombre' => $act->nombre_act,
+                    'pasantia' => $act->pasantia->nombre_pas,
+                    'fecha_ini' => $inicio->format('d/m/Y'),
+                    'fecha_fin' => $fin->format('d/m/Y'),
+                    'tipo' => $act->tipo,
+                    'tiempo_restante' => $tiempo_restante,
+                ];
+            });
 
-        // 3. AGRUPAR POR PASANTÍA: El jefe debe ver UNA sola tarjeta por programa, no por alumno
-        $tarjetas = $inscripciones->groupBy('id_pasantia')->map(function ($grupoInscripciones) {
-            // Tomamos la primera inscripción del grupo para extraer los metadatos de la Pasantía
-            $primeraInscripcion = $grupoInscripciones->first();
-            $pasantia = $primeraInscripcion->pasantia;
+        // Pasantes inscritos en esta pasantía específica asignados a este jefe
+        $pasantes = Pasante::with('user')
+            ->whereHas('inscripciones', function ($q) use ($jefe, $id_pasantia) {
+                $q->where('idU_jefe', $jefe->idU_jefe)
+                  ->where('id_pasantia', $id_pasantia);
+            })->get()->map(fn($p) => [
+                'id' => $p->idU_pasante,
+                'nombre' => $p->user->nombre . ' ' . $p->user->ap_paterno,
+            ]);
 
-            return [
-                'id' => $pasantia->id_pasantia, // ID necesario para la ruta parametrizada
-                'nombre' => $pasantia->nombre_pas,
-                'codigo' => $pasantia->codigo_pas ?? $pasantia->codigo ?? 'PAS-GEN',
-                'anio' => $pasantia->fecha_ini ? date('Y', strtotime($pasantia->fecha_ini)) : date('Y'),
-                'fecha_ini' => $pasantia->fecha_ini,
-                'fecha_fin' => $pasantia->fecha_fin,
-                'empresa_nombre' => $pasantia->empresa ? $pasantia->empresa->nombre : 'Institución / Empresa Externa',
-                'cantidad_pasantes' => $grupoInscripciones->count(), // Muestra cuántos alumnos tiene aquí
-                'estado_inscripcion' => $pasantia->estado, // Estado de control del grupo
-            ];
+        return Inertia::render('Jefe/Evaluaciones/Actividades', [
+            'pasantia' => [
+                'id' => $pasantia->id_pasantia,
+                'nombre' => $pasantia->nombre_pas
+            ],
+            'actividades' => $actividades,
+            'pasantes' => $pasantes,
+        ]);
+    }
+
+    /**
+     * Endpoint asíncrono: Obtiene la descripción detallada de la actividad
+     */
+    public function obtenerDetalle($id)
+    {
+        $actividad = Actividad::findOrFail($id);
+        return response()->json($actividad);
+    }
+
+    /**
+     * Endpoint asíncrono: Obtiene los progresos de los pasantes junto con su nota de bitácora
+     */
+    public function obtenerProgresos($id)
+    {
+        $actividad = Actividad::findOrFail($id);
+
+        // Obtenemos solo los progresos vinculados a esta actividad
+        // solo el progreso más reciente por pasante para esta actividad
+        $progresos = ProgresoAct::where('id_actividad', $id)
+            ->with(['pasante.user'])
+            ->get()
+            ->map(function($progreso) use ($actividad) {
+                
+                // Buscamos si el pasante tiene una bitácora calificada para la inscripción de esta pasantía con id_pasante y id_pasantia
+                // BITACORA_EVA(id_bitacora, descripcion, estado, nota, fecha, hora, observacion, recomendacion, idU_pasante, id_actividad, idU_jefe)
+                $bitacora = BitacoraEva::where('idU_pasante', $progreso->idU_pasante)
+                    ->where('id_actividad', $actividad->id_actividad)
+                    ->whereHas('pasante.inscripciones', function($q) use ($actividad) {
+                        $q->where('id_pasantia', $actividad->id_pasantia);
+                    })
+                    ->first();
+
+                return [
+                    'id_progreso' => $progreso->id_progresoact,
+                    'id_pasante' => $progreso->idU_pasante,
+                    'pasante' => $progreso->pasante->user->nombre . ' ' . $progreso->pasante->user->ap_paterno,
+                    'descripcion' => $progreso->descripcion,
+                    'porcentaje' => $progreso->porcentaje,
+                    'fecha_hora' => Carbon::parse($progreso->fecha)->setTimeFromTimeString($progreso->hora)->format('d/m/Y H:i'),
+                    'nota_bitacora' => $bitacora ? $bitacora->nota : null, // Muestra la nota si existe
+                ];
+            });
+
+        // mandar solo el progreso más reciente por pasante para esta actividad
+        $progresos = $progresos->groupBy('id_pasante')->map(function($grupo) {
+            return $grupo->sortByDesc('fecha_hora')->first();
         })->values();
 
-        // 4. Ordenar las tarjetas: fecha_ini ASC, fecha_fin ASC, nombre ASC
-        $tarjetas = $tarjetas->sortBy([
-            ['fecha_ini', 'asc'],
-            ['fecha_fin', 'asc'],
-            ['nombre', 'asc'],
-        ])->values();
-
-        // 5. Renderizar la vista Index del panel del Jefe
-        return Inertia::render('Jefe/Index', [
-            'tarjetas' => $tarjetas,
-        ]);
+        return response()->json($progresos);
     }
 }

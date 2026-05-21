@@ -14,6 +14,7 @@ class InformeFin extends Model
         'promedio',
         'resultado',
         'fecha',
+        'nota_final',
         'id_inscripcion',
         'idU_jefe',
     ];

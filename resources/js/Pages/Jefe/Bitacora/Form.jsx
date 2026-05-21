@@ -62,8 +62,8 @@ export default function Form({ pasantias = [], pasantes = [], actividades = [], 
     };
 
     const breadcrumbs = [
-        { label: 'Inicio', href: route('jefe.dashboard') },
-        { label: 'Evaluaciones', href: route('jefe.bitacoras') },
+        { label: 'Inicio', url: route('jefe.dashboard') },
+        { label: 'Evaluaciones', url: route('jefe.pasantias.tarjetas', { origen: 'bitacoras' }) },
         { label: isEditing ? 'Editar Bitácora' : 'Nueva Bitácora' },
     ];
 
@@ -83,7 +83,7 @@ export default function Form({ pasantias = [], pasantes = [], actividades = [], 
                             <Pencil size={18} /> Editar
                         </SecondaryButton>
                     )}
-                    <SecondaryButton href={route('jefe.bitacoras')} className="gap-2">
+                    <SecondaryButton href={route('jefe.pasantias.tarjetas', { origen: 'bitacoras' })} className="gap-2">
                         <ArrowLeft size={18} /> Volver
                     </SecondaryButton>
                 </div>

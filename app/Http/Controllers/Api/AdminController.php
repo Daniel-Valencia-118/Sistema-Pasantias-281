@@ -18,6 +18,8 @@ use App\Mail\SolicitudRegistroMail;
 use App\Mail\RegistroRechazadoMail;
 // importar inertia render
 use Inertia\Inertia;
+// rule
+use Illuminate\Validation\Rule;
 
 
 class AdminController extends Controller
@@ -58,7 +60,7 @@ public function updatePerfil(Request $request)
         'password' => 'nullable|confirmed|min:8',
     ]);
 
-    echo "Datos validados correctamente. Procediendo a actualizar..." . json_encode($request->all());
+    // echo "Datos validados correctamente. Procediendo a actualizar..." . json_encode($request->all());
 
     try {
         DB::beginTransaction();
@@ -88,7 +90,144 @@ public function updatePerfil(Request $request)
         return back()->with('error', 'Hubo un problema al actualizar el perfil.');
     }
 }
-    // =============================================
+
+/**
+     * Almacena un usuario recién creado.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'nombre_user' => ['required', 'string', 'max:255', Rule::unique('usuario', 'nombre_user')],
+            'correo'      => ['required', 'string', 'email', 'max:255', Rule::unique('usuario', 'correo')],
+            'nombre'      => ['required', 'string', 'max:255'],
+            'ap_paterno'  => ['required', 'string', 'max:255'],
+            'ap_materno'  => ['nullable', 'string', 'max:255'],
+            'ci'          => ['required', 'string', 'max:20'],
+            'numero_cel'  => ['nullable', 'string', 'max:20'],
+            'fecha_nac'   => ['nullable', 'date'],
+            'password'    => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        // Cifrado de contraseña y estado inicial activo
+        $validated['password'] = Hash::make($validated['password']);
+        $validated['estado_cuenta'] = true; 
+
+        User::create($validated);
+
+        return back()->with('success', 'Usuario registrado correctamente.');
+    }
+
+    // Store para administradores con try y rollback
+        public function storeAdmin(Request $request)
+        {
+            $validated = $request->validate([
+                'nombre_user' => ['required', 'string', 'max:255', Rule::unique('usuario', 'nombre_user')],
+                'correo'      => ['required', 'string', 'email', 'max:255', Rule::unique('usuario', 'correo')],
+                'nombre'      => ['required', 'string', 'max:255'],
+                'ap_paterno'  => ['required', 'string', 'max:255'],
+                'ap_materno'  => ['nullable', 'string', 'max:255'],
+                'ci'          => ['required', 'string', 'max:20'],
+                'numero_cel'  => ['nullable', 'string', 'max:20'],
+                'fecha_nac'   => ['nullable', 'date'],
+                'password'    => ['required', 'string', 'min:8', 'confirmed'],
+                'correo_secundario' => ['nullable', 'email'],
+            ]);
+    
+            try {
+                DB::beginTransaction();
+    
+                // Cifrado de contraseña y estado inicial activo
+                $validated['password'] = Hash::make($validated['password']);
+                $validated['estado_cuenta'] = true; 
+    
+                $user = User::create($validated);
+                Administrador::create(['idU_admi' => $user->idUser, 'correo_secundario' => $validated['correo_secundario']]);
+    
+                DB::commit();
+                return back()->with('success', 'Administrador registrado correctamente.');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return back()->with('error', 'Error al registrar el administrador: ' . $e->getMessage());
+            }
+        }   
+        
+
+    /**
+     * Actualiza el usuario existente en base a su idUser.
+     */
+    public function updateUser(Request $request, $idUser)
+    {
+        $user = User::findOrFail($idUser);
+
+        $validated = $request->validate([
+            // Laravel exige definir explícitamente el nombre de la clave primaria en la regla unique si no es 'id'
+            'nombre_user' => ['required', 'string', 'max:255', Rule::unique('usuario', 'nombre_user')->ignore($user->idUser, 'idUser')],
+            'correo'      => ['required', 'string', 'email', 'max:255', Rule::unique('usuario', 'correo')->ignore($user->idUser, 'idUser')],
+            'nombre'      => ['required', 'string', 'max:255'],
+            'ap_paterno'  => ['required', 'string', 'max:255'],
+            'ap_materno'  => ['nullable', 'string', 'max:255'],
+            'ci'          => ['required', 'string', 'max:20'],
+            'numero_cel'  => ['nullable', 'string', 'max:20'],
+            'fecha_nac'   => ['nullable', 'date'],
+            'password'    => ['nullable', 'string', 'min:8', 'confirmed'], // Opcional en edición
+        ]);
+
+        // Gestionar el cambio opcional de contraseña (Reseteo)
+        if (!empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+
+        $user->update($validated);
+
+        return back()->with('success', 'Usuario actualizado con éxito.');
+    }
+
+    /**
+     * Modifica el estado_cuenta del usuario (Activación/Desactivación).
+     */
+    public function toggleEstado($idUser)
+    {
+        $user = User::findOrFail($idUser);
+        
+        // Invierte el valor booleano gracias al casting configurado en tu modelo
+        $user->estado_cuenta = !$user->estado_cuenta;
+        $user->save();
+
+        return back()->with('success', 'El estado del usuario se ha modificado.');
+    }
+
+    /**
+     * Procesar la aprobación o rechazo de un usuario pendiente.
+     */
+        public function procesarAprobacion(Request $request, User $user)
+        {
+            // 1. Validar que el estado enviado sea estrictamente 'aprobado' o 'rechazado'
+            $request->validate([
+                'estado' => 'required|in:aprobado,rechazado',
+            ]);
+
+            // 2. Validar regla de negocio: El usuario DEBE estar en estado 'pendiente'
+            if ($user->estado_aprobacion !== 'pendiente') {
+                return redirect()->back()->with('error', 'El usuario ya no se encuentra en estado pendiente.');
+            }
+
+            // 3. Actualizar el estado
+            $user->update([
+                'estado_aprobacion' => $request->estado,
+                'estado_cuenta' => $request->estado === 'aprobado' ? true : false, // Solo activar si es aprobado
+            ]);
+
+            // 4. Redireccionar con un mensaje de éxito
+            $mensaje = $request->estado === 'aprobado' 
+                ? 'El usuario ha sido aprobado correctamente.' 
+                : 'El usuario ha sido rechazado.';
+
+            return redirect()->back()->with('success', $mensaje);
+        }
+
+    // ============================================
     // LISTAR SOLICITUDES PENDIENTES
     // =============================================
     public function listarSolicitudes()
@@ -100,14 +239,12 @@ public function updatePerfil(Request $request)
                 return [
                     'id' => $user->idUser,
                     'nombre_user' => $user->nombre_user,
-                    'nombre' => $user->nombre,
+                    'nombre' => $user->nombre . ' ' . $user->ap_paterno . ' ' . $user->ap_materno,
                     'correo' => $user->correo,
                     'estado_aprobacion' => $user->estado_aprobacion,
                     'rol' => $this->getUserRole($user),
                 ];
             });
-        
-        // return response()->json(['data' => $solicitudes]);
         return Inertia::render('Admin/Usuarios/Solicitudes', ['usuarios' => $solicitudes]);
     }
     // crear usuario
@@ -228,6 +365,11 @@ public function updatePerfil(Request $request)
                 return [
                     'id' => $pasante->idU_pasante,
                     'nombre' => $pasante->user->nombre . ' ' . $pasante->user->ap_paterno,
+                    'ap_paterno' => $pasante->user->ap_paterno,
+                    'ap_materno' => $pasante->user->ap_materno,
+                    'ci' => $pasante->user->ci,
+                    'numero_cel' => $pasante->user->numero_cel,
+                    'fecha_nac' => $pasante->user->fecha_nac->format('Y-m-d'),
                     'nombre_user' => $pasante->user->nombre_user,
                     'correo' => $pasante->user->correo,
                     'ru' => $pasante->ru,
@@ -338,7 +480,7 @@ public function updatePerfil(Request $request)
         }
     }
     
-    public function actualizarPasante(Request $request, $id)
+    public function updatePasante(Request $request, $id)
     {
         $pasante = Pasante::findOrFail($id);
         $user = $pasante->user;
@@ -352,13 +494,33 @@ public function updatePerfil(Request $request)
             'ap_materno' => 'sometimes|string',
             'semestre' => 'sometimes|integer|min:1|max:10',
             'mencion' => 'sometimes|string',
+            'ci' => 'sometimes|string|unique:usuario,ci,' . $user->idUser . ',idUser',
+            'fecha_nac' => 'sometimes|date',
         ]);
         
-        $user->update($request->only(['nombre_user', 'numero_cel', 'correo', 'nombre', 'ap_paterno', 'ap_materno']));
-        $pasante->update($request->only(['semestre', 'mencion']));
-        
-        return response()->json(['message' => 'Pasante actualizado']);
+        try {
+            // Iniciamos la transacción para enlazar la actualización de usuario y pasante
+            DB::beginTransaction();
+
+            // 1. Actualizar datos en la tabla 'usuario'
+            $user->update($request->only(['nombre_user', 'numero_cel', 'correo', 'nombre', 'ap_paterno', 'ap_materno', 'ci', 'fecha_nac']));
+            
+            // 2. Actualizar datos específicos en la tabla del pasante
+            $pasante->update($request->only(['semestre', 'mencion']));
+            
+            // Confirmamos de forma permanente los cambios en la BD
+            DB::commit();
+            
+            return back()->with('success', 'Pasante actualizado exitosamente');
+
+        } catch (\Exception $e) {
+            // Si ocurre un error (ej. base de datos inaccesible, fallo de integridad), deshacemos todo
+            DB::rollBack();
+            
+            return back()->with('error', 'Error al actualizar el pasante: ' . $e->getMessage());
+        }
     }
+
     
     public function cambiarEstadoPasante($id)
     {
@@ -452,6 +614,44 @@ public function updatePerfil(Request $request)
                 'message' => 'Error al crear el jefe',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    // Actualizar un jefe de pasantias
+    public function updateJefe(Request $request, $id)
+    {
+        $jefe = JefePas::findOrFail($id);
+        $user = $jefe->user;
+
+        $request->validate([
+            'nombre_user' => 'sometimes|string|unique:usuario,nombre_user,' . $user->idUser . ',idUser',
+            'numero_cel' => 'sometimes|string',
+            'correo' => 'sometimes|email|unique:usuario,correo,' . $user->idUser . ',idUser',
+            'nombre' => 'sometimes|string',
+            'ap_paterno' => 'sometimes|string',
+            'ap_materno' => 'sometimes|string',
+            'cargo' => 'sometimes|string',
+            'area' => 'sometimes|string',
+            'ci' => 'sometimes|string|unique:usuario,ci,' . $user->idUser . ',idUser',
+            'fecha_nac' => 'sometimes|date',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Actualizar datos del usuario
+            $user->update($request->only(['nombre_user', 'numero_cel', 'correo', 'nombre', 'ap_paterno', 'ap_materno', 'ci', 'fecha_nac']));
+
+            // Actualizar datos específicos del jefe
+            $jefe->update($request->only(['cargo', 'area']));
+
+            DB::commit();
+
+            return back()->with('success', 'Jefe de Pasantes actualizado exitosamente');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al actualizar el jefe: ' . $e->getMessage());
         }
     }
 
@@ -654,8 +854,7 @@ public function updatePerfil(Request $request)
             ]
         ]);
     }
-
-    public function actualizarGerente(Request $request, $id)
+    public function updateGerente(Request $request, $id)
     {
         $gerente = Gerente::findOrFail($id);
         $user = $gerente->user;
@@ -668,13 +867,43 @@ public function updatePerfil(Request $request)
             'ap_paterno' => 'sometimes|string',
             'ap_materno' => 'sometimes|string',
             'nro_secun' => 'nullable|string',
+            'ci' => 'sometimes|string|unique:usuario,ci,' . $user->idUser . ',idUser',
+                // Datos de la empresa (si se va a actualizar)
+            'empresa_nombre' => 'sometimes|string|unique:empresa,nombre,' . ($gerente->empresa ? $gerente->empresa->id_empresa : 'null') . ',id_empresa',
+            'empresa_direccion' => 'sometimes|string',
+            'empresa_email' => 'sometimes|email',
+            'empresa_nit' => 'sometimes|string|unique:empresa,nit,' . ($gerente->empresa ? $gerente->empresa->id_empresa : 'null') . ',id_empresa',
+            'empresa_telefono' => 'sometimes|string',
         ]);
-        
-        $user->update($request->only(['nombre_user', 'numero_cel', 'correo', 'nombre', 'ap_paterno', 'ap_materno']));
-        $gerente->update($request->only(['nro_secun']));
-        
-        return response()->json(['message' => 'Gerente actualizado']);
+
+        try {
+            // Iniciamos la transacción para proteger las tres tablas
+            DB::beginTransaction();
+
+            // 1. Actualizar datos de la empresa (si existe)
+            if ($gerente->empresa) {
+                $gerente->empresa->update($request->only(['nombre', 'direccion', 'email', 'nit', 'telefono']));
+            }
+
+            // 2. Actualizar datos del usuario base
+            $user->update($request->only(['nombre_user', 'numero_cel', 'correo', 'nombre', 'ap_paterno', 'ap_materno', 'ci', 'fecha_nac']));
+            
+            // 3. Actualizar datos específicos del gerente
+            $gerente->update($request->only(['nro_secun']));
+            
+            // Si todo sale bien, guardamos los cambios definitivamente
+            DB::commit();
+
+            return back()->with('success', 'Gerente actualizado con éxito');
+
+        } catch (\Exception $e) {
+            // Si algo falla, revertimos todos los cambios de las tres tablas
+            DB::rollBack();
+
+            return back()->with('error', 'Error al actualizar el gerente: ' . $e->getMessage());
+        }
     }
+
     
     //al inactivar la cuenta de un gerente tambien de desactiva la cuenta de los pasantes de esa empresa
     public function cambiarEstadoGerente($id)
@@ -798,7 +1027,7 @@ public function updatePerfil(Request $request)
         }
     }
     
-    public function actualizarTutor(Request $request, $id)
+    public function updateTutor(Request $request, $id)
     {
         $tutor = TutorAca::findOrFail($id);
         $user = $tutor->user;
@@ -810,15 +1039,34 @@ public function updatePerfil(Request $request)
             'nombre' => 'sometimes|string',
             'ap_paterno' => 'sometimes|string',
             'ap_materno' => 'sometimes|string',
+            'ci' => 'sometimes|string|unique:usuario,ci,' . $user->idUser . ',idUser',
+            'fecha_nac' => 'sometimes|date',
             'especialidad' => 'sometimes|string',
             'grado_aca' => 'sometimes|string',
         ]);
         
-        $user->update($request->only(['nombre_user', 'numero_cel', 'correo', 'nombre', 'ap_paterno', 'ap_materno']));
-        $tutor->update($request->only(['especialidad', 'grado_aca']));
-        
-        return response()->json(['message' => 'Tutor actualizado']);
+        try {
+            // Iniciamos la transacción para proteger ambas tablas
+            DB::beginTransaction();
+
+            // 1. Actualizar datos en la tabla 'usuario'
+            $user->update($request->only(['nombre_user', 'numero_cel', 'correo', 'nombre', 'ap_paterno', 'ap_materno', 'ci', 'fecha_nac']));
+            
+            // 2. Actualizar datos específicos en la tabla 'tutor_aca'
+            $tutor->update($request->only(['especialidad', 'grado_aca']));
+            
+            // Confirmamos los cambios de manera segura
+            DB::commit();
+            
+            return back()->with('success', 'Tutor actualizado exitosamente');
+
+        } catch (\Exception $e) {
+            // Cancelamos cualquier cambio si ocurre un error inesperado
+            DB::rollBack();
+            return back()->with('error', 'Error al actualizar el tutor: ' . $e->getMessage());
+        }
     }
+
     
     public function cambiarEstadoTutor($id)
     {

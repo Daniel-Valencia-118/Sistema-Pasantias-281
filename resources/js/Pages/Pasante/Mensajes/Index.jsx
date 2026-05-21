@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Head } from "@inertiajs/react";
 import axios from "axios";
 import PasanteLayout from "@/Components/Layout/PasanteLayout";
+import Breadcrumbs from "@/Components/Breadcrumbs";
 import { Send, MessageCircle, Ban, Unlock, ArrowLeft } from "lucide-react";
 
 // Convertir hora UTC a Bolivia (UTC-4)
@@ -235,6 +236,16 @@ export default function Index({ auth, contactos }) {
     return (
         <PasanteLayout auth={auth}>
             <Head title="Mensajes" />
+            <Breadcrumbs items={[
+                { label: 'Inicio', url: 'pasante.dashboard' },
+                { label: 'Mensajes' },
+                { label: 'Chat Pasantes y Jefes' },
+            ]} />
+
+            <div className="mb-4">
+                <h1 className="text-3xl font-black text-primary-navy uppercase">Chat de Mensajería</h1>
+                <p className="text-slate-500">Canal directo de comunicación institucional con pasantes y tus jefes.</p>
+            </div>
 
             <div className="h-[calc(100vh-130px)] min-h-0 flex bg-white rounded-xl shadow-sm overflow-hidden">
                 {/* LISTA DE CONVERSACIONES */}

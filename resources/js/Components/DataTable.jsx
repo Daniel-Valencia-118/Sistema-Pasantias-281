@@ -112,7 +112,7 @@ export default function DataTable({
                                             {idx + 1}
                                         </td>
                                         {columns.map((col) => (
-                                            <td key={col.key} className={`px-6 py-4 text-sm text-black-600 ${col.align === 'center' ? 'text-center' : ''}`}>
+                                            <td key={col.key} className={`px-6 py-4 text-sm text-slate-600 font-medium ${col.align === 'center' ? 'text-center' : ''}`}>
                                                 {col.render ? col.render(row[col.key], row) : row[col.key]}
                                             </td>
                                         ))}

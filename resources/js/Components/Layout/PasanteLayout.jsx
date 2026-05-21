@@ -529,10 +529,7 @@ export default function PasanteLayout({ children }) {
                                                                 {notif.mensaje}
                                                             </p>
                                                             <p className="text-xs text-gray-400 mt-1">
-                                                                {
-                                                                    notif.fecha_formateada
-                                                                }{" "}
-                                                                {notif.hora}
+                                                                {new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(notif.fecha))} a las {notif.hora.substring(0, 5)}
                                                             </p>
                                                         </div>
                                                         {!notif.leido && (

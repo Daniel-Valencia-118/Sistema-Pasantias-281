@@ -163,9 +163,9 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
                     </h1>
                     <p className="text-sm text-gray-500">Define y gestiona los hitos de evaluación para las pasantías.</p>
                 </div>
-                <PrimaryButton onClick={openCreateModal} className="w-full md:w-auto">
+                {/* <PrimaryButton onClick={openCreateModal} className="w-full md:w-auto">
                     <Plus className="h-4 w-4 mr-2" /> Nueva Actividad
-                </PrimaryButton>
+                </PrimaryButton> */}
             </div>
 
             {/* BARRA DE BÚSQUEDA */}
@@ -192,9 +192,9 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
                             <button onClick={() => openEditModal(row)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
                                 <Edit className="h-5 w-5" />
                             </button>
-                            <button onClick={() => confirmDelete(row.id_actividad)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Borrar">
+                            {/* <button onClick={() => confirmDelete(row.id_actividad)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Borrar">
                                 <Trash2 className="h-5 w-5" />
-                            </button>
+                            </button> */}
                         </div>
                     )}
                 />

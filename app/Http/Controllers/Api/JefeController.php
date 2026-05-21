@@ -12,6 +12,8 @@ use App\Models\InformeFin;
 use App\Models\Pasantia;
 use App\Models\Pasante;
 use App\Models\JefePas;
+use App\Models\Notificacion;
+use App\Models\Empresa;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
@@ -23,73 +25,91 @@ use Pdf;
 class JefeController extends Controller
 {
 public function dashboard()
-{
-    $user = Auth::user();
-    $idJefe = $user->idUser; 
+    {
+        $user = Auth::user();
+        $idJefe = $user->idUser; 
 
-    // 1. ESTADÍSTICAS (KPIs)
-    $stats = [
-        'pasantes_activos' => Inscripcion::where('idU_jefe', $idJefe)->count(),
-        
-        'actividades_pendientes' => BitacoraEva::where('idU_jefe', $idJefe)
-            ->where('estado', 'no realizada')
-            ->count(),
+        // 1. ESTADÍSTICAS (KPIs) - Vinculado a tus reglas de negocio
+        $stats = [
+            'pasantes_activos' => Inscripcion::where('idU_jefe', $idJefe)->count(),
             
-        'actividades_completadas' => BitacoraEva::where('idU_jefe', $idJefe)
-            ->where('estado', 'completada')
-            ->count(),
-            
-        'mensajes_recibidos' => Mensaje::where('idU_jefe', $idJefe)->count(),
-    ];
+            // Evaluaciones finales pendientes (vencidas o al 100% de progreso sin evaluar)
+            'actividades_pendientes' => BitacoraEva::where('idU_jefe', $idJefe)
+                ->whereIn('estado', ['NO REALIZADA', 'PENDIENTE'])
+                ->count(),
+                
+            'actividades_completadas' => BitacoraEva::where('idU_jefe', $idJefe)
+                ->where('estado', 'COMPLETADA')
+                ->count(),
+                
+            // Contamos notificaciones no leídas basándonos en tu tabla NOTIFICACION
+            'mensajes_no_leidos' => Notificacion::where('id_usuario', $idJefe)
+                ->where('leido', 0)
+                ->count(),
+        ];
 
-    // 2. RENDIMIENTO POR PASANTE (Uso de Eloquent para evitar errores de tabla)
-    $rendimiento_pasantes = BitacoraEva::query()
-        ->join('usuario', 'bitacora_eva.idU_pasante', '=', 'usuario.idUser')
-        ->select(
-            DB::raw("CONCAT(usuario.nombre, ' ', usuario.ap_paterno) as nombre"),
-            DB::raw("AVG(bitacora_eva.nota) as progreso")
-        )
-        ->where('bitacora_eva.idU_jefe', $idJefe)
-        ->where('bitacora_eva.estado', 'completada')
-        ->groupBy('usuario.idUser', 'usuario.nombre', 'usuario.ap_paterno')
-        ->get();
+        // 2. RENDIMIENTO POR PASANTE (Promedio de notas de evaluaciones finales cerradas)
+        $rendimiento_pasantes = BitacoraEva::query()
+            ->join('usuario', 'bitacora_eva.idU_pasante', '=', 'usuario.idUser')
+            ->select(
+                DB::raw("CONCAT(usuario.nombre, ' ', COALESCE(usuario.ap_paterno, '')) as nombre"),
+                DB::raw("ROUND(AVG(bitacora_eva.nota)::numeric, 2) as progreso")
+            )
+            ->where('bitacora_eva.idU_jefe', $idJefe)
+            ->where('bitacora_eva.estado', 'COMPLETADA')
+            ->groupBy('usuario.idUser', 'usuario.nombre', 'usuario.ap_paterno')
+            ->get();
 
-    // 3. BITÁCORAS PENDIENTES
-    $bitacoras_pendientes = BitacoraEva::where('idU_jefe', $idJefe)
-        ->where('estado', 'no realizada')
-        ->with(['pasante.user', 'actividad']) 
-        ->orderBy('fecha', 'desc')
-        ->take(5)
-        ->get()
-        ->map(fn($b) => [
-            'id' => $b->id_bitacora,
-            'pasante_nombre' => $b->pasante && $b->pasante->usuario 
-                                ? $b->pasante->usuario->nombre . ' ' . $b->pasante->usuario->ap_paterno 
-                                : 'Sin nombre',
-            'pasantia_titulo' => $b->actividad->nombre_act ?? 'Actividad General',
-            'fecha' => $b->fecha ? $b->fecha->format('d/m/Y') : 'S/F',
+
+        // 3. BITÁCORAS PENDIENTES DE EVALUACIÓN
+        $bitacoras_pendientes = BitacoraEva::where('bitacora_eva.idU_jefe', $idJefe) // Añadido prefijo de tabla para evitar ambigüedad
+            ->whereIn('bitacora_eva.estado', ['NO REALIZADA', 'PENDIENTE'])
+            ->with(['actividad']) 
+            ->join('usuario', 'bitacora_eva.idU_pasante', '=', 'usuario.idUser')
+            ->select(
+                'bitacora_eva.id_bitacora', // Traemos solo lo necesario para el map
+                'bitacora_eva.fecha',
+                'bitacora_eva.id_actividad', // Requerido para la relación con 'actividad'
+                DB::raw("CONCAT(usuario.nombre, ' ', COALESCE(usuario.ap_paterno, '')) as pasante_full_name")
+            )
+            ->orderBy('bitacora_eva.fecha', 'desc')
+            ->take(5)
+            ->get()
+            ->map(fn($b) => [
+                'id' => $b->id_bitacora,
+                'pasante_nombre' => $b->pasante_full_name,
+                'pasantia_titulo' => $b->actividad->nombre_act ?? 'Actividad General',
+                'fecha' => $b->fecha, 
+            ]);
+
+        // 4. SEGUIMIENTO DE INFORMES FINALES (Inscripciones activas de sus pasantes)
+        $informes_status = Inscripcion::where('inscripcion.idU_jefe', $idJefe)
+            ->join('usuario', 'inscripcion.idU_pasante', '=', 'usuario.idUser')
+            ->leftJoin('informe_fin', 'inscripcion.id_inscripcion', '=', 'informe_fin.id_inscripcion') // Cambiado a informe_fin
+            ->select(
+                DB::raw("CONCAT(usuario.nombre, ' ', COALESCE(usuario.ap_paterno, '')) as pasante"),
+                'informe_fin.id_informe', // Cambiado a informe_fin
+                'inscripcion.fecha_insc',
+                'inscripcion.id_pasantia'
+            )
+            ->get()
+            ->map(fn($i) => [
+                'pasante' => $i->pasante,
+                'completitud' => $i->id_informe ? 100 : 40, 
+                'fecha_limite' => $i->fecha_insc,
+                'id_pasantia' => $i->id_pasantia,
+            ]);
+
+
+
+        return Inertia::render('Jefe/Dashboard/Dashboard', [
+            'stats' => $stats,
+            'rendimiento_pasantes' => $rendimiento_pasantes,
+            'bitacoras_pendientes' => $bitacoras_pendientes,
+            'actividades_recientes' => $informes_status,
         ]);
-
-    // 4. SEGUIMIENTO DE INFORMES FINALES
-    $informes_status = Inscripcion::where('idU_jefe', $idJefe)
-        ->with(['pasante.user', 'informeFinal'])
-        ->get()
-        ->map(fn($i) => [
-            'pasante' => $i->pasante && $i->pasante->usuario 
-                         ? $i->pasante->usuario->nombre . ' ' . $i->pasante->usuario->ap_paterno 
-                         : 'N/A',
-            'completitud' => $i->informeFinal ? 100 : 40, // 40% si está inscrito, 100% si tiene informe
-            'resultado' => $i->informeFinal->resultado ?? 'Pendiente',
-            'fecha_limite' => $i->fecha_insc,
-        ]);
-
-    return Inertia::render('Jefe/Dashboard', [
-        'stats' => $stats,
-        'rendimiento_pasantes' => $rendimiento_pasantes,
-        'bitacoras_pendientes' => $bitacoras_pendientes,
-        'actividades_recientes' => $informes_status,
-    ]);
-}
+    }
+    
     public function perfil()
     {
         $user = Auth::user();
@@ -278,30 +298,60 @@ public function dashboard()
 
     public function misPasantias()
     {
-        $jefe = Auth::user()->jefePas;
+        // 1. Obtener el jefe autenticado con su respectiva empresa
+        $jefe = Auth::user()->jefePas; 
+        
+        // Cargamos la empresa (asumiendo la relación 'empresa' en el modelo JefePas)
+        // Si la relación está en la pasantía, la rescataremos dinámicamente abajo
+        $empresa = $jefe->empresa ?? null;
+
+        // 2. Obtener las pasantías asignadas
         $pasantias = Pasantia::whereHas('inscripciones', function ($q) use ($jefe) {
             $q->where('idU_jefe', $jefe->idU_jefe);
-        })->with(['inscripciones.pasante.user'])->get()->map(function ($pasantia) {
+        })
+        ->with(['inscripciones.pasante.user', 'empresa'])
+        ->get()
+        ->map(function ($pasantia) use (&$empresa) {
+            
+            // Fallback: Si el jefe no tiene empresa directa, la extraemos de su primera pasantía
+            if (!$empresa && $pasantia->empresa) {
+                $empresa = $pasantia->empresa;
+            }
+
             return [
                 'id' => $pasantia->id_pasantia,
                 'nombre' => $pasantia->nombre_pas,
                 'estado' => $pasantia->estado,
+                'mencion' => $pasantia->mencion ?? 'General / No especificada',
                 'fecha_ini' => $pasantia->fecha_ini,
                 'fecha_fin' => $pasantia->fecha_fin,
-                'cupos' => $pasantia->cupos,
-                'cupos_disponibles' => $pasantia->cupos_disponibles,
+                'cupos' => (int) $pasantia->cupos,
+                'cupos_disponibles' => (int) $pasantia->cupos_disponibles,
+                'carga_horaria' => $pasantia->carga_horaria ?? 'No asignada',
+                'turno' => $pasantia->turno ?? 'Flexible',
+                'total_inscritos' => $pasantia->inscripciones->count(),
                 'pasantes_inscritos' => $pasantia->inscripciones->map(function ($inscripcion) {
                     return [
                         'id' => $inscripcion->pasante->idU_pasante,
-                        'nombre' => $inscripcion->pasante->user->nombre . ' ' . $inscripcion->pasante->user->ap_paterno,
+                        'nombre' => $inscripcion->pasante->user->nombre . ' ' . $inscripcion->pasante->user->ap_paterno . ' ' . ($inscripcion->pasante->user->ap_materno ?? ''),
                         'estado_inscripcion' => $inscripcion->estado,
                     ];
                 }),
             ];
         });
 
+        // 3. Retornar datos estructurados a Inertia
         return Inertia::render('Jefe/MisPasantias', [
             'pasantias' => $pasantias,
+            'empresa' => $empresa ? [
+                'id' => $empresa->id_empresa ?? $empresa->id,
+                'nombre' => $empresa->nombre ?? 'No registrado',
+                'nit' => $empresa->nit ?? 'S/N',
+                'direccion' => $empresa->direccion ?? 'No especificada',
+                'telefono' => $empresa->telefono ?? 'S/N',
+                'correo' => $empresa->correo ?? 'S/N',
+                'rubro' => $empresa->rubro ?? 'General',
+            ] : null,
         ]);
     }
     
@@ -678,58 +728,144 @@ public function dashboard()
         ]);
     }
 
-       /**
-     * Muestra las bitácoras pendientes de revisión
+    /**
+     * Muestra las bitácoras de las actividades de las pasantias del pasante
      */
-    public function bitacoras(Request $request)
+    public function showPasantiaBitacoras($id_pasantia)
     {
         $jefe = Auth::user()->jefePas;
-        $bitacoras = BitacoraEva::with(['pasante.user', 'actividad'])
+        if (!$jefe) {
+            return redirect()->back()->with('error', 'Perfil de jefe no válido.');
+        }
+
+        $pasantia = Pasantia::with('empresa')->findOrFail($id_pasantia);
+
+        $inscripciones = Inscripcion::with(['pasante.user'])
+            ->where('id_pasantia', $id_pasantia)
             ->where('idU_jefe', $jefe->idU_jefe)
-            ->orderBy('fecha', 'desc')
-            ->get()
-            ->map(function ($bitacora) {
+            ->get();
+
+        // Traemos explícitamente fecha_ini y fecha_fin del modelo Actividad
+        $actividadesBase = Actividad::where('id_pasantia', $id_pasantia)
+            ->orderBy('id_actividad', 'asc')
+            ->get();
+
+        $pasantesData = $inscripciones->map(function ($inscripcion) use ($actividadesBase, $jefe) {
+            $pasante = $inscripcion->pasante;
+            
+            $actividadesEvaluadas = $actividadesBase->map(function ($actividad) use ($pasante, $jefe) {
+                
+                // 1. Historial de Progresos (PROGRESO_ACT)
+                $progresos = \DB::table('progreso_act')
+                    ->where('id_actividad', $actividad->id_actividad)
+                    ->where('idU_pasante', $pasante->idU_pasante)
+                    ->orderBy('fecha', 'asc')
+                    ->get()
+                    ->map(function($p) {
+                        return [
+                            'id' => $p->id_progresoact ?? $p->id,
+                            'descripcion' => $p->descripcion,
+                            'fecha' => isset($p->fecha) ? date('d/m/Y', strtotime($p->fecha)) : '',
+                            'hora' => isset($p->hora) ? date('H:i', strtotime($p->hora)) : '',
+                            'porcentaje' => $p->porcentaje ?? 0
+                        ];
+                    });
+
+                $ultimoProgreso = $progresos->last();
+                $porcentajeProgreso = $ultimoProgreso ? $ultimoProgreso['porcentaje'] : 0;
+
+                // 2. NUEVO: Obtener la Autoevaluación del Pasante (AUTO_EVA)
+                $autoeva = \DB::table('auto_eva')
+                    ->where('id_actividad', $actividad->id_actividad)
+                    ->where('idU_pasante', $pasante->idU_pasante)
+                    ->first();
+
+                // 3. Obtener Evaluación del Jefe (Bitacora)
+                $bitacora = BitacoraEva::where('id_actividad', $actividad->id_actividad)
+                    ->where('idU_pasante', $pasante->idU_pasante)
+                    ->where('idU_jefe', $jefe->idU_jefe)
+                    ->first();
+
                 return [
-                    'id' => $bitacora->id_bitacora,
-                    'pasante' => $bitacora->pasante->user->nombre . ' ' . $bitacora->pasante->user->ap_paterno,
-                    'actividad' => $bitacora->actividad->nombre_act,
-                    'estado' => $bitacora->estado,
-                    'nota' => $bitacora->nota,
-                    // enviar fecha y hora en formato legible para el frontend (ej: 15/09/2024)
-                    'fecha' => $bitacora->fecha->format('d/m/Y'),
-                    // 'hora' => $bitacora->hora->format('H:i'),
-                    'observacion' => $bitacora->observacion,
+                    'id_actividad' => $actividad->id_actividad,
+                    'nombre_act' => $actividad->nombre_act,
+                    // Formateo de fechas de la actividad con valores por defecto seguros
+                    'fecha_ini' => $actividad->fecha_ini ? date('d/m/Y', strtotime($actividad->fecha_ini)) : 'Sin fecha',
+                    'fecha_fin' => $actividad->fecha_fin ? date('d/m/Y', strtotime($actividad->fecha_fin)) : 'Sin fecha',
+                    'porcentaje_progreso' => $porcentajeProgreso,
+                    'historial_progresos' => $progresos,
+                    'tiene_autoevaluacion' => !is_null($autoeva),
+                    'autoevaluacion' => $autoeva ? [
+                        'id' => $autoeva->id_autoeva,
+                        'comentario' => $autoeva->comentario,
+                        'nota' => $autoeva->nota,
+                        'fecha' => $autoeva->fecha ? date('d/m/Y', strtotime($autoeva->fecha)) : '',
+                    ] : null,
+                    'tiene_bitacora' => !is_null($bitacora),
+                    'bitacora' => $bitacora ? [
+                        'id' => $bitacora->id_bitacora,
+                        'nota' => $bitacora->nota,
+                        'observacion' => $bitacora->observacion,
+                        'estado' => $bitacora->estado,
+                        'fecha' => $bitacora->fecha ? $bitacora->fecha->format('d/m/Y') : '',
+                    ] : null,
                 ];
             });
 
+            $todasEvaluadas = $actividadesEvaluadas->every(function ($act) {
+                return $act['tiene_bitacora'] === true;
+            });
+
+            return [
+                'idU_pasante' => $pasante->idU_pasante,
+                'nombre_completo' => $pasante->user->nombre . ' ' . $pasante->user->ap_paterno . ' ' . $pasante->user->ap_materno,
+                'actividades' => $actividadesEvaluadas,
+                'listo_para_informe' => $todasEvaluadas && $actividadesEvaluadas->count() > 0,
+            ];
+        });
+
         return Inertia::render('Jefe/Evaluaciones/Bitacoras', [
-            'bitacoras' => $bitacoras,
+            'pasantia' => [
+                'id' => $pasantia->id_pasantia,
+                'nombre' => $pasantia->nombre_pas,
+                'empresa' => $pasantia->empresa ? $pasantia->empresa->nombre : 'Particular',
+            ],
+            'pasantesData' => $pasantesData,
         ]);
     }
 
-    /**
-     * Evalúa o actualiza una bitácora
-     */
     public function evaluarBitacora(Request $request)
     {
+        $jefe = Auth::user()->jefePas;
+
         $request->validate([
-            'id_bitacora' => 'required|exists:bitacora_eva,id_bitacora',
-            'nota' => 'required|integer|min:0|max:100',
+            'id_actividad' => 'required',
+            'idU_pasante' => 'required',
+            'nota' => 'required|numeric|min:0|max:100',
+            'descripcion' => 'required|string',
             'observacion' => 'nullable|string',
-            // el estado deber ser: no realizada, completada, completada parcialmente, sin calificar
-            'estado' => 'required|in: no realizada,completada,completada parcialmente,sin calificar',
+            'estado' => 'required|string',
         ]);
 
-        $bitacora = BitacoraEva::findOrFail($request->id_bitacora);
-        $bitacora->update($request->only(['nota', 'observacion', 'estado']));
+        // Crear la bitácora de evaluación (No existía previamente bajo este nuevo flujo estructurado)
+        BitacoraEva::create([
+            'idU_jefe' => $jefe->idU_jefe,
+            'idU_pasante' => $request->idU_pasante,
+            'id_actividad' => $request->id_actividad,
+            'nota' => $request->nota,
+            'observacion' => $request->observacion,
+            'descripcion' => $request->descripcion,
+            'estado' => $request->estado,
+            'fecha' => now(),
+        ]);
 
-        return back()->with('success', 'Evaluación guardada correctamente.');
+        return redirect()->back()->with('success', 'Evaluación registrada correctamente.');
     }
 
     /**
-     * Subactividades: lista de actividades del jefe y posibilidad de asignar/crear
+     * Actividades: lista de actividades del jefe
      */
-    public function subactividades()
+    public function actividades()
     {
         $jefe = Auth::user()->jefePas;
         $actividades = Actividad::with('pasantia')
@@ -760,37 +896,10 @@ public function dashboard()
                 'nombre' => $p->user->nombre . ' ' . $p->user->ap_paterno,
             ]);
 
-        return Inertia::render('Jefe/Evaluaciones/Subactividades', [
+        return Inertia::render('Jefe/Evaluaciones/Actividades', [
             'actividades' => $actividades,
             'pasantes' => $pasantes,
         ]);
-    }
-
-    /**
-     * Asigna una subactividad (crea registro en bitacora_eva)
-     */
-    public function asignarSubactividad(Request $request)
-    {
-        $request->validate([
-            'id_pasante' => 'required|exists:pasante,idU_pasante',
-            'id_actividad' => 'required|exists:actividad,id_actividad',
-            'descripcion' => 'required|string',
-        ]);
-
-        BitacoraEva::create([
-            'descripcion' => $request->descripcion,
-            'estado' => 'no realizada',
-            'nota' => null,
-            'observacion' => null,
-            'recomendacion' => null,
-            'fecha' => now(),
-            'hora' => now(),
-            'idU_pasante' => $request->id_pasante,
-            'id_actividad' => $request->id_actividad,
-            'idU_jefe' => Auth::user()->jefePas->idU_jefe,
-        ]);
-
-        return back()->with('success', 'Subactividad asignada.');
     }
 
     /**
@@ -876,6 +985,7 @@ public function dashboard()
                 'resultado' => $inf->resultado,
                 'fecha' => $inf->fecha->format('d/m/Y'),
                 'id_inscripcion' => $inf->id_inscripcion,
+                'nota_final' => $inf->nota_final,
             ]);
 
         return Inertia::render('Jefe/Informes/Historial', [
@@ -883,81 +993,138 @@ public function dashboard()
         ]);
     }
 
-    /**
-     * Formulario para redactar/generar informe final
+/**
+     * Carga el formulario inicial de selección
      */
     public function redactarInforme(Request $request)
     {
         $jefe = Auth::user()->jefePas;
-        $inscripcionId = $request->query('inscripcion'); // opcional
 
-        $inscripciones = Inscripcion::with('pasante.user', 'pasantia')
+        // Obtener todas las pasantías únicas donde este jefe tiene pasantes asignados
+        $pasantias = Pasantia::whereIn('id_pasantia', function ($query) use ($jefe) {
+            $query->select('id_pasantia')
+                  ->from('inscripcion')
+                  ->where('idU_jefe', $jefe->idU_jefe);
+        })->get()->map(fn($p) => [
+            'id' => $p->id_pasantia,
+            'nombre' => $p->nombre_pas,
+        ]);
+
+        // Obtener todos los pasantes asignados con su respectiva pasantía
+        $inscripciones = Inscripcion::with(['pasante.user', 'pasantia'])
             ->where('idU_jefe', $jefe->idU_jefe)
-            ->where('estado', 'Inscrito') // solo activas
             ->get()
             ->map(fn($ins) => [
-                'id' => $ins->id_inscripcion,
-                'pasante' => $ins->pasante->user->nombre . ' ' . $ins->pasante->user->ap_paterno,
-                'pasantia' => $ins->pasantia->nombre_pas,
+                'id_inscripcion' => $ins->id_inscripcion,
+                'id_pasantia' => $ins->id_pasantia,
+                'idU_pasante' => $ins->idU_pasante,
+                'pasante_nombre' => $ins->pasante->user->nombre . ' ' . $ins->pasante->user->ap_paterno . ' ' . $ins->pasante->user->ap_materno,
             ]);
 
-        $inscripcionSeleccionada = null;
-        if ($inscripcionId) {
-            $inscripcionSeleccionada = Inscripcion::with('pasante.user', 'pasantia')
-                ->find($inscripcionId);
-            if ($inscripcionSeleccionada) {
-                $inscripcionSeleccionada = [
-                    'id' => $inscripcionSeleccionada->id_inscripcion,
-                    'pasante' => $inscripcionSeleccionada->pasante->user->nombre . ' ' . $inscripcionSeleccionada->pasante->user->ap_paterno,
-                    'pasantia' => $inscripcionSeleccionada->pasantia->nombre_pas,
-                ];
-            }
-        }
+        // Capturar parámetros opcionales enviados desde Bitacoras.jsx
+        $preselectedPasanteId = $request->query('pasante_id');
+        $preselectedPasantiaId = $request->query('pasantia_id');
 
         return Inertia::render('Jefe/Informes/Redactar', [
+            'pasantias' => $pasantias,
             'inscripciones' => $inscripciones,
-            'inscripcionSeleccionada' => $inscripcionSeleccionada,
+            'preselectedPasanteId' => $preselectedPasanteId ? (int)$preselectedPasanteId : null,
+            'preselectedPasantiaId' => $preselectedPasantiaId ? (int)$preselectedPasantiaId : null,
         ]);
     }
 
     /**
-     * Genera el informe final (calcula promedio y guarda)
+     * Endpoint consultado vía AXIOS para comprobar restricciones y calcular promedios
+     */
+    public function verificarStatusInscripcion(Request $request)
+    {
+        $jefe = Auth::user()->jefePas;
+        $id_pasantia = $request->query('id_pasantia');
+        $idU_pasante = $request->query('idU_pasante');
+
+        // Buscar la inscripción correspondiente
+        $inscripcion = Inscripcion::where('id_pasantia', $id_pasantia)
+            ->where('idU_pasante', $idU_pasante)
+            ->where('idU_jefe', $jefe->idU_jefe)
+            ->first();
+
+        if (!$inscripcion) {
+            return response()->json(['success' => false, 'message' => 'No se encontró una inscripción válida para los datos seleccionados.'], 404);
+        }
+
+        // RESTRICCIÓN 2: El pasante no debe tener un INFORME FINAL existente
+        $informeExistente = InformeFin::where('id_inscripcion', $inscripcion->id_inscripcion)->exists();
+        if ($informeExistente) {
+            return response()->json([
+                'success' => false, 
+                'error_type' => 'ALREADY_EXISTS',
+                'message' => 'El pasante ya cuenta con un Informe Final registrado para esta pasantía.'
+            ]);
+        }
+
+        // Obtener actividades de la pasantía
+        $totalActividades = Actividad::where('id_pasantia', $id_pasantia)->count();
+
+        // Obtener bitácoras ya evaluadas
+        $bitacoras = BitacoraEva::with('actividad')
+            ->where('idU_pasante', $idU_pasante)
+            ->where('idU_jefe', $jefe->idU_jefe)
+            ->whereIn('id_actividad', function($q) use ($id_pasantia) {
+                $q->select('id_actividad')->from('actividad')->where('id_pasantia', $id_pasantia);
+            })->get();
+
+        // RESTRICCIÓN 1: El pasante debe tener todas las actividades evaluadas
+        if ($totalActividades === 0 || $bitacoras->count() < $totalActividades) {
+            return response()->json([
+                'success' => false,
+                'error_type' => 'PENDING_EVALUATIONS',
+                'message' => "No se puede redactar el informe. El pasante tiene evaluaciones pendientes (" . $bitacoras->count() . " de " . $totalActividades . " evaluadas)."
+            ]);
+        }
+
+        // Calcular promedio de notas de las bitácoras
+        $promedioCalculado = round($bitacoras->avg('nota'), 2);
+
+        return response()->json([
+            'success' => true,
+            'id_inscripcion' => $inscripcion->id_inscripcion,
+            'promedio' => $promedioCalculado,
+            'bitacoras' => $bitacoras->map(fn($b) => [
+                'id' => $b->id_bitacora,
+                'actividad' => $b->actividad->nombre_act,
+                'nota' => $b->nota,
+                'estado' => $b->estado
+            ])
+        ]);
+    }
+
+    /**
+     * Guarda el registro definitivo en la base de datos
      */
     public function generarInforme(Request $request)
     {
+        $jefe = Auth::user()->jefePas;
+
         $request->validate([
             'id_inscripcion' => 'required|exists:inscripcion,id_inscripcion',
+            'promedio' => 'required|numeric',
+            'nota_final' => 'required|numeric|min:0|max:100',
         ]);
 
-        $inscripcion = Inscripcion::findOrFail($request->id_inscripcion);
-        // Verificar que el jefe esté asignado
-        if ($inscripcion->idU_jefe !== Auth::user()->jefePas->idU_jefe) {
-            abort(403);
-        }
+        // Determinar el resultado cualitativo de la pasantía
+        $resultado = $request->nota_final >= 51 ? 'aprobado' : 'reprobado';
 
-        // Calcular promedio de las bitácoras de esta inscripción
-        $promedio = BitacoraEva::where('idU_pasante', $inscripcion->idU_pasante)
-            ->whereIn('id_actividad', function ($q) use ($inscripcion) {
-                $q->select('id_actividad')
-                  ->from('actividad')
-                  ->where('id_pasantia', $inscripcion->id_pasantia);
-            })
-            ->where('idU_jefe', Auth::user()->jefePas->idU_jefe)
-            ->avg('nota') ?? 0;
+        // Guardar en la tabla INFORME_FIN
+        InformeFin::create([
+            'id_inscripcion' => $request->id_inscripcion,
+            'promedio' => $request->promedio,
+            'nota_final' => $request->nota_final,
+            'resultado' => $resultado,
+            'fecha' => now(),
+            'idU_jefe' => $jefe->idU_jefe,
+        ]);
 
-        $resultado = $promedio >= 51 ? 'aprobado' : 'reprobado';
-
-        $informe = InformeFin::updateOrCreate(
-            ['id_inscripcion' => $inscripcion->id_inscripcion],
-            [
-                'promedio' => $promedio,
-                'resultado' => $resultado,
-                'fecha' => now(),
-                'idU_jefe' => Auth::user()->jefePas->idU_jefe,
-            ]
-        );
-
-        return back()->with('success', 'Informe final generado exitosamente.');
+        return redirect()->route('jefe.dashboard')->with('success', 'El Informe Final ha sido generado y guardado exitosamente.');
     }
 
     /**
@@ -1108,6 +1275,7 @@ public function dashboard()
             'pasante' => $informe->inscripcion->pasante->user->nombre . ' ' . $informe->inscripcion->pasante->user->ap_paterno,
             'pasantia' => $informe->inscripcion->pasantia->nombre_pas,
             'promedio' => $informe->promedio,
+            'nota_final' => $informe->nota_final,
             'resultado' => $informe->resultado,
             'fecha' => $informe->fecha->format('d/m/Y'),
             'observaciones' => $informe->observacion ?? 'Sin observaciones',
@@ -1146,7 +1314,7 @@ public function dashboard()
             'cedula'     => $informe->inscripcion->pasante->user->ci ?? 'S/N',
             'empresa'    => $informe->inscripcion->pasantia->empresa->nombre,
             'pasantia'   => $informe->inscripcion->pasantia->nombre_pas,
-            'promedio'   => $informe->promedio,
+            'promedio'   => $informe->nota_final,
             'cargahoraria' => $informe->inscripcion->pasantia->carga_horaria,
             'fecha'      => now(),
             'jefe'       => $informe->jefe->user->nombre,

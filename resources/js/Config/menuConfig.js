@@ -63,13 +63,20 @@ export const menuConfig = {
             href: '/admin/empresas',
         },
         {
-            name: 'Programa de Pasantías',
+            name: 'Ofertas Publicadas',
             icon: ClipboardList,
-            submenus: [
-                { name: 'Ofertas Publicadas', href: '/admin/pasantias', icon: ClipboardList },
-                { name: 'Crear Oferta', href: '/admin/pasantias/crear', icon: FilePlus },
-            ],
+            single: true,
+            href: '/admin/pasantias',
+            
         },
+        // {
+        //     name: 'Programa de Pasantías',
+        //     icon: ClipboardList,
+        //     submenus: [
+        //         { name: 'Ofertas Publicadas', href: '/admin/pasantias', icon: ClipboardList },
+        //         { name: 'Crear Oferta', href: '/admin/pasantias/crear', icon: FilePlus },
+        //     ],
+        // },
         {
             name: 'Monitoreo Académico',
             icon: BookOpen,
@@ -155,32 +162,34 @@ export const menuConfig = {
             name: 'Mis Pasantes',
             icon: School,
             single: true,
-            href: '/jefe/pasantias/tarjetas',
+            href: '/jefe/pasantias/tarjetas?origen=pasantes', // Contexto: Pasantes
         },
         {
             name: 'Evaluaciones',
             icon: FileCheck,
             submenus: [
-                { name: 'Actividades', href: '/jefe/evaluaciones/subactividades', icon: Activity },
-                { name: 'Bitácoras', href: '/jefe/evaluaciones/bitacoras', icon: FileCheck },
+                { name: 'Actividades', href: '/jefe/pasantias/tarjetas?origen=actividades', icon: Activity }, // Contexto: Actividades
+                { name: 'Bitácoras', href: '/jefe/pasantias/tarjetas?origen=bitacoras', icon: FileCheck },   // Contexto: Bitácoras
                 { name: 'Nueva Bitácora', href: '/jefe/bitacora/crear', icon: FilePlus },
             ],
         },
-                {
+        {
             name: 'Informes Finales',
             icon: FileText,
             submenus: [
-                { name: 'Historial', href: '/jefe/informes/historial', icon: FileText },
+                { name: 'Historial', href: '/jefe/pasantias/tarjetas?origen=historial', icon: FileText },     // Contexto: Historial
                 { name: 'Redactar Informe', href: '/jefe/informes/redactar', icon: FilePlus },
             ],
         },
         {
-            name: 'Comunicación',
+            name: 'Mensajes',
             icon: MessageCircle,
-            submenus: [
-                { name: 'Enviar Mensaje', href: '/jefe/comunicacion/crear-mensaje', icon: FilePlus },
-                { name: 'Mensajes Enviados', href: '/jefe/comunicacion/mensajes-enviados', icon: MessageCircle },
-            ],
+            single: true,
+            href: '/jefe/mensajes',
+            // submenus: [
+                // { name: 'Enviar Mensaje', href: '/jefe/comunicacion/crear-mensaje', icon: FilePlus },
+                // { name: 'Mensajes Enviados', href: '/jefe/comunicacion/mensajes-enviados', icon: MessageCircle },
+            // ],
         },
     ],
 

@@ -29,7 +29,8 @@ export default function MisPasantes({ pasantia = {}, listadoPasantes = [], auth 
 
     // Acción 3: Hacer Seguimiento (Redirección con parámetros)
     const hacerSeguimiento = (pasante) => {
-        router.get('/jefe/evaluaciones/bitacoras', {
+        
+        router.get(`/jefe/evaluaciones/${pasantia.id_pasantia}/bitacoras`, {
             inscripcion_id: pasante.id,
             pasante_id: pasante.idU_pasante
         });
@@ -37,7 +38,7 @@ export default function MisPasantes({ pasantia = {}, listadoPasantes = [], auth 
 
     const breadcrumbs = [
         { label: 'Inicio', url: 'jefe.dashboard' },
-        { label: 'Gestión de Pasantías', url: 'jefe.pasantes.tarjetas' }, 
+        { label: 'Gestión de Pasantías', url: 'jefe.pasantias.tarjetas' }, 
         { label: pasantia.nombre_pasantia || 'Pasantes Asignados' },
     ];
 

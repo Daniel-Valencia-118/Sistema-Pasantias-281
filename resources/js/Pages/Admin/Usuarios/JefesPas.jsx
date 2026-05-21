@@ -155,10 +155,10 @@ export default function JefesPas({ jefes, empresas, auth }) {
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-bold text-primary-navy">Gestión de Jefes de Pasantía</h1>
-                <PrimaryButton onClick={openCreateModal}>
+                {/* <PrimaryButton onClick={openCreateModal}>
                     <UserPlus className="h-4 w-4 mr-2" />
                     Nuevo Jefe
-                </PrimaryButton>
+                </PrimaryButton> */}
             </div>
 
             <div className="mb-4 relative">
@@ -230,7 +230,7 @@ export default function JefesPas({ jefes, empresas, auth }) {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="md:col-span-2">
                                 <InputLabel htmlFor="id_empresa" value="Empresa Perteneciente" />
-                                <select
+                                {/* <select
                                     id="id_empresa"
                                     value={data.id_empresa}
                                     onChange={e => setData('id_empresa', e.target.value)}
@@ -241,7 +241,7 @@ export default function JefesPas({ jefes, empresas, auth }) {
                                     {empresas?.map(emp => (
                                         <option key={emp.id_empresa} value={emp.id_empresa}>{emp.nombre}</option>
                                     ))}
-                                </select>
+                                </select> */}
                                 <InputError message={errors.id_empresa} />
                             </div>
                             <div>

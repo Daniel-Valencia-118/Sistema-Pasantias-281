@@ -20,6 +20,9 @@ export default function Pasantes({ pasantes, auth }) {
     const [editUser, setEditUser] = useState(null);
     const [confirmState, setConfirmState] = useState({ show: false, user: null });
 
+    console.log(pasantes);
+    
+
     // Formulario adaptado a la función crearPasante del controlador
     const { data, setData, post, put, processing, errors, reset } = useForm({
         // Datos de Usuario
@@ -98,12 +101,11 @@ export default function Pasantes({ pasantes, auth }) {
             matricula: pasante.matricula || '',
             semestre: pasante.semestre || '',
             mencion: pasante.mencion || '',
-            // Los campos que no vienen en el JSON se inicializan vacíos
-            ap_paterno: '', 
-            ap_materno: '',
-            ci: '',
-            numero_cel: '',
-            fecha_nac: '',
+            ap_paterno: pasante.ap_paterno || '', 
+            ap_materno: pasante.ap_materno || '',
+            ci: pasante.ci || '',
+            numero_cel: pasante.numero_cel || '',
+            fecha_nac: pasante.fecha_nac || '',
             password: '',
         });
         setShowModal(true);
@@ -144,10 +146,10 @@ export default function Pasantes({ pasantes, auth }) {
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-bold text-primary-navy">Gestión de Pasantes</h1>
-                <PrimaryButton onClick={openCreateModal}>
+                {/* <PrimaryButton onClick={openCreateModal}>
                     <UserPlus className="h-4 w-4 mr-2" />
                     Nuevo Pasante
-                </PrimaryButton>
+                </PrimaryButton> */}
             </div>
 
             {/* Buscador */}

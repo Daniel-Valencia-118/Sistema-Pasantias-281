@@ -19,7 +19,7 @@ export default function Breadcrumbs({ items }) {
                         <div className="flex items-center">
                             <ChevronRight className="w-4 h-4 text-gray-400 mx-1" />
                             {item.url ? (
-                                <Link href={route(item.url)} className="text-sm font-medium text-gray-400 hover:text-primary-blue">
+                                <Link href={item.url} className="text-sm font-medium text-gray-400 hover:text-primary-blue">
                                     {item.label}
                                 </Link>
                             ) : (

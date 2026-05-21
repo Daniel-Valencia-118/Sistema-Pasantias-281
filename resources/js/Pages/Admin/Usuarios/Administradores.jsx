@@ -120,7 +120,7 @@ export default function Administradores({ administradores, auth }) {
                 preserveScroll: true,
             });
         } else {
-            post(route('admin.usuarios.store'), {
+            post(route('admin.administradores.store'), {
                 onSuccess: () => { setShowModal(false); reset(); },
                 preserveScroll: true,
             });
@@ -178,17 +178,22 @@ export default function Administradores({ administradores, auth }) {
                         >
                             <Edit className="h-5 w-5" />
                         </button>
-                        <button
-                            onClick={() => toggleEstado(row)}
-                            className={`p-1.5 rounded-lg transition-colors ${
-                                row.estado
-                                    ? 'text-green-600 hover:text-green-800 hover:bg-green-50'
-                                    : 'text-red-600 hover:text-red-800 hover:bg-red-50'
-                            }`}
-                            title={row.estado ? 'Desactivar' : 'Activar'}
-                        >
-                            {row.estado ? <ToggleRight className="h-5 w-5" /> : <ToggleLeft className="h-5 w-5" />}
-                        </button>
+                        {/* Si el administrador es el actual usuario autenticado no mostrar el botón de toggle */}
+                        {auth.user.idUser !== row.id && ( 
+                            <button
+                                onClick={() => toggleEstado(row)}
+                                className={`p-1.5 rounded-lg transition-colors ${
+                                    row.estado
+                                        ? 'text-green-600 hover:text-green-800 hover:bg-green-50'
+                                        : 'text-red-600 hover:text-red-800 hover:bg-red-50'
+                                }`}
+                                title={row.estado ? 'Desactivar' : 'Activar'}
+                            >
+                                {row.estado ? <ToggleRight className="h-5 w-5" /> : <ToggleLeft className="h-5 w-5" />}
+                            </button>
+                        )}
+                        {/* </div> */}
+
                     </div>
                 )}
             />

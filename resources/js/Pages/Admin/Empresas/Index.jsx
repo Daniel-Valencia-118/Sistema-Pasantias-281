@@ -18,6 +18,9 @@ export default function Empresas({ empresas = [], gerentesDisponibles = [], auth
     const [editMode, setEditMode] = useState(false);
     const [registrarNuevoGerente, setRegistrarNuevoGerente] = useState(false);
 
+    console.log(empresas);
+    
+
     const { data, setData, post, put, processing, errors, reset } = useForm({
         id_empresa: '',
         nombre: '',
@@ -128,9 +131,9 @@ export default function Empresas({ empresas = [], gerentesDisponibles = [], auth
                     <h1 className="text-2xl font-bold text-primary-navy">Empresas Aliadas</h1>
                     <p className="text-sm text-gray-500">Administración de organizaciones y gerentes.</p>
                 </div>
-                <PrimaryButton onClick={openCreateModal}>
+                {/* <PrimaryButton onClick={openCreateModal}>
                     <Plus className="h-4 w-4 mr-2" /> Nueva Empresa
-                </PrimaryButton>
+                </PrimaryButton> */}
             </div>
 
             <div className="mb-4 relative">

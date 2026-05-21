@@ -30,6 +30,7 @@ export default function Mensajes({ mensajes = [], pasantes = [], jefes = [], aut
         idU_pasante: '',
         idU_jefe: '',
     });
+    
 
     const columns = [
         { 
@@ -87,7 +88,8 @@ export default function Mensajes({ mensajes = [], pasantes = [], jefes = [], aut
         setSelectedMsg(msg);
         setData({
             id_mensaje: msg.id_mensaje,
-            descripcion: msg.descripcion,
+            // Detectar y eliminar el emisor mediante el prefijo de control en la descripción [J] para mensajes del jefe y [P]
+            descripcion: msg.descripcion.replace(/^\[J\]|\[P\]/, '').trim(),
             fecha: msg.fecha ? msg.fecha.split('T')[0] : '',
             hora: msg.hora || '',
             idU_pasante: msg.idU_pasante,
