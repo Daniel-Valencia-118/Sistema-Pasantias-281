@@ -120,22 +120,24 @@ export default function ModalActividadesPasantia({
 
     return (
         <>
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full mx-4 my-8">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
+                <div className="bg-white rounded-2xl border border-gray-200 max-w-6xl w-full overflow-hidden">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-primary-navy to-primary-blue px-6 py-4 rounded-t-xl">
+                    <div className="bg-gradient-to-r from-primary-navy to-primary-blue px-6 py-5">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="text-xl font-bold text-white">
+                                <h3 className="text-2xl font-bold text-white">
                                     Actividades de la Pasantía
                                 </h3>
-                                <p className="text-primary-sky-blue text-sm">
+
+                                <p className="text-white text-xl mt-1">
                                     {pasantiaNombre}
                                 </p>
                             </div>
+
                             <button
                                 onClick={onClose}
-                                className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
+                                className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 text-white hover:bg-white/20"
                             >
                                 <X size={20} />
                             </button>
@@ -143,15 +145,19 @@ export default function ModalActividadesPasantia({
                     </div>
 
                     {/* Contenido */}
-                    <div className="p-6 max-h-[70vh] overflow-y-auto">
+                    <div className="bg-gray-50 p-6 max-h-[70vh] overflow-y-auto">
                         {loading ? (
-                            <div className="text-center py-12 text-gray-500">
-                                Cargando actividades...
+                            <div className="flex flex-col items-center justify-center py-16 text-center">
+                                <div className="w-12 h-12 border-4 border-gray-200 border-t-primary-blue rounded-full animate-spin"></div>
+
+                                <p className="mt-4 text-gray-500 font-medium">
+                                    Cargando actividades...
+                                </p>
                             </div>
                         ) : (
                             <>
-                                {/* Botón Agregar */}
-                                <div className="mb-4 flex justify-end">
+                                {/* Botón agregar */}
+                                <div className="mb-3 flex justify-end">
                                     <button
                                         onClick={() =>
                                             setModalActividad({
@@ -160,135 +166,198 @@ export default function ModalActividadesPasantia({
                                                 esNueva: true,
                                             })
                                         }
-                                        className="flex items-center gap-2 bg-primary-blue text-white px-4 py-2 rounded-lg hover:bg-primary-sky-blue transition-all"
+                                        className="inline-flex items-center gap-2 bg-primary-blue text-white px-5 py-2.5 rounded-xl text-base font-semibold hover:bg-primary-sky-blue"
                                     >
-                                        <Plus size={18} />
-                                        Agregar Actividad
+                                        <Plus size={20} />
+                                        Nueva Actividad
                                     </button>
                                 </div>
 
-                                {/* Tabla de actividades */}
+                                {/* Tabla */}
                                 {actividades.length === 0 ? (
-                                    <div className="text-center py-12 text-gray-500">
-                                        No hay actividades registradas. Haga
-                                        clic en "Agregar Actividad" para
-                                        comenzar.
+                                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                                        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                                            <AlertCircle
+                                                size={30}
+                                                className="text-gray-400"
+                                            />
+                                        </div>
+
+                                        <h4 className="text-lg font-semibold text-gray-700">
+                                            No hay actividades registradas
+                                        </h4>
+
+                                        <p className="mt-2 text-sm text-gray-500 max-w-md">
+                                            Haga clic en “Agregar Actividad”
+                                            para comenzar a registrar
+                                            actividades en la pasantía.
+                                        </p>
                                     </div>
                                 ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-sm">
-                                            <thead className="bg-gray-50">
-                                                <tr>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                                                        Nro
-                                                    </th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                                                        Nombre
-                                                    </th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                                                        Tipo
-                                                    </th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                                                        Descripción
-                                                    </th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                                                        Fecha Inicio
-                                                    </th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                                                        Fecha Fin
-                                                    </th>
-                                                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500">
-                                                        Acciones
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-200">
-                                                {actividades.map(
-                                                    (act, index) => (
-                                                        <tr
-                                                            key={act.id}
-                                                            className="hover:bg-gray-50"
-                                                        >
-                                                            <td className="px-4 py-3 text-gray-500">
-                                                                {index + 1}
-                                                            </td>
-                                                            <td className="px-4 py-3 font-medium text-gray-900">
-                                                                {act.nombre_act}
-                                                            </td>
-                                                            <td className="px-4 py-3">
-                                                                <span
-                                                                    className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                                                                        act.tipo ===
-                                                                        "OPERATIVA"
-                                                                            ? "bg-blue-100 text-blue-800"
-                                                                            : "bg-purple-100 text-purple-800"
-                                                                    }`}
+                                    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full border-separate border-spacing-0">
+                                                <thead>
+                                                    <tr className="bg-gradient-to-r from-primary-navy to-primary-slate">
+                                                        <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                            Nro
+                                                        </th>
+
+                                                        <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                            Nombre
+                                                        </th>
+
+                                                        <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                            Tipo
+                                                        </th>
+
+                                                        <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                            Descripción
+                                                        </th>
+
+                                                        <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                            Fecha Inicio
+                                                        </th>
+
+                                                        <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                            Fecha Fin
+                                                        </th>
+
+                                                        <th className="px-4 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-white">
+                                                            Acciones
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+
+                                                <tbody className="bg-white">
+                                                    {actividades.map(
+                                                        (act, index) => (
+                                                            <tr
+                                                                key={act.id}
+                                                                className="hover:bg-gray-50"
+                                                            >
+                                                                <td className="px-4 py-4 border-b border-gray-100">
+                                                                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-xs font-bold text-gray-600">
+                                                                        {index +
+                                                                            1}
+                                                                    </div>
+                                                                </td>
+
+                                                                <td className="px-4 py-4 border-b border-gray-100">
+                                                                    <div className="flex items-start gap-3">
+                                                                        <div>
+                                                                            <p className="text-sm font-semibold text-gray-800">
+                                                                                {
+                                                                                    act.nombre_act
+                                                                                }
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+
+                                                                <td className="px-4 py-4 border-b border-gray-100">
+                                                                    <span
+                                                                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                                                                            act.tipo ===
+                                                                            "OPERATIVA"
+                                                                                ? "bg-blue-100 text-blue-800"
+                                                                                : "bg-purple-100 text-purple-800"
+                                                                        }`}
+                                                                    >
+                                                                        {
+                                                                            act.tipo
+                                                                        }
+                                                                    </span>
+                                                                </td>
+
+                                                                <td
+                                                                    className="px-4 py-4 border-b border-gray-100"
+                                                                    title={
+                                                                        act.descripcion
+                                                                    }
                                                                 >
-                                                                    {act.tipo}
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-4 py-3 text-gray-600 max-w-xs truncate">
-                                                                {
-                                                                    act.descripcion
-                                                                }
-                                                            </td>
-                                                            <td className="px-4 py-3 text-gray-600">
-                                                                {formatDate(
-                                                                    act.fecha_ini,
-                                                                )}
-                                                            </td>
-                                                            <td className="px-4 py-3 text-gray-600">
-                                                                {formatDate(
-                                                                    act.fecha_fin,
-                                                                )}
-                                                            </td>
-                                                            <td className="px-4 py-3 text-center">
-                                                                <div className="flex items-center justify-center gap-2">
-                                                                    <button
-                                                                        onClick={() =>
-                                                                            setModalActividad(
-                                                                                {
-                                                                                    isOpen: true,
-                                                                                    actividad:
-                                                                                        act,
-                                                                                    esNueva: false,
-                                                                                },
-                                                                            )
+                                                                    <p className="text-sm text-gray-600 max-w-xs line-clamp-2">
+                                                                        {
+                                                                            act.descripcion
                                                                         }
-                                                                        className="text-primary-blue hover:text-primary-sky-blue transition-all"
-                                                                        title="Editar"
-                                                                    >
-                                                                        <Edit
+                                                                    </p>
+                                                                </td>
+
+                                                                <td className="px-4 py-4 border-b border-gray-100">
+                                                                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-sm font-medium">
+                                                                        <Calendar
                                                                             size={
-                                                                                16
+                                                                                14
                                                                             }
                                                                         />
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() =>
-                                                                            setModalConfirm(
-                                                                                {
-                                                                                    isOpen: true,
-                                                                                    id: act.id,
-                                                                                },
-                                                                            )
-                                                                        }
-                                                                        className="text-red-500 hover:text-red-700 transition-all"
-                                                                        title="Eliminar"
-                                                                    >
-                                                                        <Trash2
+                                                                        {formatDate(
+                                                                            act.fecha_ini,
+                                                                        )}
+                                                                    </span>
+                                                                </td>
+
+                                                                <td className="px-4 py-4 border-b border-gray-100">
+                                                                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-sm font-medium">
+                                                                        <Calendar
                                                                             size={
-                                                                                16
+                                                                                14
                                                                             }
                                                                         />
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    ),
-                                                )}
-                                            </tbody>
-                                        </table>
+                                                                        {formatDate(
+                                                                            act.fecha_fin,
+                                                                        )}
+                                                                    </span>
+                                                                </td>
+
+                                                                <td className="px-4 py-4 text-center border-b border-gray-100">
+                                                                    <div className="flex items-center justify-center gap-2">
+                                                                        <button
+                                                                            onClick={() =>
+                                                                                setModalActividad(
+                                                                                    {
+                                                                                        isOpen: true,
+                                                                                        actividad:
+                                                                                            act,
+                                                                                        esNueva: false,
+                                                                                    },
+                                                                                )
+                                                                            }
+                                                                            className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-100 text-primary-blue hover:bg-blue-200"
+                                                                            title="Editar"
+                                                                        >
+                                                                            <Edit
+                                                                                size={
+                                                                                    16
+                                                                                }
+                                                                            />
+                                                                        </button>
+
+                                                                        <button
+                                                                            onClick={() =>
+                                                                                setModalConfirm(
+                                                                                    {
+                                                                                        isOpen: true,
+                                                                                        id: act.id,
+                                                                                    },
+                                                                                )
+                                                                            }
+                                                                            className="flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 text-red-600 hover:bg-red-200"
+                                                                            title="Eliminar"
+                                                                        >
+                                                                            <Trash2
+                                                                                size={
+                                                                                    16
+                                                                                }
+                                                                            />
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ),
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 )}
                             </>
@@ -296,10 +365,17 @@ export default function ModalActividadesPasantia({
                     </div>
 
                     {/* Footer */}
-                    <div className="flex justify-end p-4 border-t bg-gray-50 rounded-b-xl">
+                    <div className="flex items-center justify-between px-6 py-4 border-t bg-white">
+                        <div className="text-sm text-gray-500">
+                            Total actividades:{" "}
+                            <span className="font-semibold text-gray-700">
+                                {actividades.length}
+                            </span>
+                        </div>
+
                         <button
                             onClick={onClose}
-                            className="px-5 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all"
+                            className="px-6 py-2.5 bg-gray-600 text-white text-sm font-semibold rounded-xl hover:bg-gray-700"
                         >
                             Cerrar
                         </button>
@@ -323,10 +399,15 @@ export default function ModalActividadesPasantia({
                 pasantia={pasantia}
             />
 
-            {/* Modal de confirmación para eliminar */}
+            {/* Modal confirmación */}
             <ModalConfirmacion
                 isOpen={modalConfirm.isOpen}
-                onClose={() => setModalConfirm({ isOpen: false, id: null })}
+                onClose={() =>
+                    setModalConfirm({
+                        isOpen: false,
+                        id: null,
+                    })
+                }
                 onConfirm={handleEliminarActividad}
                 titulo="Eliminar Actividad"
                 mensaje="¿Estás seguro de eliminar esta actividad? Esta acción no se puede deshacer."
@@ -354,7 +435,25 @@ function ModalFormActividad({
         fecha_fin: "",
     });
     const [errors, setErrors] = useState({});
+    // Función para formatear fecha a dd/mm/aaaa
+    const formatFecha = (fecha) => {
+        if (!fecha) return "";
 
+        // Extraer componentes directamente si es string en formato ISO (YYYY-MM-DD)
+        const fechaStr = typeof fecha === "string" ? fecha : fecha.toString();
+        const match = fechaStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+
+        if (match) {
+            return `${match[3]}/${match[2]}/${match[1]}`;
+        }
+
+        // Fallback para otros formatos
+        const date = new Date(fecha);
+        const dia = String(date.getUTCDate()).padStart(2, "0");
+        const mes = String(date.getUTCMonth() + 1).padStart(2, "0");
+        const anio = date.getUTCFullYear();
+        return `${dia}/${mes}/${anio}`;
+    };
     useEffect(() => {
         if (actividad && !esNueva) {
             setForm({
@@ -399,7 +498,7 @@ function ModalFormActividad({
         if (
             form.fecha_ini &&
             form.fecha_fin &&
-            form.fecha_ini >= form.fecha_fin
+            form.fecha_ini > form.fecha_fin
         ) {
             newErrors.fecha_fin = "La fecha de fin debe ser posterior";
         }
@@ -433,7 +532,7 @@ function ModalFormActividad({
                 <div className="bg-gradient-to-r from-primary-navy to-primary-blue px-6 py-4 rounded-t-xl">
                     <div className="flex items-center justify-between">
                         <h3 className="text-xl font-bold text-white">
-                            {esNueva ? "Agregar Actividad" : "Editar Actividad"}
+                            {esNueva ? "Nueva Actividad" : "Editar Actividad"}
                         </h3>
                         <button
                             onClick={onClose}
@@ -447,40 +546,91 @@ function ModalFormActividad({
                 {/* Formulario */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
                     {!esNueva && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Nombre de la Actividad
-                            </label>
-                            <input
-                                type="text"
-                                value={form.nombre_act}
-                                disabled
-                                className="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-gray-500"
-                            />
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Fecha Inicio de la Pasantía
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formatFecha(pasantia?.fecha_ini)}
+                                        disabled
+                                        className="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-gray-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Fecha Fin de la Pasantía
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formatFecha(pasantia?.fecha_fin)}
+                                        disabled
+                                        className="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-gray-500"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Nombre de la Actividad
+                                </label>
+                                <input
+                                    type="text"
+                                    value={form.nombre_act}
+                                    disabled
+                                    className="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-gray-500"
+                                />
+                            </div>
                         </div>
                     )}
 
                     {esNueva && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Nombre de la Actividad{" "}
-                                <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                name="nombre_act"
-                                value={form.nombre_act}
-                                onChange={handleChange}
-                                className="w-full rounded-lg border-2 border-gray-300 bg-white px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20"
-                            />
-                            {errors.nombre_act && (
-                                <p className="text-red-500 text-xs mt-1">
-                                    {errors.nombre_act}
-                                </p>
-                            )}
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Fecha Inicio de la Pasantía
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formatFecha(pasantia?.fecha_ini)}
+                                        disabled
+                                        className="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-gray-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Fecha Fin de la Pasantía
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formatFecha(pasantia?.fecha_fin)}
+                                        disabled
+                                        className="w-full rounded-lg border-2 border-gray-200 bg-gray-100 px-4 py-2 text-gray-500"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Nombre de la Actividad{" "}
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="nombre_act"
+                                    value={form.nombre_act}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border-2 border-gray-300 bg-white px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20"
+                                />
+                                {errors.nombre_act && (
+                                    <p className="text-red-500 text-xs mt-1">
+                                        {errors.nombre_act}
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     )}
-
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Tipo <span className="text-red-500">*</span>

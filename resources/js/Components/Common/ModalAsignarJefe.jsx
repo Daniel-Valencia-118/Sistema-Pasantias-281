@@ -160,7 +160,7 @@ export default function ModalAsignarJefe({
                                                 CI
                                             </th>
                                             <th className="px-3 py-3 text-center text-xs font-medium text-gray-500">
-                                                Perfil
+                                                Datos
                                             </th>
                                             <th className="px-3 py-3 text-center text-xs font-medium text-gray-500">
                                                 Acción

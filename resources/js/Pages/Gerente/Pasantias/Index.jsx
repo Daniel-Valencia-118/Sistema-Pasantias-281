@@ -233,18 +233,17 @@ export default function Index({ auth, pasantias }) {
         // PEOR ESTADO: No hay inscritos
         if (inscritos === 0) {
             return {
-                text: "Sin Inscritos",
+                text: "Eiminar Pasantia",
                 bg: "bg-red-100",
                 textColor: "text-red-800",
-                icon: <Award size={12} />,
                 showCancel: true,
             };
         }
 
         // MEJOR ESTADO: Cupos disponibles = 0 Y todos tienen jefe
-        if (cupos_disponibles === 0 && todos_con_jefe) {
+        if (todos_con_jefe) {
             return {
-                text: "Todo Listo",
+                text: "En Orden",
                 bg: "bg-green-100",
                 textColor: "text-green-800",
                 icon: <CheckCircle size={12} />,
@@ -253,34 +252,34 @@ export default function Index({ auth, pasantias }) {
         }
 
         // NORMAL: Cupos disponibles = 0 pero no todos tienen jefe
-        if (cupos_disponibles === 0 && !todos_con_jefe) {
+        // if (cupos_disponibles === 0 && !todos_con_jefe) {
+        //     return {
+        //         text: "Falta Asignar Jefe",
+        //         bg: "bg-yellow-100",
+        //         textColor: "text-yellow-800",
+        //         icon: <AlertTriangle size={12} />,
+        //         showCancel: false,
+        //     };
+        // }
+        if (!todos_con_jefe) {
             return {
-                text: "Falta Asignar Jefe",
+                text: "Asignar Jefe Pas.",
                 bg: "bg-yellow-100",
                 textColor: "text-yellow-800",
-                icon: <AlertTriangle size={12} />,
+                icon: <AlertTriangle size={17} />,
                 showCancel: false,
             };
         }
-        if (cupos_disponibles > 0 && !todos_con_jefe) {
-            return {
-                text: "Falta Asignar Jefe",
-                bg: "bg-yellow-100",
-                textColor: "text-yellow-800",
-                icon: <AlertTriangle size={12} />,
-                showCancel: false,
-            };
-        }
-        // NORMAL: Cupos disponibles > 0 pero todos tienen jefe
-        if (cupos_disponibles > 0 && todos_con_jefe) {
-            return {
-                text: "Falta Completar Cupos",
-                bg: "bg-blue-100",
-                textColor: "text-blue-800",
-                icon: <AlertTriangle size={12} />,
-                showCancel: false,
-            };
-        }
+        // // NORMAL: Cupos disponibles > 0 pero todos tienen jefe
+        // if (cupos_disponibles > 0 && todos_con_jefe) {
+        //     return {
+        //         text: "Falta Completar Cupos",
+        //         bg: "bg-blue-100",
+        //         textColor: "text-blue-800",
+        //         icon: <AlertTriangle size={12} />,
+        //         showCancel: false,
+        //     };
+        // }
 
         // Estado por defecto (no debería llegar aquí)
         return {
@@ -350,7 +349,7 @@ export default function Index({ auth, pasantias }) {
                                     MENCIÓN
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Hrs./Fechas
+                                    Fechas/Hrs.
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     ACTIVIDADES
@@ -364,7 +363,7 @@ export default function Index({ auth, pasantias }) {
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     ESTADO
                                 </th>
-                                <th
+                                {/* <th
                                     className="px-4 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
                                     onClick={() => handleSort("fecha_ini")}
                                 >
@@ -372,7 +371,7 @@ export default function Index({ auth, pasantias }) {
                                         FECHA INI.{" "}
                                         <SortIcon field="fecha_ini" />
                                     </div>
-                                </th>
+                                </th> */}
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     INICIAR
                                 </th>
@@ -532,7 +531,7 @@ export default function Index({ auth, pasantias }) {
                                             const estado =
                                                 getEstadoBadge(pasantia);
                                             return (
-                                                <div className="flex items-center justify-center gap-2">
+                                                <div className="flex items-center justify-center gap-0">
                                                     <span
                                                         className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${estado.bg} ${estado.textColor}`}
                                                     >
@@ -550,7 +549,7 @@ export default function Index({ auth, pasantias }) {
                                                             title="Cancelar pasantía"
                                                         >
                                                             <XCircle
-                                                                size={16}
+                                                                size={15}
                                                             />
                                                         </button>
                                                     )}
@@ -558,11 +557,11 @@ export default function Index({ auth, pasantias }) {
                                             );
                                         })()}
                                     </td>
-                                    <td className="px-4 py-3">
+                                    {/* <td className="px-4 py-3">
                                         <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 bg-gray-50 px-2 py-1 rounded-lg border border-gray-200">
                                             {formatDate(pasantia.fecha_ini)}
                                         </span>
-                                    </td>
+                                    </td> */}
                                     <td className="px-4 py-3 text-center">
                                         <button
                                             onClick={() =>

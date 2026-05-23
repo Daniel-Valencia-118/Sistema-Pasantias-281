@@ -220,7 +220,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                         <span>Volver</span>
                     </button>
                     <h1 className="text-2xl font-bold text-primary-navy">
-                        Publicar Nueva Pasantía
+                        Publica una Nueva Oferta de Pasantía
                     </h1>
                 </div>
 
@@ -298,7 +298,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                                     name="cupos"
                                     value={form.cupos}
                                     onChange={handleChange}
-                                    className="w-full rounded-lg border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all cursor-pointer"
+                                    className="w-full rounded-lg border-3 border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all cursor-pointer"
                                 >
                                     <option value="">Seleccionar cupos</option>
                                     {cuposOptions.map((c) => (
@@ -322,7 +322,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                                     name="turno"
                                     value={form.turno}
                                     onChange={handleChange}
-                                    className="w-full rounded-lg border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all cursor-pointer"
+                                    className="w-full rounded-lg border-3 border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all cursor-pointer"
                                 >
                                     <option value="">Seleccionar turno</option>
                                     {turnos.map((t) => (
@@ -339,7 +339,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Carga Horaria (horas totales)
+                                    Carga Horaria (hrs. por Semana)
                                 </label>
                                 <input
                                     type="number"
@@ -347,7 +347,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                                     value={form.carga_horaria}
                                     onChange={handleChange}
                                     min="0"
-                                    className="w-full rounded-lg border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all"
+                                    className="w-full rounded-lg border-3 border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all"
                                 />
                             </div>
                         </div>
@@ -356,7 +356,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                         <div className="grid md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Fecha de Inicio{" "}
+                                    Fecha de Inicio de la Pasantia{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -376,7 +376,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Fecha de Fin{" "}
+                                    Fecha de Final de la Pasantia{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -466,7 +466,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                                                 </td>
                                                 <td className="px-4 py-3 text-sm">
                                                     <span
-                                                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                        className={`inline-flex  px-2 py-0.5 rounded-full text-xs font-medium ${
                                                             act.tipo ===
                                                             "OPERATIVA"
                                                                 ? "bg-blue-100 text-blue-800"

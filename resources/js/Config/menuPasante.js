@@ -18,6 +18,7 @@ export const menuPasante = [
         name: "Home",
         icon: Home,
         href: "/pasante",
+        hide: true,
         single: true,
     },
     {

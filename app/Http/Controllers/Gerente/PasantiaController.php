@@ -25,7 +25,7 @@ class PasantiaController extends Controller
             'Seguridad de la Información'
         ];
         
-        $turnos = ['tiempo completo', 'medio tiempo', 'mañana', 'tarde', 'noche'];
+        $turnos = ['Tiempo completo', 'Medio tiempo', 'Mañana', 'Tarde', 'Noche'];
         $tiposActividad = ['OPERATIVA', 'TECNICA'];
         
         return Inertia::render('Gerente/Pasantias/Create', [

@@ -103,7 +103,7 @@ class PasantiaPublicadaController extends Controller
             'tipo' => 'required|string|in:OPERATIVA,TECNICA',
             'descripcion' => 'nullable|string',
             'fecha_ini' => 'required|date|after_or_equal:' . $pasantia->fecha_ini,
-            'fecha_fin' => 'required|date|before_or_equal:' . $pasantia->fecha_fin . '|after:fecha_ini',
+            'fecha_fin' => 'required|date|before_or_equal:' . $pasantia->fecha_fin . '|after_or_equal:fecha_ini',
         ]);
         
         $actividad = Actividad::create([
@@ -146,7 +146,7 @@ class PasantiaPublicadaController extends Controller
         $request->validate([
             'descripcion' => 'nullable|string',
             'fecha_ini' => 'required|date|after_or_equal:' . $pasantia->fecha_ini,
-            'fecha_fin' => 'required|date|before_or_equal:' . $pasantia->fecha_fin . '|after:fecha_ini',
+            'fecha_fin' => 'required|date|before_or_equal:' . $pasantia->fecha_fin . '|after_or_equal:fecha_ini',
         ]);
         
         $pasantesIds = Inscripcion::where('id_pasantia', $pasantia->id_pasantia)
@@ -440,22 +440,22 @@ class PasantiaPublicadaController extends Controller
         $this->sincronizarEstadosInscripciones($inscripciones);
         
         // Obtener IDs de pasantes para notificaciones
-        $pasantesIds = Inscripcion::where('id_pasantia', $id)
-            ->where('estado', 'iniciado','inscrito')
-            ->pluck('idU_pasante')
-            ->toArray();
+        // $pasantesIds = Inscripcion::where('id_pasantia', $id)
+        //     ->where('estado', 'iniciado','inscrito')
+        //     ->pluck('idU_pasante')
+        //     ->toArray();
 
         // =============================================
         // NOTIFICACIÓN: Pasantía iniciada
         // =============================================
-        $this->crearNotificacionesMultiples(
-            $pasantesIds,
-            'pasante',
-            '¡Pasantía comenzó!',
-            "La pasantía \"{$pasantia->nombre_pas}\" ha comenzado. ¡Muchos éxitos!",
-            'pasantia',
-            "/pasante/actividades/{$pasantia->id_pasantia}"
-        );
+        // $this->crearNotificacionesMultiples(
+        //     $pasantesIds,
+        //     'pasante',
+        //     '¡Pasantía comenzó!',
+        //     "La pasantía \"{$pasantia->nombre_pas}\" ha comenzado. ¡Muchos éxitos!",
+        //     'pasantia',
+        //     "/pasante/actividades/{$pasantia->id_pasantia}"
+        // );
     
         return response()->json(['message' => 'Pasantía iniciada correctamente']);
     

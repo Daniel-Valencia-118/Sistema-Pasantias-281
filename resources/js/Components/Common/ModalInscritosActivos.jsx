@@ -155,7 +155,7 @@ export default function ModalInscritosActivos({
                         <div className="flex items-start justify-between gap-4">
                             <div>
                                 <h3 className="text-2xl font-bold text-white">
-                                    Pasantes Cursando
+                                    Pasantes Inscritos
                                 </h3>
 
                                 <p className="text-white/80 text-base mt-0.5 font-medium">
@@ -178,11 +178,11 @@ export default function ModalInscritosActivos({
                         <div className="mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div>
                                 <h4 className="text-lg font-semibold text-gray-800">
-                                    Lista de Pasantes
+                                    Lista de Pasantes Inscritos
                                 </h4>
 
-                                <p className="text-sm text-gray-500">
-                                    Total activos:{" "}
+                                <p className="text-base text-gray-500">
+                                    Total Inscritos:{" "}
                                     <span className="font-semibold text-gray-700">
                                         {filteredAndSorted.length}
                                     </span>
@@ -292,11 +292,11 @@ export default function ModalInscritosActivos({
                                                 </th>
 
                                                 <th className="px-4 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-white">
-                                                    Perfil
+                                                    Datos
                                                 </th>
 
                                                 <th className="px-4 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-white">
-                                                    Actividades Evaluadas
+                                                    Actividades
                                                 </th>
 
                                                 <th className="px-4 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-white">
@@ -350,12 +350,13 @@ export default function ModalInscritosActivos({
                                                                         },
                                                                     )
                                                                 }
-                                                                className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-blue-100 text-primary-blue hover:bg-blue-200"
-                                                                title="Ver perfil"
+                                                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-blue text-white text-xs font-semibold rounded-lg hover:bg-primary-sky-blue transition-all duration-200"
+                                                                title="Ver perfil del pasante"
                                                             >
                                                                 <Eye
-                                                                    size={18}
+                                                                    size={19}
                                                                 />
+                                                                Ver
                                                             </button>
                                                         </td>
 
@@ -376,7 +377,7 @@ export default function ModalInscritosActivos({
                                                                 <ClipboardList
                                                                     size={15}
                                                                 />
-                                                                Ver
+                                                                Ver Evaluaciones
                                                             </button>
                                                         </td>
 
@@ -394,7 +395,7 @@ export default function ModalInscritosActivos({
                                                                                 },
                                                                             )
                                                                         }
-                                                                        className="px-3 py-1.5 bg-blue-50 text-primary-blue rounded-lg text-xs font-medium hover:bg-blue-100"
+                                                                        className="px-3 py-1.5 bg-blue-50 text-primary-blue rounded-lg text-sm font-medium hover:bg-blue-100"
                                                                         title="Ver perfil del jefe"
                                                                     >
                                                                         {
@@ -402,6 +403,12 @@ export default function ModalInscritosActivos({
                                                                                 .jefe
                                                                                 .ap_paterno
                                                                         }{" "}
+                                                                        {
+                                                                            inscrito
+                                                                                .jefe
+                                                                                .ap_materno
+                                                                        }
+                                                                        {", "}
                                                                         {
                                                                             inscrito
                                                                                 .jefe

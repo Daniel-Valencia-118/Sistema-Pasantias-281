@@ -21,6 +21,7 @@ export const menuGerente = [
         name: "Home",
         icon: Home,
         href: "/gerente",
+        hide: true,
         single: true,
     },
     {

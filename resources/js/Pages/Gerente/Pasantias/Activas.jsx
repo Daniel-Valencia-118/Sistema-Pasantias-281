@@ -218,7 +218,7 @@ export default function Activas({ auth, pasantias }) {
                                 </th>
 
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Hrs./Fechas
+                                    Fechas/Hrs.
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     ACTIVIDADES

@@ -72,10 +72,10 @@ export default function ModalHorario({
                     {/* Carga Horaria */}
                     <div className="bg-gray-50 rounded-lg p-3">
                         <label className="block text-xs font-medium text-gray-500 flex items-center gap-1">
-                            <CalendarDays size={14} /> Carga Horaria Total
+                            <CalendarDays size={14} /> Carga Horaria
                         </label>
-                        <p className="text-gray-900 font-medium text-lg">
-                            {cargaHoraria || 0} horas
+                        <p className="text-gray-900 font-xs text-lg">
+                            {cargaHoraria || 0} (hrs. por Semana)
                         </p>
                     </div>
 
@@ -83,7 +83,7 @@ export default function ModalHorario({
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-gray-50 rounded-lg p-3">
                             <label className="block text-xs font-medium text-gray-500 flex items-center gap-1">
-                                <Calendar size={14} /> Fecha Inicio
+                                <Calendar size={14} /> Fecha Inicio Pasantia
                             </label>
                             <p className="text-gray-900 font-medium">
                                 {fechaIni ? formatDateToSpanish(fechaIni) : "-"}
@@ -105,7 +105,7 @@ export default function ModalHorario({
 
                         <div className="bg-gray-50 rounded-lg p-3">
                             <label className="block text-xs font-medium text-gray-500 flex items-center gap-1">
-                                <Calendar size={14} /> Fecha Final
+                                <Calendar size={14} /> Fecha Final Pasantia
                             </label>
                             <p className="text-gray-900 font-medium">
                                 {fechaFin ? formatDateToSpanish(fechaFin) : "-"}

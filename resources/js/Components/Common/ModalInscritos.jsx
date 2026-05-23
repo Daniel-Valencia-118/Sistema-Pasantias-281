@@ -182,7 +182,7 @@ export default function ModalInscritos({
                                     onChange={(e) =>
                                         setSearchTerm(e.target.value)
                                     }
-                                    className="pl-10 pr-4 py-3 w-full bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-blue"
+                                    className="pl-10 pr-4 py-3 w-full bg-white border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-blue"
                                 />
                             </div>
                         </div>
@@ -439,12 +439,24 @@ export default function ModalInscritos({
                             registros
                         </div>
 
-                        <button
-                            onClick={onClose}
-                            className="px-6 py-2.5 bg-gray-600 text-white text-sm font-semibold rounded-xl hover:bg-gray-700"
-                        >
-                            Cerrar
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={onClose}
+                                className="px-6 py-2.5 bg-gray-600 text-white text-sm font-semibold rounded-xl hover:bg-gray-700 transition-all duration-200"
+                            >
+                                Cerrar
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    onClose();
+                                    window.location.href = "/gerente/pasantias";
+                                }}
+                                className="px-6 py-2.5 bg-primary-blue text-white text-sm font-semibold rounded-xl hover:bg-primary-sky-blue transition-all duration-200"
+                            >
+                                Hecho
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
