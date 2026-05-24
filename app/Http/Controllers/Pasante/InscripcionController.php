@@ -37,7 +37,7 @@ class InscripcionController extends Controller
             ->map(function($pasantia) use ($pasante) {
                 // Calcular cupos disponibles reales
                 $inscritosActivos = $pasantia->inscripciones()
-                    ->whereIn('estado', ['inscrito', 'iniciado'])
+                    ->whereIn('estado', ['inscrito', 'iniciado','finalizado'])
                     ->count();
                 $cuposDisponibles = max(0, $pasantia->cupos - $inscritosActivos);
                 
@@ -203,20 +203,32 @@ class InscripcionController extends Controller
             $inscripcion = Inscripcion::create([
                 'fecha_insc' => now()->format('Y-m-d'),
                 'hora_insc' => now()->format('H:i:s'),
-                'estado' => 'inscrito',
+                'estado' => 'iniciado',
                 'idU_pasante' => $pasante->idU_pasante,
                 'id_pasantia' => $idPasantia,
                 'idU_jefe' => null,
             ]);
             
-            DB::commit();
+            // ======================================================================
+            // NUEVO: Verificar si con esta nueva inscripción se llenaron los cupos
+            // ======================================================================
+            // Volvemos a contar incluyendo la inscripción que acabamos de hacer
+            $totalInscritos = Inscripcion::where('id_pasantia', $idPasantia)
+                ->whereIn('estado', ['inscrito', 'iniciado', 'finalizado'])
+                ->count();
             
+            if ($totalInscritos >= $pasantia->cupos) {
+                $pasantia->estado = 'INICIADO';
+                $pasantia->save(); // Se guarda de manera permanente si se llenó
+            }
+            
+            // Si todo salió bien, hacemos el Commit de la inscripción y el cambio de estado
+            DB::commit();
+
             // =============================================
             // NOTIFICACIÓN #1: Nuevo inscrito para el GERENTE
             // =============================================
             // Obtener el gerente de la empresa
-            $gerente = $pasantia->empresa->gerente;
-
             $gerente = $pasantia->empresa->gerente;
             if ($gerente) {
                 $this->crearNotificacion(
@@ -233,12 +245,9 @@ class InscripcionController extends Controller
             // NOTIFICACIÓN #2: Cupos completados (si aplica)
             // =============================================
             // Contar inscritos activos (inscrito + iniciado)
-            
-            $totalInscritos = Inscripcion::where('id_pasantia', $idPasantia)
-                ->whereIn('estado', ['inscrito', 'iniciado','finalizado'])
-                ->count();
-            
+                    
             $cuposTotales = $pasantia->cupos;
+
             if ($totalInscritos == $cuposTotales) {
                 $this->crearNotificacion(
                     $gerente->idU_gerente,

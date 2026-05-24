@@ -28,11 +28,11 @@ export default function ModalEditarPasantia({
     ];
 
     const turnoOptions = [
-        "tiempo completo",
-        "medio tiempo",
-        "mañana",
-        "tarde",
-        "noche",
+        "Tiempo completo",
+        "Medio tiempo",
+        "Mañana",
+        "Tarde",
+        "Noche",
     ];
 
     useEffect(() => {
@@ -149,7 +149,7 @@ export default function ModalEditarPasantia({
                     {/* Carga Horaria */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Carga Horaria (horas totales)
+                            Carga Horaria (horas por Semana)
                         </label>
                         <input
                             type="number"

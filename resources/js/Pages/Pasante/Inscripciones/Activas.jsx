@@ -95,14 +95,14 @@ export default function Activas({ auth, inscripciones }) {
                                 <Briefcase size={28} />
                             </div>
                             <h1 className="text-3xl font-bold">
-                                Pasantías Activas
+                                Pasantías Inscritas
                             </h1>
                         </div>
                         <p className="text-white/80 text-lg mb-6">
-                            Gestiona y da seguimiento a tus pasantías en curso
+                            Gestiona y da seguimiento a tus pasantías
                         </p>
 
-                        {/* Stats Cards */}
+                        {/* Stats Cards
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300">
                                 <div className="flex items-center justify-between">
@@ -152,7 +152,7 @@ export default function Activas({ auth, inscripciones }) {
                                     />
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>
@@ -200,10 +200,10 @@ export default function Activas({ auth, inscripciones }) {
                                         title="Ver detalles de la empresa"
                                     >
                                         <Building2
-                                            size={16}
-                                            className="text-primary-blue flex-shrink-0"
+                                            size={20}
+                                            className="text-primary-blue flex-shrink-0 cursor-pointer"
                                         />
-                                        <span className="text-gray-700 font-medium break-words flex-1 min-w-0 group-hover:text-primary-blue transition-colors">
+                                        <span className="text-gray-700 text-base font-medium break-words flex-1 min-w-0 group-hover:text-primary-blue transition-colors cursor-pointer">
                                             {p.empresa.nombre}
                                         </span>
                                     </button>
@@ -220,7 +220,7 @@ export default function Activas({ auth, inscripciones }) {
                                                 `/pasante/actividades/${p.id}`,
                                             )
                                         }
-                                        className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-primary-blue to-primary-sky-blue text-white rounded-lg hover:from-primary-sky-blue hover:to-primary-blue transition-all duration-200 shadow-md hover:shadow-lg text-sm font-medium"
+                                        className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-primary-blue to-primary-sky-blue text-white rounded-lg hover:from-primary-sky-blue hover:to-primary-blue transition-all duration-200 shadow-md hover:shadow-lg text-sm font-medium cursor-pointer"
                                         title="Ver actividades"
                                     >
                                         <CalendarIcon size={16} />
@@ -240,7 +240,7 @@ export default function Activas({ auth, inscripciones }) {
                                                 },
                                             })
                                         }
-                                        className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm font-medium"
+                                        className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm font-medium cursor-pointer"
                                         title="Ver horario"
                                     >
                                         <Clock size={16} />
@@ -256,7 +256,7 @@ export default function Activas({ auth, inscripciones }) {
                                             className="text-green-600"
                                         />
                                         <span className="text-sm font-medium text-gray-700">
-                                            Jefe Asignado
+                                            Jefe
                                         </span>
                                     </div>
                                     {inscripcion.jefe_asignado ? (
@@ -268,12 +268,13 @@ export default function Activas({ auth, inscripciones }) {
                                             {
                                                 inscripcion.jefe_asignado
                                                     .ap_materno
-                                            }{" "}
+                                            }
+                                            {", "}
                                             {inscripcion.jefe_asignado.nombre}
                                         </span>
                                     ) : (
                                         <span className="text-xs text-gray-400 italic">
-                                            No Asignado
+                                            Jefe No Asignado
                                         </span>
                                     )}
                                 </div>
@@ -290,23 +291,23 @@ export default function Activas({ auth, inscripciones }) {
                                             },
                                         })
                                     }
-                                    className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 hover:from-purple-100 hover:to-pink-100 transition-all duration-200 group"
+                                    className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 hover:from-purple-100 hover:to-pink-100 transition-all duration-200 group cursor-pointer"
                                     title="Ver compañeros inscritos"
                                 >
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 ">
                                         <Users
                                             size={18}
                                             className="text-purple-600"
                                         />
-                                        <span className="text-sm font-medium text-gray-700">
-                                            Compañeros inscritos
+                                        <span className="text-sm font-medium text-gray-700 cursor-pointer">
+                                            Compañeros de Pasantia
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <span className="text-xl font-bold text-purple-700">
                                             {p.total_inscritos}
                                         </span>
-                                        <span className="text-purple-600 group-hover:translate-x-1 transition-transform">
+                                        <span className="text-purple-600 group-hover:translate-x-1 transition-transform cursor-pointer">
                                             →
                                         </span>
                                     </div>

@@ -110,14 +110,14 @@ export default function ModalAutoEva({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 border rounded-xl"
+                            className="px-4 py-2 border rounded-xl cursor-pointer"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 py-2 bg-primary-blue text-white rounded-xl hover:bg-primary-sky-blue flex items-center gap-2 shadow-md"
+                            className="px-4 py-2 bg-primary-blue text-white rounded-xl hover:bg-primary-sky-blue flex items-center gap-2 shadow-md cursor-pointer"
                         >
                             {yaExiste ? <Edit size={16} /> : <Save size={16} />}
                             {loading

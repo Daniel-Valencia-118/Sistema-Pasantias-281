@@ -350,7 +350,7 @@ export default function ModalInscritosActivos({
                                                                         },
                                                                     )
                                                                 }
-                                                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-blue text-white text-xs font-semibold rounded-lg hover:bg-primary-sky-blue transition-all duration-200"
+                                                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-blue text-white text-xs font-semibold rounded-lg hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
                                                                 title="Ver perfil del pasante"
                                                             >
                                                                 <Eye
@@ -371,7 +371,7 @@ export default function ModalInscritosActivos({
                                                                         },
                                                                     )
                                                                 }
-                                                                className="inline-flex items-center gap-2 px-4 py-2 bg-primary-blue text-white text-xs font-semibold rounded-xl hover:bg-primary-sky-blue"
+                                                                className="inline-flex items-center gap-2 px-4 py-2 bg-primary-blue text-white text-xs font-semibold rounded-xl hover:bg-primary-sky-blue cursor-pointer"
                                                                 title="Ver actividades evaluadas"
                                                             >
                                                                 <ClipboardList
@@ -395,7 +395,7 @@ export default function ModalInscritosActivos({
                                                                                 },
                                                                             )
                                                                         }
-                                                                        className="px-3 py-1.5 bg-blue-50 text-primary-blue rounded-lg text-sm font-medium hover:bg-blue-100"
+                                                                        className="px-3 py-1.5 bg-blue-50 text-primary-blue rounded-lg text-sm font-medium hover:bg-blue-100 cursor-pointer"
                                                                         title="Ver perfil del jefe"
                                                                     >
                                                                         {
@@ -422,7 +422,7 @@ export default function ModalInscritosActivos({
                                                                                 inscrito,
                                                                             )
                                                                         }
-                                                                        className="flex items-center justify-center w-9 h-9 rounded-lg bg-red-500 text-white hover:bg-red-600"
+                                                                        className="flex items-center justify-center w-9 h-9 rounded-lg bg-red-500 text-white hover:bg-red-600 cursor-pointer"
                                                                         title="Desasignar jefe"
                                                                     >
                                                                         <UserX
@@ -439,7 +439,7 @@ export default function ModalInscritosActivos({
                                                                             inscrito,
                                                                         )
                                                                     }
-                                                                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary-blue text-white text-xs font-semibold rounded-xl hover:bg-primary-sky-blue"
+                                                                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary-blue text-white text-xs font-semibold rounded-xl hover:bg-primary-sky-blue cursor-pointer"
                                                                 >
                                                                     <UserCheck
                                                                         size={

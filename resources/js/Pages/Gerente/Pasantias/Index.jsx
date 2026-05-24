@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
-import { Play, Flag } from "lucide-react";
+import { Play, Flag, RefreshCw } from "lucide-react";
 import ModalConfirmacion from "@/Components/Common/ModalConfirmacion";
 import GerenteLayout from "@/Components/Layout/GerenteLayout";
 import ModalHorario from "@/Components/Common/ModalHorario";
 import ModalActividadesPasantia from "@/Components/Common/ModalActividadesPasantia";
 import ModalEditarPasantia from "@/Components/Common/ModalEditarPasantia";
-import ModalInscritos from "@/Components/Common/ModalInscritos";
+import ModalInscritosActivos from "@/Components/Common/ModalInscritosActivos";
 import axios from "axios";
 import {
     Eye,
@@ -31,11 +31,13 @@ export default function Index({ auth, pasantias }) {
     const [pasantiasData, setPasantiasData] = useState(pasantias);
     const [searchTerm, setSearchTerm] = useState("");
     const [sortField, setSortField] = useState("fecha_ini");
+    const [loadingAbrir, setLoadingAbrir] = useState(false);
     const [modalEditar, setModalEditar] = useState({
         isOpen: false,
         pasantia: null,
     });
-    const [sortDirection, setSortDirection] = useState("asc");
+
+    const [sortDirection, setSortDirection] = useState("desc");
     const [modalDetalles, setModalDetalles] = useState({
         isOpen: false,
         pasantia: null,
@@ -56,6 +58,10 @@ export default function Index({ auth, pasantias }) {
         cargaHoraria: null,
         fechaIni: null,
         fechaFin: null,
+    });
+    const [modalAbrir, setModalAbrir] = useState({
+        isOpen: false,
+        pasantiaId: null,
     });
     const [loadingIniciar, setLoadingIniciar] = useState(false);
     const formatDate = (date) => {
@@ -89,6 +95,7 @@ export default function Index({ auth, pasantias }) {
             <ChevronDown size={14} />
         );
     };
+
     const [modalInscritos, setModalInscritos] = useState({
         isOpen: false,
         pasantiaId: null,
@@ -186,7 +193,33 @@ export default function Index({ auth, pasantias }) {
             }
         }
     };
-
+    // Función para abrir pasantía (cambiar a ABIERTA)
+    const handleAbrirPasantia = async () => {
+        setLoadingAbrir(true);
+        try {
+            const response = await axios.patch(
+                `/gerente/pasantias/${modalAbrir.pasantiaId}/abrir`,
+            );
+            if (response.data.message) {
+                // Actualizar el estado local de la pasantía
+                setPasantiasData((prev) =>
+                    prev.map((p) =>
+                        p.id === modalAbrir.pasantiaId
+                            ? { ...p, estado: "ABIERTA" }
+                            : p,
+                    ),
+                );
+            }
+            setModalAbrir({ isOpen: false, pasantiaId: null });
+        } catch (error) {
+            alert(
+                error.response?.data?.message || "Error al abrir la pasantía",
+            );
+            setModalAbrir({ isOpen: false, pasantiaId: null });
+        } finally {
+            setLoadingAbrir(false);
+        }
+    };
     const handleCancelarPasantia = async (id) => {
         if (
             confirm(
@@ -209,7 +242,6 @@ export default function Index({ auth, pasantias }) {
                 `/gerente/pasantias/${modalIniciar.pasantiaId}/iniciar`,
             );
             if (response.data.message) {
-                alert(response.data.message); // ← Mostrar mensaje de éxito
                 window.location.reload();
             }
         } catch (error) {
@@ -349,7 +381,7 @@ export default function Index({ auth, pasantias }) {
                                     MENCIÓN
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    Fechas/Hrs.
+                                    FECHAS Y HORARIO
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     ACTIVIDADES
@@ -358,10 +390,10 @@ export default function Index({ auth, pasantias }) {
                                     CUPOS DISPONIBLES
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    INSCRITOS
+                                    PASANTES INSCRITOS
                                 </th>
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    ESTADO
+                                    JEFE PASANTIA
                                 </th>
                                 {/* <th
                                     className="px-4 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
@@ -373,7 +405,7 @@ export default function Index({ auth, pasantias }) {
                                     </div>
                                 </th> */}
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    INICIAR
+                                    ABRIR/CERRAR INSCRIPCIÓN
                                 </th>
                             </tr>
                         </thead>
@@ -425,39 +457,53 @@ export default function Index({ auth, pasantias }) {
                                                         pasantia.fecha_fin,
                                                 })
                                             }
-                                            className="flex flex-col items-center gap-0.5 mx-auto text-primary-blue hover:text-primary-sky-blue transition-colors group"
+                                            className="flex flex-col items-center gap-0.5 mx-auto text-primary-blue hover:text-primary-sky-blue transition-colors group cursor-pointer"
                                             title="Ver horario y fechas"
                                         >
                                             <Clock
                                                 size={22}
-                                                className="text-primary-blue group-hover:text-primary-sky-blue"
+                                                className="text-primary-blue group-hover:text-primary-sky-blue cursor-pointer"
                                             />
-                                            <span className="text-[12px] font-medium text-primary-blue/80 group-hover:text-primary-sky-blue transition-colors">
+                                            <span className="text-[12px] font-medium text-primary-blue/80 group-hover:text-primary-sky-blue transition-colors cursor-pointer">
                                                 Fechas/Horario
                                             </span>
                                         </button>
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        <button
-                                            onClick={() =>
-                                                setModalActividades({
-                                                    isOpen: true,
-                                                    pasantiaId: pasantia.id,
-                                                    pasantiaNombre:
-                                                        pasantia.nombre,
-                                                })
-                                            }
-                                            className="flex flex-col items-center gap-0.5 mx-auto text-primary-blue hover:text-primary-sky-blue transition-colors group"
-                                            title="Ver actividades de la pasantía"
-                                        >
-                                            <Calendar
-                                                size={22}
-                                                className="text-primary-blue group-hover:text-primary-sky-blue"
-                                            />
-                                            <span className="text-[12px] font-medium text-primary-blue/80 group-hover:text-primary-sky-blue transition-colors">
+                                        <div className="flex flex-col items-center gap-1">
+                                            <button
+                                                onClick={() =>
+                                                    setModalActividades({
+                                                        isOpen: true,
+                                                        pasantiaId: pasantia.id,
+                                                        pasantiaNombre:
+                                                            pasantia.nombre,
+                                                    })
+                                                }
+                                                className="flex flex-col items-center gap-0.5 mx-auto text-primary-blue hover:text-primary-sky-blue transition-colors group"
+                                                title="Ver actividades de la pasantía"
+                                            >
+                                                <Calendar
+                                                    size={20}
+                                                    className="text-primary-blue group-hover:text-primary-sky-blue cursor-pointer"
+                                                />
+                                            </button>
+
+                                            <button
+                                                onClick={() =>
+                                                    setModalActividades({
+                                                        isOpen: true,
+                                                        pasantiaId: pasantia.id,
+                                                        pasantiaNombre:
+                                                            pasantia.nombre,
+                                                    })
+                                                }
+                                                className="px-3 py-1 bg-primary-blue text-white text-[10px] font-semibold rounded-md shadow-sm hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
+                                                title="Ver actividades"
+                                            >
                                                 Actividades
-                                            </span>
-                                        </button>
+                                            </button>
+                                        </div>
                                     </td>
                                     <td className="px-4 py-3 text-center">
                                         <div className="flex items-center justify-center gap-2">
@@ -473,7 +519,7 @@ export default function Index({ auth, pasantias }) {
                                                     pasantia.cupos <=
                                                     pasantia.inscritos
                                                 }
-                                                className="p-1 rounded-lg bg-red-300 text-red-800 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="p-1 rounded-lg bg-red-600 text-red-200 hover:bg-red-400 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                             >
                                                 <Minus size={15} />
                                             </button>
@@ -488,7 +534,7 @@ export default function Index({ auth, pasantias }) {
                                                         pasantia.inscritos,
                                                     )
                                                 }
-                                                className="p-1 rounded-lg bg-green-300 text-green-800 hover:bg-green-200 transition-all"
+                                                className="p-1 rounded-lg bg-green-600 text-green-200 hover:bg-green-400 transition-all cursor-pointer"
                                             >
                                                 <Plus size={15} />
                                             </button>
@@ -505,7 +551,7 @@ export default function Index({ auth, pasantias }) {
                                                             pasantia.nombre,
                                                     })
                                                 }
-                                                className="text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer flex items-center justify-center gap-1"
+                                                className="flex items-center justify-center gap-1.5 text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer group"
                                                 title="Ver inscritos"
                                             >
                                                 <Users size={20} />
@@ -513,17 +559,21 @@ export default function Index({ auth, pasantias }) {
                                                     {pasantia.inscritos}
                                                 </span>
                                             </button>
-                                            <div className="flex items-center gap-1">
-                                                <span className="text-xs font-bold text-green-600">
-                                                    +
-                                                </span>
-                                                <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">
-                                                    ASIGNAR
-                                                </span>
-                                                <span className="text-xs font-bold text-red-600">
-                                                    -
-                                                </span>
-                                            </div>
+
+                                            <button
+                                                onClick={() =>
+                                                    setModalInscritos({
+                                                        isOpen: true,
+                                                        pasantiaId: pasantia.id,
+                                                        pasantiaNombre:
+                                                            pasantia.nombre,
+                                                    })
+                                                }
+                                                className="px-3 py-1 bg-primary-blue text-white text-[10px] font-semibold rounded-md shadow-sm hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
+                                                title="Gestionar pasantes (asignar/desasignar)"
+                                            >
+                                                GESTIONAR
+                                            </button>
                                         </div>
                                     </td>
                                     <td className="px-4 py-3 text-center">
@@ -563,21 +613,32 @@ export default function Index({ auth, pasantias }) {
                                         </span>
                                     </td> */}
                                     <td className="px-4 py-3 text-center">
-                                        <button
-                                            onClick={() =>
-                                                handleAbrirConfirmacionInicio(
-                                                    pasantia.id,
-                                                )
-                                            }
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300 rounded-lg transition-all duration-200 font-medium text-sm cursor-pointer shadow-sm hover:shadow"
-                                            title="Iniciar pasantía"
-                                        >
-                                            <Play
-                                                size={11}
-                                                className="text-green-600"
-                                            />
-                                            Iniciar
-                                        </button>
+                                        {pasantia.estado === "ABIERTA" ? (
+                                            <button
+                                                onClick={() =>
+                                                    handleAbrirConfirmacionInicio(
+                                                        pasantia.id,
+                                                    )
+                                                }
+                                                className="px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-md shadow-sm hover:bg-red-700 transition-all duration-200 cursor-pointer"
+                                                title="Cerrar Inscripciones"
+                                            >
+                                                Cerrar Inscripciones
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() =>
+                                                    setModalAbrir({
+                                                        isOpen: true,
+                                                        pasantiaId: pasantia.id,
+                                                    })
+                                                }
+                                                className="px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-md shadow-sm hover:bg-green-700 transition-all duration-200 cursor-pointer"
+                                                title="Habilitar Inscripciones"
+                                            >
+                                                Abrir Inscripciones
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -656,7 +717,8 @@ export default function Index({ auth, pasantias }) {
                 pasantia={modalEditar.pasantia}
                 onUpdate={handlePasantiaEditada}
             />
-            <ModalInscritos
+
+            <ModalInscritosActivos
                 isOpen={modalInscritos.isOpen}
                 onClose={() =>
                     setModalInscritos({
@@ -679,15 +741,27 @@ export default function Index({ auth, pasantias }) {
                     })
                 }
                 onConfirm={handleIniciarPasantia}
-                titulo="Iniciar Pasantía"
+                titulo="Cerrar Inscripciones"
                 mensaje={
                     modalIniciar.infoInicio?.fecha_actual_es_menor
-                        ? `¿Iniciar a pesar de que faltan ${Math.round(modalIniciar.infoInicio?.dias_restantes)} días para el inicio de la pasantía?`
-                        : "¿Desea Iniciar la pasantía?"
+                        ? `¿Cerrar incripcion a pesar de que faltan ${Math.round(modalIniciar.infoInicio?.dias_restantes)} días para el inicio de la pasantía? Ya no se pondrán inscribir a esta pasantia`
+                        : "¿Desea cerrar las incripciones de la pasantía? Ya no se pondrán inscribir a esta pasantia"
                 }
                 type="info"
-                confirmText="Iniciar"
+                confirmText="Confirmar"
                 loading={loadingIniciar}
+            />
+            <ModalConfirmacion
+                isOpen={modalAbrir.isOpen}
+                onClose={() =>
+                    setModalAbrir({ isOpen: false, pasantiaId: null })
+                }
+                onConfirm={handleAbrirPasantia}
+                titulo="Abrir Incripciones"
+                mensaje="¿Estás seguro de que deseas abrir la inscripción de la pasantia? Volverá a estar disponible para que puedan inscribirse."
+                type="info"
+                confirmText="Confirmar"
+                loading={loadingAbrir}
             />
             <ModalActividadesPasantia
                 isOpen={modalActividades.isOpen}

@@ -147,6 +147,7 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         Route::put('/gerente/pasantias/{id}', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'updatePasantia'])->name('gerente.pasantias.update');
 
         Route::get('/gerente/pasantias/finalizadas/{id}/clonar', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'clonarPasantia'])->name('gerente.pasantias.finalizadas.clonar');
+        Route::patch('/gerente/pasantias/{id}/abrir', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'abrirPasantia'])->name('gerente.pasantias.abrir');
 });
 
 

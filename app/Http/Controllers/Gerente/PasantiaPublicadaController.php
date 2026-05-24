@@ -26,7 +26,7 @@ class PasantiaPublicadaController extends Controller
         
         $pasantias = Pasantia::with(['actividades', 'inscripciones.pasante.user', 'inscripciones.jefe.user'])
             ->where('id_empresa', $empresa->id_empresa)
-            ->where('estado', 'ABIERTA')
+            ->whereIn('estado', ['ABIERTA','INICIADO'])
             ->get()
             ->map(function($pasantia) {
                 $inscritos = $pasantia->inscripciones->count();
@@ -34,7 +34,12 @@ class PasantiaPublicadaController extends Controller
                 $todosConJefe = $pasantia->inscripciones->every(function($insc) {
                     return $insc->idU_jefe !== null;
                 });
-                
+                      
+                // Condición: Si no quedan cupos y el estado actual no es INICIADO, actualizamos la BD
+                if ($cuposDisponibles == 0 && $pasantia->estado !== 'INICIADO') {
+                    $pasantia->estado = 'INICIADO';
+                    $pasantia->save(); // <-- Esto ejecuta el UPDATE en tu base de datos automáticamente
+                }
                 // Calcular si todos los inscritos tienen jefe asignado
                 $todosConJefe = true;
                 foreach ($pasantia->inscripciones as $inscripcion) {
@@ -47,6 +52,7 @@ class PasantiaPublicadaController extends Controller
                 return [
                     'id' => $pasantia->id_pasantia,
                     'nombre' => $pasantia->nombre_pas,
+                    'estado' => $pasantia->estado,
                     'mencion' => $pasantia->mencion,
                     'turno' => $pasantia->turno,
                     'carga_horaria' => $pasantia->carga_horaria,
@@ -391,8 +397,41 @@ class PasantiaPublicadaController extends Controller
         return response()->json(['message' => 'Jefe desasignado correctamente']);
     }    
 
-
-    // Agrega este método
+    //ABRIR INSCRIPCION 
+    public function abrirPasantia($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        // Verificar que la pasantía pertenece a la empresa
+        $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->where('id_pasantia', $id)
+            ->firstOrFail();
+        
+        // Verificar que está en estado INICIADO
+        if ($pasantia->estado !== 'INICIADO') {
+            return response()->json(['message' => 'La pasantía no está en estado INICIADO'], 400);
+        }
+        
+        $inscritos = $pasantia->inscripciones;
+        $inscritosCount = $inscritos->count();
+        $cuposDisponibles = $pasantia-> cupos - $inscritosCount;
+        
+        // Condición 1: Cupos disponibles = 0
+        if ($cuposDisponibles == 0) {
+            return response()->json(['message' => 'Debe existir almenos un cupo disponible'], 400);
+        }
+        
+        // Cambiar estado de la pasantía a ABIERTA
+        $pasantia->update(['estado' => 'ABIERTA']);
+        
+        $inscripciones = Inscripcion::where('id_pasantia', $id)->get();
+        $this->sincronizarEstadosInscripciones($inscripciones);
+        
+        return response()->json(['message' => 'Pasantía abierta correctamente']);
+    }
+    
+    //CERRAR INSCRIPCION 
     public function iniciarPasantia($id)
     {
         $user = Auth::user();
@@ -403,33 +442,27 @@ class PasantiaPublicadaController extends Controller
             ->where('id_pasantia', $id)
             ->firstOrFail();
         
+
         // Verificar que está en estado ABIERTA
         if ($pasantia->estado !== 'ABIERTA') {
             return response()->json(['message' => 'La pasantía no está en estado ABIERTA'], 400);
         }
         
-        $inscritos = $pasantia->inscripciones;
-        $inscritosCount = $inscritos->count();
-        $cuposDisponibles = $pasantia-> cupos - $inscritosCount;
-        
-        // Condición 1: Cupos disponibles = 0
-        if ($cuposDisponibles > 0) {
-            return response()->json(['message' => 'Faltan cupos por llenar'], 400);
-        }
-        
+ 
+       
         // Condición 2: Al menos 1 inscrito
-        if ($inscritosCount === 0) {
-            return response()->json(['message' => 'Debe existir al menos 1 inscrito'], 400);
-        }
+        // if ($inscritosCount === 0) {
+        //     return response()->json(['message' => 'Debe existir al menos 1 inscrito'], 400);
+        // }
         
         // Condición 3: Todos los inscritos tienen jefe asignado
-        $sinJefe = $inscritos->filter(function($inscripcion) {
-            return $inscripcion->idU_jefe === null;
-        });
+        // $sinJefe = $inscritos->filter(function($inscripcion) {
+        //     return $inscripcion->idU_jefe === null;
+        // });
         
-        if ($sinJefe->count() > 0) {
-            return response()->json(['message' => 'Existen pasantes sin tener un jefe de pasante asignado'], 400);
-        }
+        // if ($sinJefe->count() > 0) {
+        //     return response()->json(['message' => 'Existen pasantes sin tener un jefe de pasante asignado'], 400);
+        // }
         
 
         // Cambiar estado de la pasantía a INICIADO
@@ -457,7 +490,7 @@ class PasantiaPublicadaController extends Controller
         //     "/pasante/actividades/{$pasantia->id_pasantia}"
         // );
     
-        return response()->json(['message' => 'Pasantía iniciada correctamente']);
+        return response()->json(['message' => 'Inscripción cerrada correctamente']);
     
     }    
 
@@ -474,7 +507,7 @@ class PasantiaPublicadaController extends Controller
         
         $request->validate([
             'mencion' => 'required|string',
-            'turno' => 'required|string|in:tiempo completo,medio tiempo,mañana,tarde,noche',
+            'turno' => 'required|string|in:Tiempo completo,Medio tiempo,Mañana,Tarde,Noche',
             'carga_horaria' => 'nullable|integer|min:0',
             'fecha_ini' => 'required|date',
             'fecha_fin' => 'required|date|after:fecha_ini',
@@ -521,8 +554,8 @@ class PasantiaPublicadaController extends Controller
         $this->crearNotificacionesMultiples(
             $pasantesIds,
             'pasante',
-            'Hrs./Fechas actualizadas de una Pasantia',
-            "La pasantía \"{$pasantia->nombre_pas}\" actualizó sus fechas o detalles ¡¡¡REVISALO!!!",
+            'Hrs/Fechas actualizadas de una Pasantia',
+            "La pasantía \"{$pasantia->nombre_pas}\" actualizó sus Hrs y Fechas. ¡¡¡REVISALO!!!",
             'pasantia',
             "/pasante/inscripciones/activas"
         );

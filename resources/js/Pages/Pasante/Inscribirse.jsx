@@ -244,7 +244,7 @@ export default function Inscribirse({
         // Botón normal para inscribirse
         return {
             text: "INSCRIBIRSE",
-            color: "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-md hover:shadow-lg",
+            color: "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-md hover:shadow-lg cursor-pointer",
             icon: <Users size={14} className="-mr-1" />,
             isButton: true,
         };
@@ -352,25 +352,24 @@ export default function Inscribirse({
                                     </div>
                                 </th>
                                 <th className="px-3 py-3 text-center text-xs font-bold text-white">
-                                    SCORE
+                                    CALIFIC.
                                 </th>
 
                                 <th className="px-3 py-3 text-left text-xs font-bold text-white">
                                     MENCIÓN
                                 </th>
                                 <th className="px-3 py-3 text-center text-xs font-bold text-white">
-                                    ACTVIDA.
+                                    ACTVIDADES
                                 </th>
                                 <th className="px-3 py-3 text-center text-xs font-bold text-white">
-                                    HRS./FECHAS
+                                    FECHAS/HRS.
                                 </th>
                                 <th
                                     className="px-3 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
                                     onClick={() => handleSort("fecha_ini")}
                                 >
                                     <div className="flex items-center gap-1">
-                                        FECHA INICIO{" "}
-                                        <SortIcon field="fecha_ini" />
+                                        FECHA INICIO
                                     </div>
                                 </th>
                                 {/* <th
@@ -413,7 +412,7 @@ export default function Inscribirse({
                                                             pasantia.empresa,
                                                     })
                                                 }
-                                                className="inline-flex items-center gap-1 text-gray-700 hover:text-primary-blue transition-colors group"
+                                                className="inline-flex items-center gap-1 text-gray-700 hover:text-primary-blue-700 transition-colors group cursor-pointer"
                                                 title="Ver detalles de la empresa"
                                             >
                                                 <span className="group-hover:text-primary-blue">
@@ -421,87 +420,139 @@ export default function Inscribirse({
                                                 </span>
                                                 <Building2
                                                     size={20}
-                                                    className="text-primary-blue"
+                                                    className="text-primary-blue cursor-pointer"
                                                 />
                                             </button>
                                         </td>
 
                                         <td className="px-3 py-3 text-center">
-                                            <button
-                                                onClick={() =>
-                                                    setModalScore({
-                                                        isOpen: true,
-                                                        empresaId:
-                                                            pasantia.empresa.id,
-                                                        empresaNombre:
-                                                            pasantia.empresa
-                                                                .nombre,
-                                                    })
-                                                }
-                                                className="text-yellow-500 hover:text-yellow-600 transition-transform hover:scale-110"
-                                                title="Ver calificaciones de la empresa"
-                                            >
-                                                <Star
-                                                    size={18}
-                                                    fill="currentColor"
-                                                />
-                                            </button>
+                                            <div className="flex flex-col items-center gap-1">
+                                                <button
+                                                    onClick={() =>
+                                                        setModalScore({
+                                                            isOpen: true,
+                                                            empresaId:
+                                                                pasantia.empresa
+                                                                    .id,
+                                                            empresaNombre:
+                                                                pasantia.empresa
+                                                                    .nombre,
+                                                        })
+                                                    }
+                                                    className="flex flex-col items-center gap-1 p-2 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-all duration-200 group cursor-pointer"
+                                                    title="Ver calificaciones de la empresa"
+                                                >
+                                                    <Star
+                                                        size={22}
+                                                        className="text-yellow-500 fill-yellow-500 group-hover:scale-110 transition-transform"
+                                                    />
+                                                    <span className="text-[9px] font-medium text-yellow-600">
+                                                        Calificación
+                                                    </span>
+                                                </button>
+                                            </div>
                                         </td>
 
                                         <td className="px-3 py-3 text-sm text-gray-600">
                                             <span
-                                                className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm border ${
                                                     pasantia.mencion ===
                                                     mencionPasante
-                                                        ? "bg-blue-100 text-blue-800"
-                                                        : "bg-gray-100 text-gray-600"
+                                                        ? "bg-primary-blue/15 text-primary-blue border-primary-blue/20"
+                                                        : "bg-gray-100 text-gray-500 border-gray-200"
                                                 }`}
                                             >
+                                                {pasantia.mencion ===
+                                                    mencionPasante && (
+                                                    <CheckCircle
+                                                        size={14}
+                                                        className="text-primary-blue"
+                                                    />
+                                                )}
                                                 {pasantia.mencion}
                                             </span>
                                         </td>
                                         <td className="px-3 py-3 text-center">
-                                            <button
-                                                onClick={() =>
-                                                    setModalActividades({
-                                                        isOpen: true,
-                                                        nombre: pasantia.nombre,
-                                                        actividades:
-                                                            pasantia.actividades ||
-                                                            [],
-                                                    })
-                                                }
-                                                className="flex flex-col items-center gap-0.5 text-primary-blue hover:text-primary-sky-blue transition-colors"
-                                                title="Ver actividades"
-                                            >
-                                                <CalendarIcon size={20} />
-                                                <span className="text-[9px] font-medium">
+                                            <div className="flex flex-col items-center gap-1">
+                                                <button
+                                                    onClick={() =>
+                                                        setModalActividades({
+                                                            isOpen: true,
+                                                            nombre: pasantia.nombre,
+                                                            actividades:
+                                                                pasantia.actividades ||
+                                                                [],
+                                                        })
+                                                    }
+                                                    className="flex flex-col items-center gap-0.5 text-primary-blue hover:text-primary-sky-blue transition-colors group"
+                                                    title="Ver actividades"
+                                                >
+                                                    <CalendarIcon
+                                                        size={20}
+                                                        className="text-primary-blue group-hover:text-primary-sky-blue cursor-pointer"
+                                                    />
+                                                </button>
+
+                                                <button
+                                                    onClick={() =>
+                                                        setModalActividades({
+                                                            isOpen: true,
+                                                            nombre: pasantia.nombre,
+                                                            actividades:
+                                                                pasantia.actividades ||
+                                                                [],
+                                                        })
+                                                    }
+                                                    className="px-3 py-1 bg-primary-blue text-white text-[11px] font-semibold rounded-md shadow-sm hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
+                                                    title="Ver actividades"
+                                                >
                                                     Actividades
-                                                </span>
-                                            </button>
+                                                </button>
+                                            </div>
                                         </td>
                                         <td className="px-3 py-3 text-center">
-                                            <button
-                                                onClick={() =>
-                                                    setModalHorario({
-                                                        isOpen: true,
-                                                        turno: pasantia.turno,
-                                                        cargaHoraria:
-                                                            pasantia.carga_horaria,
-                                                        fechaIni:
-                                                            pasantia.fecha_ini,
-                                                        fechaFin:
-                                                            pasantia.fecha_fin,
-                                                    })
-                                                }
-                                                className="flex flex-col items-center gap-0.5 text-gray-500 hover:text-primary-blue transition-colors"
-                                                title="Ver fecha y horario"
-                                            >
-                                                <Clock size={20} />
-                                                <span className="text-[9px] font-medium">
-                                                    Hora/Fecha
-                                                </span>
-                                            </button>
+                                            <div className="flex flex-col items-center gap-1">
+                                                <button
+                                                    onClick={() =>
+                                                        setModalHorario({
+                                                            isOpen: true,
+                                                            turno: pasantia.turno,
+                                                            cargaHoraria:
+                                                                pasantia.carga_horaria,
+                                                            fechaIni:
+                                                                pasantia.fecha_ini,
+                                                            fechaFin:
+                                                                pasantia.fecha_fin,
+                                                        })
+                                                    }
+                                                    className="flex flex-col items-center gap-0.5 text-gray-500 hover:text-primary-blue transition-colors group"
+                                                    title="Ver fecha y horario"
+                                                >
+                                                    <Clock
+                                                        size={20}
+                                                        className="text-primary-blue group-hover:text-primary-sky-blue cursor-pointer"
+                                                    />
+                                                </button>
+
+                                                <button
+                                                    onClick={() =>
+                                                        setModalHorario({
+                                                            isOpen: true,
+                                                            turno: pasantia.turno,
+                                                            cargaHoraria:
+                                                                pasantia.carga_horaria,
+                                                            fechaIni:
+                                                                pasantia.fecha_ini,
+                                                            fechaFin:
+                                                                pasantia.fecha_fin,
+                                                        })
+                                                    }
+                                                    className="px-3 py-1 bg-primary-blue text-white text-[11px] font-semibold rounded-md shadow-sm hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
+                                                    title="Ver fecha y horario"
+                                                >
+                                                    Fechas/Hrs.
+                                                </button>
+                                            </div>
                                         </td>
                                         <td className="px-3 py-3">
                                             <BadgeFecha

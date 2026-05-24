@@ -322,7 +322,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                 progresos: act.progresos,
                                             })
                                         }
-                                        className="px-5 py-3 rounded-2xl bg-white border border-gray-200 hover:border-primary-blue hover:bg-blue-50 text-gray-700 hover:text-primary-blue text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+                                        className="px-5 py-3 rounded-2xl bg-white border border-gray-200 hover:border-primary-blue hover:bg-blue-50 text-gray-700 hover:text-primary-blue text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
                                     >
                                         📝 APUNTES
                                     </button>
@@ -337,7 +337,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                     act.autoevaluacion,
                                             })
                                         }
-                                        className="px-5 py-3 rounded-2xl bg-white border border-gray-200 hover:border-primary-blue hover:bg-blue-50 text-gray-700 hover:text-primary-blue text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+                                        className="px-5 py-3 rounded-2xl bg-white border border-gray-200 hover:border-primary-blue hover:bg-blue-50 text-gray-700 hover:text-primary-blue text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
                                     >
                                         ✍️ AUTOEVALUARME
                                     </button>
@@ -379,7 +379,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                             act.id,
                                                         )
                                                     }
-                                                    className="px-4 py-2 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-800 text-sm font-semibold transition"
+                                                    className="px-4 py-2 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-800 text-sm font-semibold transition cursor-pointer"
                                                 >
                                                     Ver evaluación
                                                 </button>
@@ -392,13 +392,13 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                 <div className="border-t border-gray-100 pt-5">
                                     <button
                                         onClick={() => toggleComments(act.id)}
-                                        className="group/comment flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-primary-blue transition"
+                                        className="group/comment flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-primary-blue transition cursor-pointer"
                                     >
-                                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 group-hover/comment:bg-blue-100 transition">
+                                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 group-hover/comment:bg-blue-100 transition cursor-pointer">
                                             {expandedComments[act.id] ? (
-                                                <ChevronUp size={15} />
+                                                <ChevronUp size={17} />
                                             ) : (
-                                                <ChevronDown size={15} />
+                                                <ChevronDown size={17} />
                                             )}
                                         </div>
 
@@ -466,7 +466,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                                                 com.comentario,
                                                                             )
                                                                         }
-                                                                        className="text-gray-500 hover:text-primary-blue transition"
+                                                                        className="text-gray-500 hover:text-primary-blue transition cursor-pointer"
                                                                     >
                                                                         <Pencil
                                                                             size={
@@ -494,7 +494,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                                             )
                                                                         }
                                                                         rows={3}
-                                                                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-primary-blue focus:ring-4 focus:ring-blue-100 focus:bg-white transition"
+                                                                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-primary-blue focus:ring-4 focus:ring-blue-100 focus:bg-white transition "
                                                                         autoFocus
                                                                     />
 
@@ -505,7 +505,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                                                     com.id,
                                                                                 )
                                                                             }
-                                                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-sm font-semibold transition"
+                                                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-sm font-semibold transition cursor-pointer"
                                                                         >
                                                                             <Check
                                                                                 size={
@@ -519,7 +519,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                                             onClick={
                                                                                 cancelEditComment
                                                                             }
-                                                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-700 text-sm font-semibold transition"
+                                                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-700 text-sm font-semibold transition cursor-pointer"
                                                                         >
                                                                             <X
                                                                                 size={
@@ -635,9 +635,9 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                                 act.id,
                                                             )
                                                         }
-                                                        className="h-12 w-12 flex items-center justify-center rounded-2xl bg-primary-blue text-white hover:scale-105 hover:bg-primary-sky-blue shadow-md transition-all"
+                                                        className="h-12 w-12 flex items-center justify-center rounded-2xl bg-primary-blue text-white hover:scale-90 hover:bg-primary-sky-blue shadow-md transition-all cursor-pointer"
                                                     >
-                                                        <Send size={17} />
+                                                        <Send size={18} />
                                                     </button>
                                                 </div>
                                             )}

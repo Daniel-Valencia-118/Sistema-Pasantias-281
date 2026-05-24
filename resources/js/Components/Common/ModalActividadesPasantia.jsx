@@ -166,7 +166,7 @@ export default function ModalActividadesPasantia({
                                                 esNueva: true,
                                             })
                                         }
-                                        className="inline-flex items-center gap-2 bg-primary-blue text-white px-5 py-2.5 rounded-xl text-base font-semibold hover:bg-primary-sky-blue"
+                                        className="inline-flex items-center gap-2 bg-primary-blue text-white px-5 py-2.5 rounded-xl text-base font-semibold hover:bg-primary-sky-blue cursor-pointer"
                                     >
                                         <Plus size={20} />
                                         Nueva Actividad
@@ -322,7 +322,7 @@ export default function ModalActividadesPasantia({
                                                                                     },
                                                                                 )
                                                                             }
-                                                                            className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-100 text-primary-blue hover:bg-blue-200"
+                                                                            className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-100 text-primary-blue hover:bg-blue-200 cursor-pointer"
                                                                             title="Editar"
                                                                         >
                                                                             <Edit
@@ -341,7 +341,7 @@ export default function ModalActividadesPasantia({
                                                                                     },
                                                                                 )
                                                                             }
-                                                                            className="flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 text-red-600 hover:bg-red-200"
+                                                                            className="flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 cursor-pointer"
                                                                             title="Eliminar"
                                                                         >
                                                                             <Trash2
