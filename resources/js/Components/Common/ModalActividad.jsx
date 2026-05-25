@@ -27,8 +27,8 @@ export default function ModalActividad({
                 nombre_act: actividad.nombre_act || "",
                 tipo: actividad.tipo || "",
                 descripcion: actividad.descripcion || "",
-                fecha_ini: actividad.fecha_ini || "",
-                fecha_fin: actividad.fecha_fin || "",
+                fecha_ini: actividad.fecha_ini || fechaDefectoIni || "",
+                fecha_fin: actividad.fecha_fin || fechaDefectoFin || "",
             });
         } else {
             // Prioridad 2: Fechas del formulario padre
@@ -62,6 +62,15 @@ export default function ModalActividad({
         if (!form.tipo) {
             newErrors.tipo = "El tipo de actividad es requerido";
         }
+
+        if (form.fecha_ini < fechaDefectoIni) {
+            newErrors.fecha_ini = "Fecha fuera de rango de la pasantia";
+        }
+
+        if (form.fecha_fin > fechaDefectoFin) {
+            newErrors.fecha_fin = "Fecha fuera de rango de la pasantia";
+        }
+
         if (!form.fecha_ini) {
             newErrors.fecha_ini = "La fecha de inicio es requerida";
         }

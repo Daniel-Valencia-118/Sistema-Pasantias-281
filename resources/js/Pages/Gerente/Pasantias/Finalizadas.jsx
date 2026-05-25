@@ -2,10 +2,11 @@ import React, { useState, useMemo } from "react";
 import axios from "axios";
 import { Head, router } from "@inertiajs/react";
 import GerenteLayout from "@/Components/Layout/GerenteLayout";
-import ModalDetallesPasantia from "@/Components/Common/ModalDetallesPasantia";
+
 import ModalActividadesPasantia from "@/Components/Common/ModalActividadesPasantia";
 import ModalPasantesPromedio from "@/Components/Common/ModalPasantesPromedio";
 import ModalCalificaciones from "@/Components/Common/ModalCalificaciones";
+import ModalHorario from "@/Components/Common/ModalHorario";
 import ModalActividadesFinalizadas from "@/Components/Common/ModalActividadesFinalizadas";
 import ModalConfirmacion from "@/Components/Common/ModalConfirmacion";
 import BadgeFecha from "@/Components/Common/BadgeFecha";
@@ -42,10 +43,7 @@ export default function Finalizadas({ auth, pasantias }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [sortField, setSortField] = useState("fecha_ini");
     const [sortDirection, setSortDirection] = useState("desc");
-    const [modalDetalles, setModalDetalles] = useState({
-        isOpen: false,
-        pasantia: null,
-    });
+
     const [modalActividades, setModalActividades] = useState({
         isOpen: false,
         pasantiaId: null,
@@ -62,7 +60,14 @@ export default function Finalizadas({ auth, pasantias }) {
         pasantiaNombre: null,
         promedio: null,
     });
-
+    const [modalHorario, setModalHorario] = useState({
+        isOpen: false,
+        turno: null,
+        cargaHoraria: null,
+        fechaIni: null,
+        fechaFin: null,
+        detalleHorario: null,
+    });
     const handleSort = (field) => {
         if (sortField === field) {
             setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -440,9 +445,17 @@ export default function Finalizadas({ auth, pasantias }) {
                                             <div className="grid grid-cols-3 gap-2 pt-2">
                                                 <button
                                                     onClick={() =>
-                                                        setModalDetalles({
+                                                        setModalHorario({
                                                             isOpen: true,
-                                                            pasantia: pasantia,
+                                                            turno: pasantia.turno,
+                                                            cargaHoraria:
+                                                                pasantia.carga_horaria,
+                                                            fechaIni:
+                                                                pasantia.fecha_ini,
+                                                            fechaFin:
+                                                                pasantia.fecha_fin,
+                                                            detalleHorario:
+                                                                pasantia.detalles_horario,
                                                         })
                                                     }
                                                     className="flex flex-col items-center gap-1 p-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
@@ -509,12 +522,24 @@ export default function Finalizadas({ auth, pasantias }) {
             </div>
 
             {/* Modales - Sin cambios */}
-            <ModalDetallesPasantia
-                isOpen={modalDetalles.isOpen}
+
+            <ModalHorario
+                isOpen={modalHorario.isOpen}
                 onClose={() =>
-                    setModalDetalles({ isOpen: false, pasantia: null })
+                    setModalHorario({
+                        isOpen: false,
+                        turno: null,
+                        cargaHoraria: null,
+                        fechaIni: null,
+                        fechaFin: null,
+                        detalleHorario: null,
+                    })
                 }
-                pasantia={modalDetalles.pasantia}
+                turno={modalHorario.turno}
+                cargaHoraria={modalHorario.cargaHoraria}
+                fechaIni={modalHorario.fechaIni}
+                fechaFin={modalHorario.fechaFin}
+                detalleHorario={modalHorario.detalleHorario}
             />
 
             <ModalPasantesPromedio

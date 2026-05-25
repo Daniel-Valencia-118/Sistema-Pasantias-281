@@ -59,6 +59,7 @@ class PasantiaPublicadaController extends Controller
                     'fecha_ini' => $pasantia->fecha_ini, 
                     'fecha_fin' => $pasantia->fecha_fin,
                     'cupos' => $pasantia->cupos,
+                    'detalles_horario' => $pasantia->detalles_horario,
                     'cupos_disponibles' => $cuposDisponibles,
                     'inscritos' => $inscritos,
                     'todos_con_jefe' => $todosConJefe,
@@ -73,6 +74,7 @@ class PasantiaPublicadaController extends Controller
                                             'correo' =>$pasantia->jefeResponsable->user->correo,
                                             'cargo' =>$pasantia->jefeResponsable->cargo,
                                             'area' =>$pasantia->jefeResponsable->area,
+                                            'avatar_url' => $pasantia->jefeResponsable->user->avatar_url, 
                                         ] : null,
                     'actividades_count' => $pasantia->actividades->count(),
                 ];
@@ -277,6 +279,7 @@ class PasantiaPublicadaController extends Controller
                         'correo' => $inscripcion->jefe->user->correo,
                         'cargo' => $inscripcion->jefe->cargo,
                         'area' => $inscripcion->jefe->area,
+                        'avatar_url' => $inscripcion->jefe->user->avatar_url,
                     ] : null,
                 ];
             });
@@ -326,6 +329,7 @@ class PasantiaPublicadaController extends Controller
                         'correo' => $jefe->user->correo,
                         'cargo' => $jefe->cargo,
                         'area' => $jefe->user->jefePas->area,
+                        'avatar_url' => $jefe->user->avatar_url,
                     ];
                 });
             
@@ -555,6 +559,7 @@ class PasantiaPublicadaController extends Controller
             'carga_horaria' => $request->carga_horaria ?? 0,
             'fecha_ini' => $request->fecha_ini,
             'fecha_fin' => $request->fecha_fin,
+            'detalles_horario' => $request->detalles_horario ?? null, 
         ]);
         
          $pasantesIds = Inscripcion::where('id_pasantia', $id)
@@ -583,12 +588,13 @@ class PasantiaPublicadaController extends Controller
                 'carga_horaria' => $pasantia->carga_horaria,
                 'fecha_ini' => $pasantia->fecha_ini,
                 'fecha_fin' => $pasantia->fecha_fin,
+                'detalles_horario' => $pasantia->detalles_horario, 
             ]
         ]);
 
     }
 
-        public function getJefesDisponiblesParaPasantia()
+    public function getJefesDisponiblesParaPasantia()
     {
         $user = Auth::user();
         $empresa = $user->gerente->empresa;
@@ -612,6 +618,7 @@ class PasantiaPublicadaController extends Controller
                         'correo' => $jefe->user->correo,
                         'cargo' => $jefe->cargo,
                         'area' => $jefe->area,
+                        'avatar_url' => $jefe->user->avatar_url,
                     ];
             });
         

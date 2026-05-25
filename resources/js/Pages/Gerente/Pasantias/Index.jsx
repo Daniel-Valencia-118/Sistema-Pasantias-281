@@ -78,6 +78,7 @@ export default function Index({ auth, pasantias }) {
         cargaHoraria: null,
         fechaIni: null,
         fechaFin: null,
+        detalleHorario: null,
     });
     const [modalAbrir, setModalAbrir] = useState({
         isOpen: false,
@@ -506,6 +507,8 @@ export default function Index({ auth, pasantias }) {
                                                         pasantia.fecha_ini,
                                                     fechaFin:
                                                         pasantia.fecha_fin,
+                                                    detalleHorario:
+                                                        pasantia.detalles_horario,
                                                 })
                                             }
                                             className="flex flex-col items-center gap-0.5 mx-auto text-primary-blue hover:text-primary-sky-blue transition-colors group cursor-pointer"
@@ -808,12 +811,14 @@ export default function Index({ auth, pasantias }) {
                         cargaHoraria: null,
                         fechaIni: null,
                         fechaFin: null,
+                        detalleHorario: null,
                     })
                 }
                 turno={modalHorario.turno}
                 cargaHoraria={modalHorario.cargaHoraria}
                 fechaIni={modalHorario.fechaIni}
                 fechaFin={modalHorario.fechaFin}
+                detalleHorario={modalHorario.detalleHorario}
             />
             <ModalEditarPasantia
                 isOpen={modalEditar.isOpen}

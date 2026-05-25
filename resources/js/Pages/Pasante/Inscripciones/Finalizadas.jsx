@@ -36,6 +36,7 @@ export default function Finalizadas({ auth, inscripciones }) {
         cargaHoraria: null,
         fechaIni: null,
         fechaFin: null,
+        detalleHorario: null,
     });
     const [modalDetallePromedio, setModalDetallePromedio] = useState({
         isOpen: false,
@@ -240,6 +241,7 @@ export default function Finalizadas({ auth, inscripciones }) {
                                             cargaHoraria: p.carga_horaria,
                                             fechaIni: p.fecha_ini,
                                             fechaFin: p.fecha_fin,
+                                            detalleHorario: p.detalles_horario,
                                         })
                                     }
                                     className="w-full flex items-center justify-between text-sm hover:bg-gray-50 rounded-lg p-2 -mx-2 transition-colors group"
@@ -382,12 +384,14 @@ export default function Finalizadas({ auth, inscripciones }) {
                         cargaHoraria: null,
                         fechaIni: null,
                         fechaFin: null,
+                        detalleHorario: null,
                     })
                 }
                 turno={modalHorario.turno}
                 cargaHoraria={modalHorario.cargaHoraria}
                 fechaIni={modalHorario.fechaIni}
                 fechaFin={modalHorario.fechaFin}
+                detalleHorario={modalHorario.detalleHorario}
             />
 
             <ModalDetallePromedio

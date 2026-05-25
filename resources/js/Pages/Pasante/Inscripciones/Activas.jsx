@@ -30,6 +30,7 @@ export default function Activas({ auth, inscripciones }) {
             cargaHoraria: null,
             fechaIni: null,
             fechaFin: null,
+            detalleHorario: null,
         },
         actividades: { isOpen: false, nombre: null, actividades: [] },
         companeros: { isOpen: false, pasantiaId: null, pasantiaNombre: null },
@@ -256,6 +257,8 @@ export default function Activas({ auth, inscripciones }) {
                                                         p.carga_horaria,
                                                     fechaIni: p.fecha_ini,
                                                     fechaFin: p.fecha_fin,
+                                                    detalleHorario:
+                                                        p.detalles_horario,
                                                 },
                                             })
                                         }
@@ -410,6 +413,7 @@ export default function Activas({ auth, inscripciones }) {
                             cargaHoraria: null,
                             fechaIni: null,
                             fechaFin: null,
+                            detalleHorario: null,
                         },
                     })
                 }
@@ -417,6 +421,7 @@ export default function Activas({ auth, inscripciones }) {
                 cargaHoraria={modales.horario.cargaHoraria}
                 fechaIni={modales.horario.fechaIni}
                 fechaFin={modales.horario.fechaFin}
+                detalleHorario={modales.horario.detalleHorario}
             />
 
             <ModalActividadesPasante

@@ -82,6 +82,7 @@ class InscripcionController extends Controller
                     'carga_horaria' => $pasantia->carga_horaria,
                     'fecha_ini' => $pasantia->fecha_ini,
                     'fecha_fin' => $pasantia->fecha_fin,
+                    'detalles_horario' => $pasantia->detalles_horario,
                     'cupos_disponibles' => $cuposDisponibles,
                     'ya_inscrito' => $yaInscrito,
                     'mencion_coincide' => $mencionCoincide,
@@ -412,6 +413,7 @@ class InscripcionController extends Controller
                     'carga_horaria' => $pasantia->carga_horaria,
                     'fecha_ini' => $pasantia->fecha_ini,
                     'fecha_fin' => $pasantia->fecha_fin,
+                    'detalles_horario' => $pasantia->detalles_horario,
                     'cupos_disponibles' => $cuposDisponibles,
                     'total_inscritos' => $totalInscritos,
                     'actividades' => $actividades,
@@ -551,6 +553,7 @@ class InscripcionController extends Controller
                     'fecha_fin' => $pasantia->fecha_fin,
                     'turno' => $pasantia->turno,
                     'carga_horaria' => $pasantia->carga_horaria,
+                    'detalles_horario' => $pasantia->detalles_horario,
                     'mencion' => $pasantia->mencion,
                     'empresa' => [
                         'id' => $pasantia->empresa->id_empresa,

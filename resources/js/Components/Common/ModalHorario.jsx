@@ -27,6 +27,7 @@ export default function ModalHorario({
     cargaHoraria,
     fechaIni,
     fechaFin,
+    detalleHorario,
 }) {
     if (!isOpen) return null;
 
@@ -45,7 +46,7 @@ export default function ModalHorario({
                         <div className="flex items-center gap-2">
                             <Clock size={20} className="text-white" />
                             <h3 className="text-lg font-bold text-white">
-                                Horario de la Pasantía
+                                Horarios y Fechas de la Pasantía
                             </h3>
                         </div>
                         <button
@@ -61,24 +62,33 @@ export default function ModalHorario({
                 <div className="p-5 space-y-4">
                     {/* Turno */}
                     <div className="bg-gray-50 rounded-lg p-3">
-                        <label className="block text-xs font-medium text-gray-500">
+                        <label className="block text-sm font-medium text-gray-500">
                             Turno
                         </label>
                         <p className="text-gray-900 font-medium text-lg capitalize">
-                            {turno || "-"}
+                            {turno || "No especificado"}
                         </p>
                     </div>
 
                     {/* Carga Horaria */}
                     <div className="bg-gray-50 rounded-lg p-3">
-                        <label className="block text-xs font-medium text-gray-500 flex items-center gap-1">
-                            <CalendarDays size={14} /> Carga Horaria
+                        <label className="block text-sm font-medium text-gray-500 flex items-center gap-1">
+                            <CalendarDays size={14} /> Carga Horaria (Hrs. por
+                            Semana)
                         </label>
-                        <p className="text-gray-900 font-xs text-lg">
-                            {cargaHoraria || 0} (hrs. por Semana)
+                        <p className="text-gray-900 font-medium text-lg capitalize">
+                            {cargaHoraria || "No especificado"}
                         </p>
                     </div>
-
+                    {/* Detalles de Horario y Días */}
+                    <div className="bg-gray-50 rounded-lg p-3">
+                        <label className="block text-sm font-medium text-gray-500">
+                            Detalles de Horario y Días
+                        </label>
+                        <p className="text-gray-900 font-medium text-lg">
+                            {detalleHorario || "No especificado"}
+                        </p>
+                    </div>
                     {/* Fechas */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-gray-50 rounded-lg p-3">
