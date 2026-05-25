@@ -200,13 +200,19 @@ class InscripcionController extends Controller
             }
             
             // 4. Crear la inscripción
+            // Obtener la pasantía para verificar si tiene jefe asignado
+            $pasantia = Pasantia::findOrFail($idPasantia);
+
+            // Determinar el idU_jefe para la inscripción
+            $idU_jefe_inscripcion = $pasantia->idU_jefe ?? null;
+
             $inscripcion = Inscripcion::create([
                 'fecha_insc' => now()->format('Y-m-d'),
                 'hora_insc' => now()->format('H:i:s'),
-                'estado' => 'iniciado',
+                'estado' => 'inscrito',  // O 'inscrito' como estado inicial
                 'idU_pasante' => $pasante->idU_pasante,
                 'id_pasantia' => $idPasantia,
-                'idU_jefe' => null,
+                'idU_jefe' => $idU_jefe_inscripcion,  // Ahora toma el jefe de la pasantía si existe
             ]);
             
             // ======================================================================
@@ -296,23 +302,16 @@ class InscripcionController extends Controller
             $actualizado = false;
             
             // Regla 1: Si la pasantía está ABIERTA, la inscripción debe estar 'inscrito'
-            if ($estadoPasantia === 'ABIERTA' && $estadoInscripcion !== 'inscrito') {
-                $inscripcion->estado = 'inscrito';
+            if ($estadoPasantia === 'ABIERTA' && $estadoInscripcion !== 'finalizado') {
+                $inscripcion->estado = 'iniciado';
                 $actualizado = true;
             }
             
             // Regla 2: Si la pasantía está INICIADO, la inscripción debe estar 'iniciado'
-            if ($estadoPasantia === 'INICIADO' && $estadoInscripcion == 'inscrito') {
+            if ($estadoPasantia === 'INICIADO' && $estadoInscripcion !== 'finalizado') {
                 $inscripcion->estado = 'iniciado';
                 $actualizado = true;
             }
-            
-            // Regla 3: Si la pasantía está FINALIZADO y la inscripción está 'inscrito', pasa a 'iniciado'
-            if ($estadoPasantia === 'FINALIZADO' && $estadoInscripcion === 'inscrito') {
-                $inscripcion->estado = 'iniciado';
-                $actualizado = true;
-            }
-            
             // Guardar cambios si es necesario
             if ($actualizado) {
                 $inscripcion->save();

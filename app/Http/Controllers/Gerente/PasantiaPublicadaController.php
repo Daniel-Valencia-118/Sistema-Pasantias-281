@@ -62,6 +62,18 @@ class PasantiaPublicadaController extends Controller
                     'cupos_disponibles' => $cuposDisponibles,
                     'inscritos' => $inscritos,
                     'todos_con_jefe' => $todosConJefe,
+                    'jefe_asignado' => $pasantia->jefeResponsable ? [
+                                            'id' => $pasantia->jefeResponsable->idU_jefe,
+                                            'ap_paterno' => $pasantia->jefeResponsable->user->ap_paterno,
+                                            'ap_materno' => $pasantia->jefeResponsable->user->ap_materno,
+                                            'nombre' => $pasantia->jefeResponsable->user->nombre,
+                                            'fecha_nac' =>$pasantia->jefeResponsable->user->fecha_nac ? $pasantia->jefeResponsable->user->fecha_nac ->format('Y-m-d') : null,
+                                            'ci' =>$pasantia->jefeResponsable->user->ci,
+                                            'numero_cel' =>$pasantia->jefeResponsable->user->numero_cel,
+                                            'correo' =>$pasantia->jefeResponsable->user->correo,
+                                            'cargo' =>$pasantia->jefeResponsable->cargo,
+                                            'area' =>$pasantia->jefeResponsable->area,
+                                        ] : null,
                     'actividades_count' => $pasantia->actividades->count(),
                 ];
             });
@@ -575,4 +587,80 @@ class PasantiaPublicadaController extends Controller
         ]);
 
     }
+
+        public function getJefesDisponiblesParaPasantia()
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $jefes = JefePas::with('user')
+            ->where('id_empresa', $empresa->id_empresa)
+            ->whereHas('user', function($q) {
+                $q->where('estado_cuenta', true)
+                ->where('estado_aprobacion', 'aprobado');
+            })
+            ->get()
+            ->map(function($jefe) {
+                return [   
+                        'id' => $jefe->idU_jefe,
+                        'nombre' => $jefe->user->nombre,
+                        'ap_paterno' => $jefe->user->ap_paterno,
+                        'ap_materno' => $jefe->user->ap_materno,
+                        'fecha_nac' => $jefe->user->fecha_nac ? $jefe->user->fecha_nac ->format('Y-m-d') : null,
+                        'ci' => $jefe->user->ci,
+                        'numero_cel' => $jefe->user->numero_cel,
+                        'correo' => $jefe->user->correo,
+                        'cargo' => $jefe->cargo,
+                        'area' => $jefe->area,
+                    ];
+            });
+        
+        return response()->json(['jefes' => $jefes]);
+    }
+
+    public function asignarJefeAPasantia(Request $request, $id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $request->validate([
+            'idU_jefe' => 'required|exists:jefe_pas,idU_jefe'
+        ]);
+        
+        $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->where('id_pasantia', $id)
+            ->firstOrFail();
+        
+        // Verificar que el jefe pertenece a la empresa
+        $jefe = JefePas::where('id_empresa', $empresa->id_empresa)
+            ->where('idU_jefe', $request->idU_jefe)
+            ->firstOrFail();
+        
+        $pasantia->update(['idU_jefe' => $request->idU_jefe]);
+        
+        return response()->json([
+            'message' => 'Jefe asignado correctamente',
+            'jefe' => [
+                'id' => $jefe->idU_jefe,
+                'ap_paterno' => $jefe->user->ap_paterno,
+                'ap_materno' => $jefe->user->ap_materno,
+                'nombre' => $jefe->user->nombre,
+            ]
+        ]);
+    }
+                    
+    public function designarJefeDePasantia($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $pasantia = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->where('id_pasantia', $id)
+            ->firstOrFail();
+        
+        $pasantia->update(['idU_jefe' => null]);
+        
+        return response()->json(['message' => 'Jefe desasignado correctamente']);
+    }
+
 }

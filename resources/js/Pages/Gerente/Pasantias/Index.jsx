@@ -7,6 +7,8 @@ import ModalHorario from "@/Components/Common/ModalHorario";
 import ModalActividadesPasantia from "@/Components/Common/ModalActividadesPasantia";
 import ModalEditarPasantia from "@/Components/Common/ModalEditarPasantia";
 import ModalInscritosActivos from "@/Components/Common/ModalInscritosActivos";
+import ModalAsignarJefePasantia from "@/Components/Common/ModalAsignarJefePasantia";
+import ModalPerfil from "@/Components/Common/ModalPerfil";
 import axios from "axios";
 import {
     Eye,
@@ -23,8 +25,11 @@ import {
     ArrowUpDown,
     ChevronUp,
     ChevronDown,
+    UserPlus,
+    UserX,
     Edit,
     Briefcase,
+    Lock,
 } from "lucide-react";
 
 export default function Index({ auth, pasantias }) {
@@ -32,6 +37,21 @@ export default function Index({ auth, pasantias }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [sortField, setSortField] = useState("fecha_ini");
     const [loadingAbrir, setLoadingAbrir] = useState(false);
+
+    const [modalAsignarJefePasantia, setModalAsignarJefePasantia] = useState({
+        isOpen: false,
+        pasantiaId: null,
+    });
+    const [modalDesignarConfirm, setModalDesignarConfirm] = useState({
+        isOpen: false,
+        pasantiaId: null,
+    });
+    const [modalPerfilJefe, setModalPerfilJefe] = useState({
+        isOpen: false,
+        jefe: null,
+    });
+    const [loadingDesignar, setLoadingDesignar] = useState(false);
+
     const [modalEditar, setModalEditar] = useState({
         isOpen: false,
         pasantia: null,
@@ -258,69 +278,99 @@ export default function Index({ auth, pasantias }) {
         }
     };
 
-    const getEstadoBadge = (pasantia) => {
-        const { cupos_disponibles, inscritos, todos_con_jefe, cupos } =
-            pasantia;
+    // const getEstadoBadge = (pasantia) => {
+    //     const { cupos_disponibles, inscritos, todos_con_jefe, cupos } =
+    //         pasantia;
 
-        // PEOR ESTADO: No hay inscritos
-        if (inscritos === 0) {
-            return {
-                text: "Eiminar Pasantia",
-                bg: "bg-red-100",
-                textColor: "text-red-800",
-                showCancel: true,
-            };
+    //     // PEOR ESTADO: No hay inscritos
+    //     if (inscritos === 0) {
+    //         return {
+    //             text: "Eiminar Pasantia",
+    //             bg: "bg-red-100",
+    //             textColor: "text-red-800",
+    //             showCancel: true,
+    //         };
+    //     }
+
+    //     // MEJOR ESTADO: Cupos disponibles = 0 Y todos tienen jefe
+    //     if (todos_con_jefe) {
+    //         return {
+    //             text: "En Orden",
+    //             bg: "bg-green-100",
+    //             textColor: "text-green-800",
+    //             icon: <CheckCircle size={12} />,
+    //             showCancel: false,
+    //         };
+    //     }
+
+    //     // NORMAL: Cupos disponibles = 0 pero no todos tienen jefe
+    //     // if (cupos_disponibles === 0 && !todos_con_jefe) {
+    //     //     return {
+    //     //         text: "Falta Asignar Jefe",
+    //     //         bg: "bg-yellow-100",
+    //     //         textColor: "text-yellow-800",
+    //     //         icon: <AlertTriangle size={12} />,
+    //     //         showCancel: false,
+    //     //     };
+    //     // }
+    //     if (!todos_con_jefe) {
+    //         return {
+    //             text: "Asignar Jefe Pas.",
+    //             bg: "bg-yellow-100",
+    //             textColor: "text-yellow-800",
+    //             icon: <AlertTriangle size={17} />,
+    //             showCancel: false,
+    //         };
+    //     }
+    //     // // NORMAL: Cupos disponibles > 0 pero todos tienen jefe
+    //     // if (cupos_disponibles > 0 && todos_con_jefe) {
+    //     //     return {
+    //     //         text: "Falta Completar Cupos",
+    //     //         bg: "bg-blue-100",
+    //     //         textColor: "text-blue-800",
+    //     //         icon: <AlertTriangle size={12} />,
+    //     //         showCancel: false,
+    //     //     };
+    //     // }
+
+    //     // Estado por defecto (no debería llegar aquí)
+    //     return {
+    //         text: "Pendiente",
+    //         bg: "bg-gray-100",
+    //         textColor: "text-gray-800",
+    //         icon: null,
+    //         showCancel: false,
+    //     };
+    // };
+    const handleDesignarJefePasantia = async () => {
+        setLoadingDesignar(true);
+        try {
+            const response = await axios.patch(
+                `/gerente/pasantias/${modalDesignarConfirm.pasantiaId}/designar-jefe-pasantia`,
+            );
+            if (response.data.message) {
+                setPasantiasData((prev) =>
+                    prev.map((p) =>
+                        p.id === modalDesignarConfirm.pasantiaId
+                            ? { ...p, jefe_asignado: null }
+                            : p,
+                    ),
+                );
+            }
+            setModalDesignarConfirm({ isOpen: false, pasantiaId: null });
+        } catch (error) {
+            alert(error.response?.data?.message || "Error al desasignar jefe");
+        } finally {
+            setLoadingDesignar(false);
         }
+    };
 
-        // MEJOR ESTADO: Cupos disponibles = 0 Y todos tienen jefe
-        if (todos_con_jefe) {
-            return {
-                text: "En Orden",
-                bg: "bg-green-100",
-                textColor: "text-green-800",
-                icon: <CheckCircle size={12} />,
-                showCancel: false,
-            };
-        }
-
-        // NORMAL: Cupos disponibles = 0 pero no todos tienen jefe
-        // if (cupos_disponibles === 0 && !todos_con_jefe) {
-        //     return {
-        //         text: "Falta Asignar Jefe",
-        //         bg: "bg-yellow-100",
-        //         textColor: "text-yellow-800",
-        //         icon: <AlertTriangle size={12} />,
-        //         showCancel: false,
-        //     };
-        // }
-        if (!todos_con_jefe) {
-            return {
-                text: "Asignar Jefe Pas.",
-                bg: "bg-yellow-100",
-                textColor: "text-yellow-800",
-                icon: <AlertTriangle size={17} />,
-                showCancel: false,
-            };
-        }
-        // // NORMAL: Cupos disponibles > 0 pero todos tienen jefe
-        // if (cupos_disponibles > 0 && todos_con_jefe) {
-        //     return {
-        //         text: "Falta Completar Cupos",
-        //         bg: "bg-blue-100",
-        //         textColor: "text-blue-800",
-        //         icon: <AlertTriangle size={12} />,
-        //         showCancel: false,
-        //     };
-        // }
-
-        // Estado por defecto (no debería llegar aquí)
-        return {
-            text: "Pendiente",
-            bg: "bg-gray-100",
-            textColor: "text-gray-800",
-            icon: null,
-            showCancel: false,
-        };
+    const handleJefeAsignadoPasantia = (jefe, pasantiaId) => {
+        setPasantiasData((prev) =>
+            prev.map((p) =>
+                p.id === pasantiaId ? { ...p, jefe_asignado: jefe } : p,
+            ),
+        );
     };
 
     return (
@@ -395,6 +445,7 @@ export default function Index({ auth, pasantias }) {
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
                                     JEFE PASANTIA
                                 </th>
+
                                 {/* <th
                                     className="px-4 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
                                     onClick={() => handleSort("fecha_ini")}
@@ -405,7 +456,7 @@ export default function Index({ auth, pasantias }) {
                                     </div>
                                 </th> */}
                                 <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                    ABRIR/CERRAR INSCRIPCIÓN
+                                    ESTADO INSCRIPCIÓN
                                 </th>
                             </tr>
                         </thead>
@@ -498,10 +549,10 @@ export default function Index({ auth, pasantias }) {
                                                             pasantia.nombre,
                                                     })
                                                 }
-                                                className="px-3 py-1 bg-primary-blue text-white text-[10px] font-semibold rounded-md shadow-sm hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
+                                                className="px-2 py-1 bg-primary-blue text-white text-[11px] font-semibold rounded-md shadow-sm hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
                                                 title="Ver actividades"
                                             >
-                                                Actividades
+                                                ACTIVIDADES
                                             </button>
                                         </div>
                                     </td>
@@ -569,7 +620,7 @@ export default function Index({ auth, pasantias }) {
                                                             pasantia.nombre,
                                                     })
                                                 }
-                                                className="px-3 py-1 bg-primary-blue text-white text-[10px] font-semibold rounded-md shadow-sm hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
+                                                className="px-2 py-1 bg-primary-blue text-white text-[11px] font-semibold rounded-md shadow-sm hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
                                                 title="Gestionar pasantes (asignar/desasignar)"
                                             >
                                                 GESTIONAR
@@ -577,35 +628,73 @@ export default function Index({ auth, pasantias }) {
                                         </div>
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        {(() => {
-                                            const estado =
-                                                getEstadoBadge(pasantia);
-                                            return (
-                                                <div className="flex items-center justify-center gap-0">
-                                                    <span
-                                                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${estado.bg} ${estado.textColor}`}
-                                                    >
-                                                        {estado.icon}
-                                                        {estado.text}
-                                                    </span>
-                                                    {estado.showCancel && (
-                                                        <button
-                                                            onClick={() =>
-                                                                handleCancelarPasantia(
+                                        {pasantia.jefe_asignado ? (
+                                            <div className="flex items-center justify-center gap-0">
+                                                <button
+                                                    onClick={() =>
+                                                        setModalPerfilJefe({
+                                                            isOpen: true,
+                                                            jefe: pasantia.jefe_asignado,
+                                                        })
+                                                    }
+                                                    className="text-primary-blue hover:text-primary-sky-blue text-sm font-medium cursor-pointer"
+                                                >
+                                                    {
+                                                        pasantia.jefe_asignado
+                                                            .ap_paterno
+                                                    }
+                                                    ,{" "}
+                                                    {
+                                                        pasantia.jefe_asignado
+                                                            .nombre
+                                                    }
+                                                </button>
+                                                <button
+                                                    onClick={() =>
+                                                        setModalDesignarConfirm(
+                                                            {
+                                                                isOpen: true,
+                                                                pasantiaId:
                                                                     pasantia.id,
-                                                                )
-                                                            }
-                                                            className="text-red-500 hover:text-red-700 transition-all"
-                                                            title="Cancelar pasantía"
-                                                        >
-                                                            <XCircle
-                                                                size={15}
-                                                            />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            );
-                                        })()}
+                                                            },
+                                                        )
+                                                    }
+                                                    className="text-red-500 hover:text-red-700 transition-all cursor-pointer"
+                                                    title="Desasignar jefe"
+                                                >
+                                                    <UserX size={19} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center justify-center gap-0">
+                                                <button
+                                                    onClick={() =>
+                                                        setModalAsignarJefePasantia(
+                                                            {
+                                                                isOpen: true,
+                                                                pasantiaId:
+                                                                    pasantia.id,
+                                                            },
+                                                        )
+                                                    }
+                                                    className="flex flex-col items-center gap-1 rounded-lg hover:bg-primary-sky-blue/10 transition-all duration-200 cursor-pointer group"
+                                                    title="Asignar jefe a la pasantía"
+                                                >
+                                                    <UserPlus
+                                                        size={20}
+                                                        className="text-primary-sky-blue group-hover:scale-110 transition-transform"
+                                                    />
+
+                                                    <div className="px-2 py-1 bg-primary-sky-blue text-white rounded-md shadow-sm hover:bg-primary-blue transition-all duration-200">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[12px] font-semibold">
+                                                                ASIGNAR
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        )}
                                     </td>
                                     {/* <td className="px-4 py-3">
                                         <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 bg-gray-50 px-2 py-1 rounded-lg border border-gray-200">
@@ -614,30 +703,47 @@ export default function Index({ auth, pasantias }) {
                                     </td> */}
                                     <td className="px-4 py-3 text-center">
                                         {pasantia.estado === "ABIERTA" ? (
-                                            <button
-                                                onClick={() =>
-                                                    handleAbrirConfirmacionInicio(
-                                                        pasantia.id,
-                                                    )
-                                                }
-                                                className="px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-md shadow-sm hover:bg-red-700 transition-all duration-200 cursor-pointer"
-                                                title="Cerrar Inscripciones"
-                                            >
-                                                Cerrar Inscripciones
-                                            </button>
+                                            <div className="flex flex-col items-center gap-1">
+                                                <div className="text-center">
+                                                    <span className="inline-block items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-[12.5px] font-semibold rounded-full">
+                                                        <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>{" "}
+                                                        abierto
+                                                    </span>
+                                                </div>
+                                                <button
+                                                    onClick={() =>
+                                                        handleAbrirConfirmacionInicio(
+                                                            pasantia.id,
+                                                        )
+                                                    }
+                                                    className="px-4 py-1.5 bg-primary-slate text-white text-xs font-semibold rounded-lg shadow-md hover:bg-primary-navy hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95"
+                                                    title="Cerrar Inscripciones"
+                                                >
+                                                    CERRAR
+                                                </button>
+                                            </div>
                                         ) : (
-                                            <button
-                                                onClick={() =>
-                                                    setModalAbrir({
-                                                        isOpen: true,
-                                                        pasantiaId: pasantia.id,
-                                                    })
-                                                }
-                                                className="px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-md shadow-sm hover:bg-green-700 transition-all duration-200 cursor-pointer"
-                                                title="Habilitar Inscripciones"
-                                            >
-                                                Abrir Inscripciones
-                                            </button>
+                                            <div className="flex flex-col items-center gap-1">
+                                                <div className="text-center">
+                                                    <span className="inline-block items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 text-[12.5px] font-semibold rounded-full">
+                                                        <span className="inline-block w-1.5 h-1.5 bg-red-500 rounded-full"></span>{" "}
+                                                        cerrado
+                                                    </span>
+                                                </div>
+                                                <button
+                                                    onClick={() =>
+                                                        setModalAbrir({
+                                                            isOpen: true,
+                                                            pasantiaId:
+                                                                pasantia.id,
+                                                        })
+                                                    }
+                                                    className="px-4 py-1.5 bg-[#3C9087] text-white text-xs font-semibold rounded-lg shadow-md hover:bg-[#31756e] hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95"
+                                                    title="Habilitar Inscripciones"
+                                                >
+                                                    ABRIR
+                                                </button>
+                                            </div>
                                         )}
                                     </td>
                                 </tr>
@@ -750,6 +856,46 @@ export default function Index({ auth, pasantias }) {
                 type="info"
                 confirmText="Confirmar"
                 loading={loadingIniciar}
+            />
+
+            <ModalAsignarJefePasantia
+                isOpen={modalAsignarJefePasantia.isOpen}
+                onClose={() =>
+                    setModalAsignarJefePasantia({
+                        isOpen: false,
+                        pasantiaId: null,
+                    })
+                }
+                pasantiaId={modalAsignarJefePasantia.pasantiaId}
+                onAsignado={(jefe) =>
+                    handleJefeAsignadoPasantia(
+                        jefe,
+                        modalAsignarJefePasantia.pasantiaId,
+                    )
+                }
+            />
+
+            <ModalConfirmacion
+                isOpen={modalDesignarConfirm.isOpen}
+                onClose={() =>
+                    setModalDesignarConfirm({ isOpen: false, pasantiaId: null })
+                }
+                onConfirm={handleDesignarJefePasantia}
+                titulo="Desasignar Jefe"
+                mensaje="¿Estás seguro de desasignar al jefe responsable de esta pasantía?"
+                type="danger"
+                confirmText="Designar"
+                loading={loadingDesignar}
+            />
+
+            <ModalPerfil
+                isOpen={modalPerfilJefe.isOpen}
+                onClose={() =>
+                    setModalPerfilJefe({ isOpen: false, jefe: null })
+                }
+                usuario={modalPerfilJefe.jefe}
+                tipo="jefe"
+                readOnly={true}
             />
             <ModalConfirmacion
                 isOpen={modalAbrir.isOpen}

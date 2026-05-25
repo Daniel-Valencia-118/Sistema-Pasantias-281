@@ -554,11 +554,69 @@ export default function Inscribirse({
                                                 </button>
                                             </div>
                                         </td>
-                                        <td className="px-3 py-3">
-                                            <BadgeFecha
-                                                fecha={pasantia.fecha_ini}
-                                            />
+                                        <td className="text-center px-3 py-3">
+                                            {(() => {
+                                                // Extraer la fecha en formato local (Bolivia)
+                                                const fechaStr =
+                                                    pasantia.fecha_ini;
+                                                if (!fechaStr)
+                                                    return <span>-</span>;
+
+                                                // Extraer componentes directamente del string ISO (YYYY-MM-DD)
+                                                const [anio, mes, dia] =
+                                                    fechaStr
+                                                        .split("-")
+                                                        .map(Number);
+
+                                                // Crear fecha en zona horaria local (sin conversión UTC)
+                                                const fechaLocal = new Date(
+                                                    anio,
+                                                    mes - 1,
+                                                    dia,
+                                                );
+
+                                                // Obtener fecha actual en zona horaria local (Bolivia)
+                                                const hoy = new Date();
+                                                hoy.setHours(0, 0, 0, 0);
+
+                                                // Determinar el color según la fecha
+                                                let colorClass =
+                                                    "bg-gray-100 text-gray-700 border-gray-200";
+
+                                                if (fechaLocal < hoy) {
+                                                    colorClass =
+                                                        "bg-red-50 text-red-700 border-red-200";
+                                                } else if (
+                                                    fechaLocal.getTime() ===
+                                                    hoy.getTime()
+                                                ) {
+                                                    colorClass =
+                                                        "bg-amber-50 text-amber-700 border-amber-200";
+                                                } else {
+                                                    colorClass =
+                                                        "bg-green-50 text-green-700 border-green-200";
+                                                }
+
+                                                // Formatear solo día y mes en español
+                                                const fechaFormateada =
+                                                    fechaLocal.toLocaleDateString(
+                                                        "es-ES",
+                                                        {
+                                                            day: "numeric",
+                                                            month: "long",
+                                                        },
+                                                    );
+
+                                                return (
+                                                    <div
+                                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm border ${colorClass}`}
+                                                    >
+                                                        {fechaFormateada}
+                                                    </div>
+                                                );
+                                            })()}
                                         </td>
+
                                         {/* <td className="px-3 py-3">
                                             <BadgeFecha
                                                 fecha={pasantia.fecha_fin}

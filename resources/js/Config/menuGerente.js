@@ -52,13 +52,13 @@ export const menuGerente = [
             {
                 name: "Pasantías Publicadas",
                 href: "/gerente/pasantias",
-                icon: ClipboardList,
-            },
-            {
-                name: "Pasantías Iniciadas",
-                href: "/gerente/pasantias/activas",
                 icon: Play,
             },
+            // {
+            //     name: "Pasantías Iniciadas",
+            //     href: "/gerente/pasantias/activas",
+            //     icon: Play,
+            // },
             {
                 name: "Pasantías Finalizadas",
                 href: "/gerente/pasantias/finalizadas",

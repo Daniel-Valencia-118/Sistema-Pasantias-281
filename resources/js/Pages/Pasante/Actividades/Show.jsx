@@ -196,16 +196,16 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                 {/* Botón volver */}
                 <div className="mb-2 -mt-18">
                     <button
-                        onClick={() => router.visit("/pasante/actividades")}
+                        onClick={() =>
+                            router.visit("/pasante/inscripciones/activas")
+                        }
                         className="group flex items-center gap-2 text-gray-600 hover:text-primary-blue transition"
                     >
-                        <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-gray-200 shadow-sm group-hover:border-primary-blue transition">
-                            <ChevronLeft size={18} />
+                        <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-gray-200 shadow-sm group-hover:border-primary-blue transition cursor-pointer">
+                            <ChevronLeft size={15} />
                         </div>
 
-                        <span className="font-medium">
-                            Volver a actividades
-                        </span>
+                        <span className="font-medium ">Volver a pasantias</span>
                     </button>
                 </div>
 

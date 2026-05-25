@@ -50,8 +50,8 @@ export default function Activas({ auth, inscripciones }) {
         if (estado === "iniciado") {
             return (
                 <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md">
-                    <PlayCircle size={12} />
-                    CURSANDO
+                    <PlayCircle size={10} />
+                    INSCRITO
                 </span>
             );
         }
@@ -62,7 +62,23 @@ export default function Activas({ auth, inscripciones }) {
             </span>
         );
     };
+    const formatRangoFechas = (fechaIni, fechaFin) => {
+        if (!fechaIni || !fechaFin) return "";
 
+        // Función auxiliar para crear la fecha local sin interferencia de UTC
+        const crearFechaLocal = (fechaStr) => {
+            const [year, month, day] = fechaStr.split("-").map(Number);
+            return new Date(year, month - 1, day);
+        };
+
+        // Convertimos ambas fechas de forma segura
+        const ini = crearFechaLocal(fechaIni);
+        const fin = crearFechaLocal(fechaFin);
+
+        const opciones = { day: "numeric", month: "long" };
+
+        return `${ini.toLocaleDateString("es-ES", opciones)} - ${fin.toLocaleDateString("es-ES", opciones)}`;
+    };
     const filteredInscripciones = inscripciones.filter((inscripcion) =>
         inscripcion.pasantia.nombre
             .toLowerCase()
@@ -148,7 +164,7 @@ export default function Activas({ auth, inscripciones }) {
                                     </div>
                                     <Clock
                                         size={32}
-                                        className="text-yellow-300"
+                                        className="text-green-300"
                                     />
                                 </div>
                             </div>
@@ -171,12 +187,12 @@ export default function Activas({ auth, inscripciones }) {
                                 className={`p-4 border-b ${
                                     inscripcion.estado_inscripcion ===
                                     "iniciado"
-                                        ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-100"
+                                        ? "bg-gradient-to-r from-blue-200 to-emerald-50 border-blue-200"
                                         : "bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-100"
                                 }`}
                             >
-                                <div className="flex items-start justify-between gap-3 mb-2">
-                                    <h3 className="font-bold text-base text-gray-800 break-words flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-3 mb-1">
+                                    <h3 className="font-bold text-base text-gray-900 break-words flex-1 min-w-0">
                                         {p.nombre}
                                     </h3>
                                     <div className="flex-shrink-0">
@@ -203,6 +219,9 @@ export default function Activas({ auth, inscripciones }) {
                                             size={20}
                                             className="text-primary-blue flex-shrink-0 cursor-pointer"
                                         />
+                                        <p className="text-sm text-gray-600 cursor-pointer">
+                                            Empresa:
+                                        </p>
                                         <span className="text-gray-700 text-base font-medium break-words flex-1 min-w-0 group-hover:text-primary-blue transition-colors cursor-pointer">
                                             {p.empresa.nombre}
                                         </span>
@@ -211,7 +230,7 @@ export default function Activas({ auth, inscripciones }) {
                             </div>
 
                             {/* Card Body */}
-                            <div className="p-4 space-y-3">
+                            <div className="p-3 space-y-3">
                                 {/* Actividades & Horario */}
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
@@ -244,7 +263,7 @@ export default function Activas({ auth, inscripciones }) {
                                         title="Ver horario"
                                     >
                                         <Clock size={16} />
-                                        Hrs. y Fechas
+                                        Horario y Fechas
                                     </button>
                                 </div>
 
@@ -252,11 +271,11 @@ export default function Activas({ auth, inscripciones }) {
                                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
                                     <div className="flex items-center gap-2">
                                         <UserCheck
-                                            size={16}
+                                            size={19}
                                             className="text-green-600"
                                         />
                                         <span className="text-sm font-medium text-gray-700">
-                                            Jefe
+                                            Jefe de Pasantia:
                                         </span>
                                     </div>
                                     {inscripcion.jefe_asignado ? (
@@ -291,23 +310,23 @@ export default function Activas({ auth, inscripciones }) {
                                             },
                                         })
                                     }
-                                    className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 hover:from-purple-100 hover:to-pink-100 transition-all duration-200 group cursor-pointer"
+                                    className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-green-100 to-green-50 rounded-xl border border-green-100 hover:from-green-100 hover:to-green-100 transition-all duration-200 group cursor-pointer"
                                     title="Ver compañeros inscritos"
                                 >
                                     <div className="flex items-center gap-2 ">
                                         <Users
                                             size={18}
-                                            className="text-purple-600"
+                                            className="text-green-800"
                                         />
                                         <span className="text-sm font-medium text-gray-700 cursor-pointer">
                                             Compañeros de Pasantia
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-xl font-bold text-purple-700">
+                                        <span className="text-xl font-bold text-green-700">
                                             {p.total_inscritos}
                                         </span>
-                                        <span className="text-purple-600 group-hover:translate-x-1 transition-transform cursor-pointer">
+                                        <span className="text-green-600 group-hover:translate-x-1 transition-transform cursor-pointer">
                                             →
                                         </span>
                                     </div>
