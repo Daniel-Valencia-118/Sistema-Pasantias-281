@@ -24,11 +24,16 @@ class PasantiaPublicadaController extends Controller
         $user = Auth::user();
         $empresa = $user->gerente->empresa;
         
+        // Establecer zona horaria de Bolivia (La Paz)
+        $boliviaTimezone = new \DateTimeZone('America/La_Paz');
+        $fechaActual = new \DateTime('now', $boliviaTimezone);
+        $fechaActualStr = $fechaActual->format('Y-m-d');
+        
         $pasantias = Pasantia::with(['actividades', 'inscripciones.pasante.user', 'inscripciones.jefe.user'])
             ->where('id_empresa', $empresa->id_empresa)
             ->whereIn('estado', ['ABIERTA','INICIADO'])
             ->get()
-            ->map(function($pasantia) {
+            ->map(function($pasantia) use ($fechaActualStr) {
                 $inscritos = $pasantia->inscripciones->count();
                 $cuposDisponibles = $pasantia->cupos - $inscritos;
                 $todosConJefe = $pasantia->inscripciones->every(function($insc) {
@@ -40,6 +45,19 @@ class PasantiaPublicadaController extends Controller
                     $pasantia->estado = 'INICIADO';
                     $pasantia->save(); // <-- Esto ejecuta el UPDATE en tu base de datos automáticamente
                 }
+
+                // 2. Si la fecha final es menor o igual a la fecha actual y no está FINALIZADO → cambiar a FINALIZADO
+                // Convertir fecha_fin de la pasantía a objeto DateTime con zona horaria Bolivia
+                if ($pasantia->fecha_fin) {
+                    $fechaFin = new \DateTime($pasantia->fecha_fin, new \DateTimeZone('America/La_Paz'));
+                    $fechaFinStr = $fechaFin->format('Y-m-d');
+                    
+                    if ($fechaFinStr < $fechaActualStr && $pasantia->estado !== 'FINALIZADO') {
+                        $pasantia->estado = 'FINALIZADO';
+                        $pasantia->save();
+                    }
+                }
+
                 // Calcular si todos los inscritos tienen jefe asignado
                 $todosConJefe = true;
                 foreach ($pasantia->inscripciones as $inscripcion) {
