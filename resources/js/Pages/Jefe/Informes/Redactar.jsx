@@ -8,6 +8,7 @@ import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
 import Modal from '@/Components/Modal';
+import Select from '@/Components/Select';
 import axios from 'axios';
 import { FilePlus, AlertTriangle, CheckCircle, ListChecks, Award } from 'lucide-react';
 
@@ -137,7 +138,7 @@ export default function Redactar({
                         {/* Selector 1: Pasantías */}
                         <div>
                             <InputLabel htmlFor="id_pasantia" value="1. Seleccionar Programa de Pasantía" />
-                            <select
+                            <Select
                                 id="id_pasantia"
                                 value={selectedPasantia}
                                 onChange={e => setSelectedPasantia(e.target.value)}
@@ -148,13 +149,13 @@ export default function Redactar({
                                 {pasantias.map(p => (
                                     <option key={p.id} value={p.id}>{p.nombre}</option>
                                 ))}
-                            </select>
+                            </Select>
                         </div>
 
                         {/* Selector 2: Pasantes filtrados */}
                         <div>
                             <InputLabel htmlFor="id_pasante" value="2. Seleccionar Pasante Asignado" />
-                            <select
+                            <Select
                                 id="id_pasante"
                                 value={selectedPasante}
                                 onChange={e => setSelectedPasante(e.target.value)}
@@ -168,7 +169,7 @@ export default function Redactar({
                                         {ins.pasante_nombre}
                                     </option>
                                 ))}
-                            </select>
+                            </Select>
                         </div>
 
                         {/* Bloque Informativo de Alertas o Restricciones Fallidas */}
@@ -266,7 +267,7 @@ export default function Redactar({
                                 required
                             />
                             <p className="text-[11px] text-slate-400 mt-1">
-                                Nota: Si la calificación final es menor a 51, el resultado se guardará automáticamente como **reprobado**.
+                                Nota: Si la calificación final es menor a 51, el resultado se guardará automáticamente como 'reprobado'.
                             </p>
                             <InputError message={errors.nota_final} />
                         </div>

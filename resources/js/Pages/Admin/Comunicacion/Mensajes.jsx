@@ -10,6 +10,9 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
+import Select from '@/Components/Select';
+import InfoItem from '@/Components/InfoItem';
+import Textarea from '@/Components/Textarea';
 import { 
     Send, MessageSquare, Trash2, Edit, Eye, 
     Calendar, Clock, User, UserCheck, Search 
@@ -20,7 +23,7 @@ export default function Mensajes({ mensajes = [], pasantes = [], jefes = [], aut
     const [viewModalOpen, setViewModalOpen] = useState(false);
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [editMode, setEditMode] = useState(false);
-    const [selectedMsg, setSelectedMsg] = useState(null);
+    const [SelectedMsg, setSelectedMsg] = useState(null);
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
         id_mensaje: '',
@@ -35,7 +38,8 @@ export default function Mensajes({ mensajes = [], pasantes = [], jefes = [], aut
     const columns = [
         { 
             key: 'jefe', 
-            label: 'De (Jefe)', 
+            label: 'De (Jefe)',
+            sortable: true,
             render: (_, row) => (
                 <div className="flex flex-col">
                     <span className="font-bold text-primary-navy">{row.jefe?.user?.nombre}</span>
@@ -46,6 +50,7 @@ export default function Mensajes({ mensajes = [], pasantes = [], jefes = [], aut
         { 
             key: 'pasante', 
             label: 'Para (Pasante)', 
+            sortable: true,
             render: (_, row) => (
                 <div className="flex flex-col">
                     <span className="font-medium text-slate-700">{row.pasante?.user?.nombre}</span>
@@ -56,11 +61,16 @@ export default function Mensajes({ mensajes = [], pasantes = [], jefes = [], aut
         { 
             key: 'descripcion', 
             label: 'Mensaje', 
-            render: (v) => <p className="truncate max-w-xs text-slate-500">{v}</p> 
+            sortable: true,
+            render: (v) => <p className="truncate max-w-xs text-slate-500">{
+                // Eliminar prefijos de control [J] y [P] para mostrar solo el contenido del mensaje en la tabla
+                v.replace(/^\[J\]|\[P\]/, '').trim()
+            }</p> 
         },
         { 
             key: 'fecha', 
             label: 'Fecha/Hora', 
+            sortable: true,
             render: (_, row) => (
                 <div className="text-xs text-slate-600">
                     <div className="font-bold">{new Date(row.fecha).toLocaleDateString()}</div>
@@ -88,8 +98,7 @@ export default function Mensajes({ mensajes = [], pasantes = [], jefes = [], aut
         setSelectedMsg(msg);
         setData({
             id_mensaje: msg.id_mensaje,
-            // Detectar y eliminar el emisor mediante el prefijo de control en la descripción [J] para mensajes del jefe y [P]
-            descripcion: msg.descripcion.replace(/^\[J\]|\[P\]/, '').trim(),
+            descripcion: msg.descripcion,
             fecha: msg.fecha ? msg.fecha.split('T')[0] : '',
             hora: msg.hora || '',
             idU_pasante: msg.idU_pasante,
@@ -108,7 +117,7 @@ export default function Mensajes({ mensajes = [], pasantes = [], jefes = [], aut
     };
 
     const handleDelete = () => {
-        router.delete(route('admin.mensajes.destroy', selectedMsg.id_mensaje), {
+        router.delete(route('admin.mensajes.destroy', SelectedMsg.id_mensaje), {
             onSuccess: () => setConfirmDelete(false)
         });
     };
@@ -127,9 +136,9 @@ export default function Mensajes({ mensajes = [], pasantes = [], jefes = [], aut
                     <h1 className="text-2xl font-black text-primary-navy uppercase italic">Historial de Mensajería</h1>
                     <p className="text-slate-500 text-sm italic">Registro de comunicaciones oficiales entre Jefes y Pasantes.</p>
                 </div>
-                <PrimaryButton onClick={openCreate} className="gap-2">
+                {/* <PrimaryButton onClick={openCreate} className="gap-2">
                     <Send size={18} /> Redactar Mensaje
-                </PrimaryButton>
+                </PrimaryButton> */}
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -152,25 +161,27 @@ export default function Mensajes({ mensajes = [], pasantes = [], jefes = [], aut
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <InputLabel value="Jefe Emisor" />
-                            <select className="w-full rounded-xl border-slate-200 focus:ring-primary-blue" value={data.idU_jefe} onChange={e => setData('idU_jefe', e.target.value)} required>
-                                <option value="">Seleccionar Jefe...</option>
-                                {jefes.map(j => <option key={j.idU_jefe} value={j.idU_jefe}>{j.user?.nombre}</option>)}
-                            </select>
+                            <InfoItem 
+                                icon={UserCheck}
+                                label="Jefe Emisor"
+                                value={jefes.find(j => j.idU_jefe === data.idU_jefe)?.user?.nombre || 'Seleccionar Jefe...'} 
+                            />
                             <InputError message={errors.idU_jefe} />
                         </div>
                         <div>
                             <InputLabel value="Pasante Receptor" />
-                            <select className="w-full rounded-xl border-slate-200 focus:ring-primary-blue" value={data.idU_pasante} onChange={e => setData('idU_pasante', e.target.value)} required>
-                                <option value="">Seleccionar Pasante...</option>
-                                {pasantes.map(p => <option key={p.idU_pasante} value={p.idU_pasante}>{p.user?.nombre}</option>)}
-                            </select>
+                            <InfoItem 
+                                icon={User}
+                                label="Pasante Receptor"
+                                value={pasantes.find(p => p.idU_pasante === data.idU_pasante)?.user?.nombre || 'Seleccionar Pasante...'} 
+                            />
                             <InputError message={errors.idU_pasante} />
                         </div>
                     </div>
 
                     <div>
                         <InputLabel value="Contenido del Mensaje" />
-                        <textarea 
+                        <Textarea
                             className="w-full rounded-xl border-slate-200 focus:ring-primary-blue h-32"
                             value={data.descripcion}
                             onChange={e => setData('descripcion', e.target.value)}
@@ -183,11 +194,11 @@ export default function Mensajes({ mensajes = [], pasantes = [], jefes = [], aut
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <InputLabel value="Fecha" />
-                            <TextInput type="date" className="w-full" value={data.fecha} onChange={e => setData('fecha', e.target.value)} required />
+                            <TextInput type="date" readOnly className="w-full" value={data.fecha} onChange={e => setData('fecha', e.target.value)} required />
                         </div>
                         <div>
                             <InputLabel value="Hora" />
-                            <TextInput type="time" className="w-full" value={data.hora} onChange={e => setData('hora', e.target.value)} required />
+                            <TextInput type="time" readOnly className="w-full" value={data.hora} onChange={e => setData('hora', e.target.value)} required />
                         </div>
                     </div>
 
@@ -202,13 +213,13 @@ export default function Mensajes({ mensajes = [], pasantes = [], jefes = [], aut
 
             {/* MODAL: VER MENSAJE */}
             <Modal show={viewModalOpen} onClose={() => setViewModalOpen(false)} title="Detalle de la Comunicación" maxWidth="lg">
-                {selectedMsg && (
+                {SelectedMsg && (
                     <div className="p-6">
                         <div className="flex items-center gap-4 mb-6 bg-slate-50 p-4 rounded-2xl border border-dashed border-slate-300">
                             <div className="bg-white p-3 rounded-full shadow-sm text-primary-blue"><MessageSquare /></div>
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Canal Interno</p>
-                                <p className="text-sm font-medium text-slate-600">ID Mensaje: #{selectedMsg.id_mensaje}</p>
+                                <p className="text-sm font-medium text-slate-600">ID Mensaje: #{SelectedMsg.id_mensaje}</p>
                             </div>
                         </div>
 
@@ -216,23 +227,26 @@ export default function Mensajes({ mensajes = [], pasantes = [], jefes = [], aut
                             <div className="flex justify-between items-start">
                                 <div>
                                     <p className="text-[10px] font-black text-slate-400 uppercase">Emisor</p>
-                                    <p className="font-bold text-primary-navy">{selectedMsg.jefe?.user?.nombre}</p>
+                                    <p className="font-bold text-primary-navy">{SelectedMsg.jefe?.user?.nombre}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-[10px] font-black text-slate-400 uppercase">Receptor</p>
-                                    <p className="font-bold text-primary-blue">{selectedMsg.pasante?.user?.nombre}</p>
+                                    <p className="font-bold text-primary-blue">{SelectedMsg.pasante?.user?.nombre}</p>
                                 </div>
                             </div>
 
                             <div className="p-4 bg-primary-navy/[0.02] border-l-4 border-primary-blue rounded-r-xl">
                                 <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                                    "{selectedMsg.descripcion}"
+                                    "{
+                                        // Eliminar prefijos de control [J] y [P] para mostrar solo el contenido del mensaje en la vista detallada
+                                        SelectedMsg.descripcion.replace(/^\[J\]|\[P\]/, '').trim()
+                                    }"
                                 </p>
                             </div>
 
                             <div className="flex items-center gap-4 text-xs text-slate-400 pt-4 border-t">
-                                <span className="flex items-center gap-1"><Calendar size={14} /> {new Date(selectedMsg.fecha).toLocaleDateString()}</span>
-                                <span className="flex items-center gap-1"><Clock size={14} /> {selectedMsg.hora}</span>
+                                <span className="flex items-center gap-1"><Calendar size={14} /> {new Date(SelectedMsg.fecha).toLocaleDateString()}</span>
+                                <span className="flex items-center gap-1"><Clock size={14} /> {SelectedMsg.hora}</span>
                             </div>
                         </div>
 

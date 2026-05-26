@@ -8,6 +8,7 @@ use App\Models\Actividad;
 use App\Models\Pasante;
 use App\Models\JefePas;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; // <-- Fachada DB añadida
 use Inertia\Inertia;
 
 class BitacoraEvaController extends Controller
@@ -39,9 +40,15 @@ class BitacoraEvaController extends Controller
             'idU_jefe' => 'required|exists:jefe_pas,idU_jefe',
         ]);
 
-        BitacoraEva::create($validated);
+        try {
+            DB::transaction(function () use ($validated) {
+                BitacoraEva::create($validated);
+            });
 
-        return redirect()->back()->with('message', 'Bitácora creada exitosamente.');
+            return redirect()->back()->with('success', 'Bitácora creada exitosamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Error al crear la bitácora: ' . $e->getMessage()]);
+        }
     }
 
     public function update(Request $request, $id)
@@ -61,16 +68,29 @@ class BitacoraEvaController extends Controller
             'idU_jefe' => 'required|exists:jefe_pas,idU_jefe',
         ]);
 
-        $bitacora->update($validated);
+        try {
+            DB::transaction(function () use ($bitacora, $validated) {
+                $bitacora->update($validated);
+            });
 
-        return redirect()->back()->with('message', 'Bitácora actualizada correctamente.');
+            return redirect()->back()->with('success', 'Bitácora actualizada correctamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Error al actualizar la bitácora: ' . $e->getMessage()]);
+        }
     }
 
     public function destroy($id)
     {
-        $bitacora = BitacoraEva::findOrFail($id);
-        $bitacora->delete();
+        try {
+            $bitacora = BitacoraEva::findOrFail($id);
 
-        return redirect()->back()->with('message', 'Bitácora eliminada.');
+            DB::transaction(function () use ($bitacora) {
+                $bitacora->delete();
+            });
+
+            return redirect()->back()->with('success', 'Bitácora eliminada.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar la bitácora: ' . $e->getMessage()]);
+        }
     }
 }

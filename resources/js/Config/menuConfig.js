@@ -147,12 +147,6 @@ export const menuConfig = {
         //     ],
         // },
         {
-            name: 'Home',
-            icon: LayoutDashboard,
-            single: true,
-            href: '/jefe/',
-        },
-        {
             name: 'Dashboard',
             icon: LayoutDashboard,
             single: true,

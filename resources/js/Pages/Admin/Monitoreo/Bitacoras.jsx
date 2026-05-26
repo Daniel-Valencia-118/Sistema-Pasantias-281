@@ -12,6 +12,7 @@ import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
 import TextArea from '@/Components/TextArea';
 import Select from '@/Components/Select';
+import InfoItem from '@/Components/InfoItem';
 import { 
     FileText, CheckCircle, Clock, XCircle, HelpCircle, 
     Plus, Eye, Edit, Trash2, Calendar, User, MessageSquare 
@@ -43,23 +44,26 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
     const columns = [
         { 
             key: 'pasante', 
-            label: 'Pasante', 
+            label: 'Pasante',
+            sortable: true,
             render: (_, row) => <span className="font-bold text-primary-navy">{row.pasante?.user?.nombre + ' ' + row.pasante?.user?.ap_paterno + ' ' + row.pasante?.user?.ap_materno || 'N/A'}</span> 
         },
         { 
             key: 'actividad', 
             label: 'Actividad', 
+            sortable: true,
             render: (_, row) => <span>{row.actividad?.nombre_act || 'Sin actividad'}</span> 
         },
         {
             key: 'estado',
             label: 'Estado',
+            sortable: true,
             render: (value) => {
                 const styles = {
-                    'completada': 'bg-green-100 text-green-700 icon-green',
-                    'completada parcialmente': 'bg-orange-100 text-orange-700 icon-orange',
-                    'no realizada': 'bg-red-100 text-red-700 icon-red',
-                    'sin calificar': 'bg-gray-100 text-gray-700 icon-gray',
+                    'COMPLETADA': 'bg-green-100 text-green-700 icon-green',
+                    'COMPLETADA PARCIALMENTE': 'bg-orange-100 text-orange-700 icon-orange',
+                    'NO REALIZADA': 'bg-red-100 text-red-700 icon-red',
+                    'SIN CALIFICAR': 'bg-gray-100 text-gray-700 icon-gray',
                 };
                 return (
                     <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase ${styles[value] || styles['sin calificar']}`}>
@@ -68,8 +72,8 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
                 );
             },
         },
-        { key: 'nota', label: 'Nota', render: (v) => <span className="font-mono font-bold">{v || '--'}</span> },
-        { key: 'fecha', label: 'Fecha', render: (v) => new Date(v).toLocaleDateString() },
+        { key: 'nota', sortable: true, label: 'Nota', render: (v) => <span className="font-mono font-bold">{v || '--'}</span> },
+        { key: 'fecha', sortable: true, label: 'Fecha', render: (v) => new Date(v).toLocaleDateString() },
     ];
 
     const openCreate = () => {
@@ -121,7 +125,7 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
         <DashboardLayout auth={auth}>
             <Head title="Bitácoras de Evaluación" />
             <Breadcrumbs items={[
-                { label: 'Inicio', href: route('admin.dashboard') },
+                { label: 'Inicio', url: route('admin.dashboard') },
                 { label: 'Monitoreo Académico' },
                 { label: 'Bitácoras' },
             ]} />
@@ -168,7 +172,7 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
                         {/* <InputLabel value="Pasante" /> */}
                         {/* mostrar solo al pasante actual no lista */}
                         <InfoItem 
-                            icon={<User size={16} />} 
+                            icon={"User"}
                             label="Pasante" 
                             value={pasantes.find(p => p.idU_pasante === data.idU_pasante)?.user?.nombre + ' ' + pasantes.find(p => p.idU_pasante === data.idU_pasante)?.user?.ap_paterno + ' ' + pasantes.find(p => p.idU_pasante === data.idU_pasante)?.user?.ap_materno || 'Seleccionar Pasante...'} 
                         />
@@ -178,7 +182,7 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
                     <div>
                         {/* <InputLabel value="Actividad Planificada" /> */}
                         <InfoItem 
-                            icon={<FileText size={16} />} 
+                            icon={"Briefcase"}
                             label="Actividad Planificada"
                             value={actividades.find(a => a.id_actividad === data.id_actividad)?.nombre_act || 'Seleccionar Actividad...'} 
                         />
@@ -191,7 +195,7 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
                             {jefes.map(j => <option key={j.idU_jefe} value={j.idU_jefe}>{j.user?.nombre + ' ' + j.user?.ap_paterno + ' ' + j.user?.ap_materno}</option>)}
                         </Select> */}
                         <InfoItem 
-                            icon={<User size={16} />} 
+                            icon={"User"}
                             label="Jefe Evaluador"
                             value={jefes.find(j => j.idU_jefe === data.idU_jefe)?.user?.nombre + ' ' + jefes.find(j => j.idU_jefe === data.idU_jefe)?.user?.ap_paterno + ' ' + jefes.find(j => j.idU_jefe === data.idU_jefe)?.user?.ap_materno || 'Seleccionar Jefe...'} 
                         />
@@ -200,10 +204,10 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
                     <div>
                         <InputLabel value="Estado de la Bitácora" />
                         <Select className="w-full rounded-xl border-slate-200" value={data.estado} onChange={e => setData('estado', e.target.value)}>
-                            <option value="sin calificar">Sin calificar</option>
-                            <option value="completada">Completada</option>
-                            <option value="completada parcialmente">Parcial</option>
-                            <option value="no realizada">No realizada</option>
+                            <option value="SIN CALIFICAR">Sin calificar</option>
+                            <option value="COMPLETADA">Completada</option>
+                            <option value="COMPLETADA PARCIALMENTE">Completada Parcialmente</option>
+                            <option value="NO REALIZADA">No realizada</option>
                         </Select>
                     </div>
 
@@ -299,17 +303,5 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
                 message="Esta acción no se puede deshacer. Se eliminará el registro de evaluación permanentemente."
             />
         </DashboardLayout>
-    );
-}
-
-function InfoItem({ icon, label, value }) {
-    return (
-        <div className="flex items-start gap-2">
-            <div className="mt-1 text-slate-400">{icon}</div>
-            <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{label}</p>
-                <p className="text-sm font-semibold text-slate-700">{value}</p>
-            </div>
-        </div>
     );
 }

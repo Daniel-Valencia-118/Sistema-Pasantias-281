@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function ProgressBar({ percentage = 0 }) {
+export default function ProgressBar({ percentage = 0 , titulo = "Progreso de Actividad" }) {
     // Aseguramos que el valor esté entre 0 y 100
     const safePercentage = Math.min(Math.max(parseInt(percentage || 0, 10), 0), 100);
 
@@ -14,7 +14,7 @@ export default function ProgressBar({ percentage = 0 }) {
     return (
         <div className="w-full space-y-1">
             <div className="flex justify-between items-center text-[11px] font-bold text-slate-500">
-                <span>Progreso de Actividad</span>
+                <span>{titulo}</span>
                 <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">
                     {safePercentage}%
                 </span>

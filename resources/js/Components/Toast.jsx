@@ -10,12 +10,18 @@ const icons = {
 };
 
 const colors = {
-    // Usando tu accent-mint para el éxito
-    success: 'bg-white border-accent-mint text-primary-navy shadow-[0_10px_40px_-15px_rgba(109,187,152,0.3)]',
-    // Usando tu primary-blue para información
-    info: 'bg-white border-primary-blue text-primary-navy shadow-[0_10px_40px_-15px_rgba(42,90,141,0.3)]',
-    error: 'bg-red-50 border-red-200 text-red-900',
-    warning: 'bg-amber-50 border-amber-200 text-amber-900',
+    // Usamos tus colores de marca para los bordes y acentos
+    success: 'border-accent-mint/30 bg-white text-gray-800',
+    error: 'border-red-200 bg-white text-gray-800',
+    info: 'border-primary-blue/30 bg-white text-gray-800',
+    warning: 'border-amber-200 bg-white text-gray-800',
+};
+
+const iconColors = {
+    success: 'text-accent-mint bg-accent-mint/10 border-accent-mint/20',
+    error: 'text-red-500 bg-red-50 border-red-100',
+    info: 'text-primary-blue bg-primary-blue/10 border-primary-blue/20',
+    warning: 'text-amber-500 bg-amber-50 border-amber-100',
 };
 
 export default function Toast() {
@@ -46,39 +52,40 @@ export default function Toast() {
 
     if (messages.length === 0) return null;
 
-    return (
-        /* 1. CAMBIO: Contenedor centrado */
-        <div className="fixed inset-x-0 top-10 z-50 flex flex-col items-center pointer-events-none space-y-4">
+        return (
+        <div className="fixed inset-x-0 top-6 z-[100] flex flex-col items-center pointer-events-none space-y-3">
             {messages.map(msg => {
                 const Icon = icons[msg.type] || Info;
                 return (
                     <div
                         key={msg.id}
-                        /* 2. CAMBIO: Más ancho (max-w-2xl), padding extra y puntero habilitado */
                         className={`
                             pointer-events-auto
-                            flex items-center gap-4 p-6 rounded-2xl shadow-2xl border-2
-                            w-full max-w-2xl min-h-[80px]
-                            ${colors[msg.type] || colors.info} 
+                            flex items-start gap-4 p-5 rounded-xl border
+                            w-[90%] max-w-lg shadow-[0_20px_60px_-10px_rgba(0,0,0,0.15)]
+                            ${colors[msg.type]} 
                             transition-all animate-slide-down
                         `}
                     >
-                        <div className="p-2 bg-white/20 rounded-lg">
-                            <Icon size={28} /> {/* Icono más grande */}
+                        {/* Círculo del icono estilo SweetAlert */}
+                        <div className={`p-3 rounded-full border-2 shrink-0 ${iconColors[msg.type]}`}>
+                            <Icon size={24} strokeWidth={2.5} />
                         </div>
                         
-                        <div className="flex-1">
-                            <p className="text-lg font-bold leading-tight">
-                                {msg.type.toUpperCase()}
+                        <div className="flex-1 pt-0.5">
+                            <h3 className="font-display font-bold text-lg leading-tight uppercase tracking-tight">
+                                {msg.type === 'success' ? '¡Logrado!' : msg.type}
+                            </h3>
+                            <p className="font-body text-gray-600 text-sm mt-1">
+                                {msg.text}
                             </p>
-                            <p className="text-base opacity-90">{msg.text}</p>
                         </div>
 
                         <button 
                             onClick={() => setMessages(prev => prev.filter(m => m.id !== msg.id))} 
-                            className="p-2 hover:bg-black/5 rounded-full transition-colors"
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
                         >
-                            <X size={20} />
+                            <X size={18} />
                         </button>
                     </div>
                 );

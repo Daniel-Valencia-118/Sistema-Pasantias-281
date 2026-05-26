@@ -10,6 +10,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
+import Select from '@/Components/Select';
 import { Search, Edit, Building2, UserCircle, Phone, Mail, Plus } from 'lucide-react';
 
 export default function Empresas({ empresas = [], gerentesDisponibles = [], auth }) {
@@ -219,7 +220,7 @@ export default function Empresas({ empresas = [], gerentesDisponibles = [], auth
                         {!registrarNuevoGerente ? (
                             <div>
                                 <InputLabel value="Seleccionar Gerente Existente" />
-                                <select 
+                                <Select 
                                     className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-blue text-sm"
                                     value={data.idU_gerente}
                                     onChange={e => setData('idU_gerente', e.target.value)}
@@ -231,7 +232,7 @@ export default function Empresas({ empresas = [], gerentesDisponibles = [], auth
                                             {g.user?.nombre} {g.user?.ap_paterno} - CI: {g.user?.ci}
                                         </option>
                                     ))}
-                                </select>
+                                </Select>
                                 <InputError message={errors.idU_gerente} />
                             </div>
                         ) : (

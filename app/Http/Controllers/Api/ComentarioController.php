@@ -37,7 +37,7 @@ class ComentarioController extends Controller
 
         Comentario::create($validated);
 
-        return redirect()->back()->with('message', 'Comentario registrado con éxito.');
+        return redirect()->back()->with('success', 'Comentario registrado con éxito.');
     }
 
     public function update(Request $request, $id)
@@ -54,12 +54,12 @@ class ComentarioController extends Controller
 
         $comentario->update($validated);
 
-        return redirect()->back()->with('message', 'Comentario actualizado correctamente.');
+        return redirect()->back()->with('success', 'Comentario actualizado correctamente.');
     }
 
     public function destroy($id)
     {
         Comentario::findOrFail($id)->delete();
-        return redirect()->back()->with('message', 'Comentario eliminado.');
+        return redirect()->back()->with('success', 'Comentario eliminado.');
     }
 }

@@ -786,6 +786,17 @@ public function dashboard()
                     ->where('idU_jefe', $jefe->idU_jefe)
                     ->first();
 
+                // 1. Obtener la fecha de hoy en formato Y-m-d (sin horas) para una comparación limpia
+                $hoy = date('Y-m-d');
+
+                // 2. Evaluar las condiciones con las fechas crudas de la base de datos
+                $yaEmpezo = $actividad->fecha_ini && $actividad->fecha_ini <= $hoy;
+                $yaVencioPlazo = $actividad->fecha_fin && $actividad->fecha_fin <= $hoy;
+                $progresoAl100 = (int)$porcentajeProgreso === 100;
+
+                // 3. Regla de negocio: Debe haber empezado Y (estar al 100% O haber vencido el plazo)
+                $puedeEvaluar = $yaEmpezo && ($progresoAl100 || $yaVencioPlazo);
+
                 return [
                     'id_actividad' => $actividad->id_actividad,
                     'nombre_act' => $actividad->nombre_act,
@@ -794,6 +805,10 @@ public function dashboard()
                     'fecha_fin' => $actividad->fecha_fin ? date('d/m/Y', strtotime($actividad->fecha_fin)) : 'Sin fecha',
                     'porcentaje_progreso' => $porcentajeProgreso,
                     'historial_progresos' => $progresos,
+                    
+                    // Nueva verificación enviada al frontend
+                    'puede_evaluar' => $puedeEvaluar,
+
                     'tiene_autoevaluacion' => !is_null($autoeva),
                     'autoevaluacion' => $autoeva ? [
                         'id' => $autoeva->id_autoeva,
@@ -1078,7 +1093,7 @@ public function dashboard()
             return response()->json([
                 'success' => false,
                 'error_type' => 'PENDING_EVALUATIONS',
-                'message' => "No se puede redactar el informe. El pasante tiene evaluaciones pendientes (" . $bitacoras->count() . " de " . $totalActividades . " evaluadas)."
+                'message' => "No se puede redactar el informe. El pasante tiene actividades pendientes (" . $bitacoras->count() . " de " . $totalActividades . " evaluadas)."
             ]);
         }
 
@@ -1111,20 +1126,48 @@ public function dashboard()
             'nota_final' => 'required|numeric|min:0|max:100',
         ]);
 
-        // Determinar el resultado cualitativo de la pasantía
-        $resultado = $request->nota_final >= 51 ? 'aprobado' : 'reprobado';
+        // Iniciar la transacción
+        DB::beginTransaction();
 
-        // Guardar en la tabla INFORME_FIN
-        InformeFin::create([
-            'id_inscripcion' => $request->id_inscripcion,
-            'promedio' => $request->promedio,
-            'nota_final' => $request->nota_final,
-            'resultado' => $resultado,
-            'fecha' => now(),
-            'idU_jefe' => $jefe->idU_jefe,
-        ]);
+        try {
+            // Determinar el resultado cualitativo de la pasantía
+            $resultado = $request->nota_final >= 51 ? 'aprobado' : 'reprobado';
 
-        return redirect()->route('jefe.dashboard')->with('success', 'El Informe Final ha sido generado y guardado exitosamente.');
+            // Guardar en la tabla INFORME_FIN
+            InformeFin::create([
+                'id_inscripcion' => $request->id_inscripcion,
+                'promedio' => $request->promedio,
+                'nota_final' => $request->nota_final,
+                'resultado' => $resultado,
+                'fecha' => now(),
+                'idU_jefe' => $jefe->idU_jefe,
+            ]);
+
+            // Confirmar los cambios si todo sale bien
+            DB::commit();
+
+            // actualizar estado del inscripcion a 'finalizado' para que no se puedan hacer más cambios
+            $inscripcion = Inscripcion::find($request->id_inscripcion);
+            $inscripcion->update(['estado' => 'finalizado']);
+
+            // obtener id_pasantia para redirigir a la vista de historial de informes
+            $id_pasantia = $inscripcion->id_pasantia;
+
+            return redirect()->route('jefe.informes.historial', ['id_pasantia' => $id_pasantia])
+                ->with('success', 'El Informe Final ha sido generado y guardado exitosamente.');
+            // return redirect()->route('jefe.dashboard')->with('success', 'El Informe Final ha sido generado y guardado exitosamente.');
+
+        } catch (\Exception $e) {
+            // Deshacer los cambios en caso de cualquier error
+            DB::rollBack();
+
+            // Registrar el error en los logs para auditoría
+            Log::error('Error al generar el informe final: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Ocurrió un error al procesar el informe. Inténtelo de nuevo.');
+        }
     }
 
     /**

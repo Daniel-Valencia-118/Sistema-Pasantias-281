@@ -7,7 +7,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
-import { User, Lock, Save, X, ShieldCheck, Smartphone, Hash, AtSign } from 'lucide-react';
+import { User, Lock, Save, X, ShieldCheck, Smartphone, Hash, AtSign, Camera } from 'lucide-react';
 
 export default function Perfil({ auth, usuario, admi }) {
     const [editando, setEditando] = useState(false);
@@ -43,6 +43,60 @@ export default function Perfil({ auth, usuario, admi }) {
         });
     };
 
+   // ESTADOS PARA EL AVATAR
+    const [avatarPreview, setAvatarPreview] = useState(null);
+    const [avatarFile, setAvatarFile] = useState(null);
+    const [subiendoAvatar, setSubiendoAvatar] = useState(false);
+
+    // =============================================
+    // Funciones para gestión del Avatar
+    // =============================================
+    const handleAvatarChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (!file.type.match("image/jpeg") && !file.type.match("image/png")) {
+                alert("Solo se permiten archivos JPG y PNG");
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                alert("La imagen no debe superar los 2MB");
+                return;
+            }
+            setAvatarFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatarPreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleAvatarSubmit = async () => {
+        if (!avatarFile) return;
+
+        const formData = new FormData();
+        formData.append("avatar", avatarFile);
+
+        setSubiendoAvatar(true);
+        try {
+            await axios.post("/avatar/actualizar", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            window.location.reload();
+        } catch (error) {
+            alert(error.response?.data?.message || "Error al subir la foto");
+        } finally {
+            setSubiendoAvatar(false);
+        }
+    };
+
+    const cancelAvatar = () => {
+        setAvatarFile(null);
+        setAvatarPreview(null);
+    };
+
+    const avatarUrl = auth.user?.avatar_url;
+
     const breadcrumbs = [
         { label: 'Inicio', href: route('admin.dashboard') },
         { label: 'Mi Perfil' },
@@ -53,12 +107,29 @@ export default function Perfil({ auth, usuario, admi }) {
             <Head title="Mi Perfil" />
             <Breadcrumbs items={breadcrumbs} />
 
-            <div className="max-w-5xl mx-auto mt-6 pb-12">
+            <div className="max-w-5xl mx-auto mt-6 pb-12 space-y-6">
                 {/* --- HEADER DE PERFIL --- */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
                     <div className="flex items-center gap-5">
-                        <div className="h-20 w-20 bg-primary-navy rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg shadow-blue-100 ring-4 ring-blue-50">
-                            {usuario.nombre.charAt(0)}
+                        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue flex items-center justify-center text-white text-3xl font-bold shadow-md overflow-hidden">
+                            {avatarPreview ? (
+                                <img
+                                    src={avatarPreview}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : avatarUrl ? (
+                                <img
+                                    src={avatarUrl}
+                                    alt="Avatar"
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <span className="uppercase">
+                                    {usuario.nombre?.charAt(0)}
+                                    {usuario.ap_paterno?.charAt(0)}
+                                </span>
+                            )}
                         </div>
                         <div>
                             <h2 className="text-2xl font-bold text-gray-800">
@@ -78,6 +149,68 @@ export default function Perfil({ auth, usuario, admi }) {
                             <X size={18} /> Cancelar Edición
                         </SecondaryButton>
                     )}
+                </div>
+
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                            <div className="flex items-center gap-2 mb-6 border-b pb-4">
+                                <Camera className="text-primary-blue" size={20} />
+                                <h3 className="text-lg font-bold text-gray-800">Foto de perfil</h3>
+                            </div>
+                    <div className="p-6 flex flex-col items-center">
+                        <div className="relative">
+                            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue flex items-center justify-center text-white text-3xl font-bold shadow-md overflow-hidden">
+                                {avatarPreview ? (
+                                    <img
+                                        src={avatarPreview}
+                                        alt="Preview"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : avatarUrl ? (
+                                    <img
+                                        src={avatarUrl}
+                                        alt="Avatar"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <span className="uppercase">
+                                        {usuario.nombre?.charAt(0)}
+                                        {usuario.ap_paterno?.charAt(0)}
+                                    </span>
+                                )}
+                            </div>
+                            <label className="absolute bottom-0 right-0 p-1.5 bg-primary-blue rounded-full cursor-pointer hover:bg-primary-sky-blue transition shadow-md">
+                                <Camera size={16} className="text-white" />
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/jpeg,image/png"
+                                    onChange={handleAvatarChange}
+                                />
+                            </label>
+                        </div>
+
+                        {avatarFile && (
+                            <div className="mt-4 flex gap-3">
+                                <button
+                                    onClick={handleAvatarSubmit}
+                                    disabled={subiendoAvatar}
+                                    className="px-4 py-2 bg-primary-blue text-white text-sm rounded-lg hover:bg-primary-sky-blue transition disabled:opacity-50"
+                                >
+                                    {subiendoAvatar ? "Subiendo..." : "Guardar foto"}
+                                </button>
+                                <button
+                                    onClick={cancelAvatar}
+                                    className="px-4 py-2 bg-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-400 transition"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        )}
+
+                        <p className="text-xs text-gray-400 mt-3">
+                            Formatos: JPG, PNG | Máximo: 2MB
+                        </p>
+                    </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">

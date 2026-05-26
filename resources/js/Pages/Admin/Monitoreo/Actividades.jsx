@@ -9,6 +9,10 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
+import SelectInput from '@/Components/SelectInput';
+import InfoItem from '@/Components/InfoItem';
+import TextAreaField from '@/Components/Form/TextAreaField';
+import TextArea from '@/Components/TextArea';
 import { 
     Search, Edit, Eye, Plus, Calendar, 
     Trash2, ClipboardList, Info, Link as LinkIcon,
@@ -21,7 +25,7 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
     const [search, setSearch] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [showViewModal, setShowViewModal] = useState(false);
-    const [selectedAct, setSelectedAct] = useState(null);
+    const [SelectInputedAct, setSelectedAct] = useState(null);
     const [editMode, setEditMode] = useState(false);
     const [confirmingDeletion, setConfirmingDeletion] = useState(false);
     const [idToDelete, setIdToDelete] = useState(null);
@@ -123,11 +127,11 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
         e.preventDefault();
         if (editMode) {
             put(route('admin.actividades.update', data.id_actividad), {
-                onSuccess: () => { setShowModal(false); Swal.fire('¡Actualizado!', 'Actividad actualizada con éxito.', 'success'); }
+                onSuccess: () => { setShowModal(false); }
             });
         } else {
             post(route('admin.actividades.store'), {
-                onSuccess: () => { setShowModal(false); Swal.fire('¡Creado!', 'Nueva actividad registrada.', 'success'); }
+                onSuccess: () => { setShowModal(false); }
             });
         }
     };
@@ -146,7 +150,7 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
     };
 
     const breadcrumbs = [
-        { label: 'Inicio', href: route('admin.dashboard') },
+        { label: 'Inicio', url: route('admin.dashboard') },
         { label: 'Monitoreo Académico' },
         { label: 'Registro de Actividades' },
     ];
@@ -201,7 +205,7 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
             </div>
 
             {/* MODAL: CREAR / EDITAR */}
-            <Modal show={showModal} onClose={() => setShowModal(false)} title={editMode ? "Modificar Actividad" : "Registrar Nueva Actividad"} maxWidth="3xl">
+            <Modal show={showModal} onClose={() => setShowModal(false)} title={editMode ? "Modificar Actividad" : "Registrar Nueva Actividad"} maxWidth="4xl">
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="md:col-span-2">
@@ -218,36 +222,26 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
 
                         <div>
                             <InputLabel value="Tipo de Actividad" />
-                            <select 
+                            <SelectInput 
                                 className="w-full border-gray-300 rounded-xl text-sm focus:ring-primary-blue"
                                 value={data.tipo}
                                 onChange={e => setData('tipo', e.target.value)}
                                 required
                             >
                                 <option value="">Seleccione tipo...</option>
-                                <option value="Informe">Informe</option>
-                                <option value="Evaluación">Evaluación</option>
-                                <option value="Entrevista">Entrevista</option>
-                                <option value="Documentación">Documentación</option>
-                            </select>
+                                <option value="TECNICA">Técnica</option>
+                                <option value="OPERATIVA">Operativa</option>
+                            </SelectInput>
                             <InputError message={errors.tipo} />
                         </div>
 
                         <div>
-                            <InputLabel value="Vincular a Pasantía" />
-                            <select 
-                                className="w-full border-gray-300 rounded-xl text-sm"
-                                value={data.id_pasantia}
-                                onChange={e => setData('id_pasantia', e.target.value)}
-                                required
-                            >
-                                <option value="">Seleccione Pasantía...</option>
-                                {pasantias.map(pas => (
-                                    <option key={pas.id_pasantia} value={pas.id_pasantia}>
-                                        {pas.nombre_pas} ({pas.empresa?.nombre})
-                                    </option>
-                                ))}
-                            </select>
+                            <InputLabel value="Pasantía Vinculada" />
+                            {/* Solo mostrar la pasantia viculada */}
+                            <InfoItem
+                                label="Pasantía Actual vinculada"
+                                value={data.id_pasantia ? pasantias.find(p => p.id_pasantia === data.id_pasantia)?.nombre_pas : 'No asignada'}
+                            />
                             <InputError message={errors.id_pasantia} />
                         </div>
 
@@ -271,7 +265,7 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
 
                         <div className="md:col-span-2">
                             <InputLabel value="Descripción / Instrucciones" />
-                            <textarea 
+                            <TextArea 
                                 className="w-full border-gray-300 rounded-xl text-sm focus:ring-primary-blue min-h-[100px]"
                                 value={data.descripcion}
                                 onChange={e => setData('descripcion', e.target.value)}
@@ -296,25 +290,25 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
                             <FileText className="text-primary-blue h-8 w-8" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-primary-navy">{selectedAct?.nombre_act}</h2>
-                            <p className="text-primary-blue font-semibold uppercase text-xs tracking-wider">{selectedAct?.tipo}</p>
+                            <h2 className="text-2xl font-bold text-primary-navy">{SelectInputedAct?.nombre_act}</h2>
+                            <p className="text-primary-blue font-semibold uppercase text-xs tracking-wider">{SelectInputedAct?.tipo}</p>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 gap-8">
                         <div className="space-y-6">
                             <div className="flex items-start gap-3">
                                 <LinkIcon className="text-gray-400 mt-1" size={18} />
                                 <div>
                                     <p className="text-[10px] uppercase font-bold text-gray-400">Pasantía Relacionada</p>
-                                    <p className="text-sm font-semibold text-gray-700">{selectedAct?.pasantia_nombre}</p>
+                                    <p className="text-sm font-semibold text-gray-700">{SelectInputedAct?.pasantia_nombre}</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
                                 <Calendar className="text-gray-400 mt-1" size={18} />
                                 <div>
                                     <p className="text-[10px] uppercase font-bold text-gray-400">Periodo de Entrega</p>
-                                    <p className="text-sm font-semibold text-gray-700">Del {selectedAct?.fecha_ini_fmt} al {selectedAct?.fecha_fin_fmt}</p>
+                                    <p className="text-sm font-semibold text-gray-700">Del {SelectInputedAct?.fecha_ini_fmt} al {SelectInputedAct?.fecha_fin_fmt}</p>
                                 </div>
                             </div>
                         </div>
@@ -325,7 +319,7 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
                                 <p className="text-[10px] uppercase font-bold text-gray-500">Descripción</p>
                             </div>
                             <p className="text-sm text-gray-600 italic leading-relaxed">
-                                {selectedAct?.descripcion || 'Sin descripción adicional.'}
+                                {SelectInputedAct?.descripcion || 'Sin descripción adicional.'}
                             </p>
                         </div>
                     </div>
@@ -336,7 +330,7 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
                 </div>
             </Modal>
             {/* REEMPLAZAR SweetAlert por ConfirmDialog al final del componente */}
-            <ConfirmDialog
+            {/* <ConfirmDialog
                 show={confirmingDeletion}
                 onClose={() => setConfirmingDeletion(false)}
                 onConfirm={executeDelete}
@@ -344,7 +338,7 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
                 title="¿Eliminar Actividad?"
                 message="Esta acción eliminará permanentemente la actividad y no podrá recuperarse. ¿Estás seguro?"
                 confirmText="Sí, eliminar"
-            />
+            /> */}
         </DashboardLayout>
     );
 }

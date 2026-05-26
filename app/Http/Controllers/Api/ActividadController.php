@@ -26,7 +26,7 @@ class ActividadController extends Controller
     {
         return Inertia::render('Admin/Monitoreo/Actividades', [
             'actividades' => Actividad::with('pasantia.empresa')->orderBy('id_actividad', 'desc')->get(),
-            'pasantias' => Pasantia::with('empresa')->where('estado', 'disponible')->get(),
+            'pasantias' => Pasantia::with('empresa')->where('estado', 'INICIADO')->orWhere('estado', 'ABIERTA')->get(),
         ]);
     }
 
@@ -34,16 +34,22 @@ class ActividadController extends Controller
     {
         $validated = $request->validate([
             'nombre_act' => 'required|string|max:255',
-            'tipo' => 'required|string',
+            'tipo' => 'required|string|in:TECNICA,OPERATIVA',
             'fecha_ini' => 'required|date',
             'fecha_fin' => 'required|date|after_or_equal:fecha_ini',
             'descripcion' => 'nullable|string',
             'id_pasantia' => 'required|exists:pasantia,id_pasantia',
         ]);
 
-        Actividad::create($validated);
+        try {
+            DB::transaction(function () use ($validated) {
+                Actividad::create($validated);
+            });
 
-        return redirect()->back()->with('message', 'Actividad creada con éxito');
+            return redirect()->back()->with('success', 'Actividad creada con éxito');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Error al crear la actividad: ' . $e->getMessage()]);
+        }
     }
 
     public function update(Request $request, $id)
@@ -52,27 +58,41 @@ class ActividadController extends Controller
         
         $validated = $request->validate([
             'nombre_act' => 'required|string|max:255',
-            'tipo' => 'required|string',
+            'tipo' => 'required|string|in:TECNICA,OPERATIVA',
             'fecha_ini' => 'required|date',
             'fecha_fin' => 'required|date|after_or_equal:fecha_ini',
             'descripcion' => 'nullable|string',
             'id_pasantia' => 'required|exists:pasantia,id_pasantia',
         ]);
 
-        $actividad->update($validated);
+        try {
+            DB::transaction(function () use ($actividad, $validated) {
+                $actividad->update($validated);
+            });
 
-        return redirect()->back()->with('message', 'Actividad actualizada con éxito');
+            return redirect()->back()->with('success', 'Actividad actualizada con éxito');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Error al actualizar la actividad: ' . $e->getMessage()]);
+        }
     }
 
     public function destroy($id)
     {
-        $actividad = Actividad::findOrFail($id);
-        $actividad->delete();
+        try {
+            $actividad = Actividad::findOrFail($id);
 
-        return redirect()->back()->with('message', 'Actividad eliminada correctamente');
+            DB::transaction(function () use ($actividad) {
+                $actividad->delete();
+            });
+
+            return redirect()->back()->with('success', 'Actividad eliminada correctamente');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar la actividad: ' . $e->getMessage()]);
+        }
     }
 
-/**
+
+    /**
      * Muestra las actividades correspondientes a la pasantía seleccionada
      */
     public function actividadesPasantia($id_pasantia)
@@ -169,7 +189,7 @@ class ActividadController extends Controller
                     'pasante' => $progreso->pasante->user->nombre . ' ' . $progreso->pasante->user->ap_paterno,
                     'descripcion' => $progreso->descripcion,
                     'porcentaje' => $progreso->porcentaje,
-                    'fecha_hora' => Carbon::parse($progreso->fecha)->setTimeFromTimeString($progreso->hora)->format('d/m/Y H:i'),
+                    'fecha_hora' => Carbon::parse($progreso->fecha)->setTimeFromTimeString($progreso->hora)->format('d/m/Y H:i:s'),
                     'nota_bitacora' => $bitacora ? $bitacora->nota : null, // Muestra la nota si existe
                 ];
             });

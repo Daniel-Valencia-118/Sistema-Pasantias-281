@@ -151,16 +151,18 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     })->name('admin.pasantias.create');
 
     // Monitoreo
-    Route::get('/admin/actividades', [ActividadController::class, 'index'])->name('admin.actividades.index');
-    Route::post('/admin/actividades', [ActividadController::class, 'store'])->name('admin.actividades.store');
-    Route::put('/admin/actividades/{id}', [ActividadController::class, 'update'])->name('admin.actividades.update');
-    Route::delete('/admin/actividades/{id}', [ActividadController::class, 'destroy'])->name('admin.actividades.destroy');
+    Route::resource('admin/actividades', ActividadController::class)->names([
+            'index'   => 'admin.actividades.index',
+            'store'   => 'admin.actividades.store',
+            'update'  => 'admin.actividades.update',
+            'destroy' => 'admin.actividades.destroy',
+        ]);
 
     Route::resource('admin/bitacoras', BitacoraEvaController::class)->names([
-            'index'   => 'bitacoras.index',
-            'store'   => 'bitacoras.store',
-            'update'  => 'bitacoras.update',
-            'destroy' => 'bitacoras.destroy',
+            'index'   => 'admin.bitacoras.index',
+            'store'   => 'admin.bitacoras.store',
+            'update'  => 'admin.bitacoras.update',
+            'destroy' => 'admin.bitacoras.destroy',
         ]);
 
     Route::get('/admin/informes', [InformeFinalController::class, 'index'])->name('admin.informes.index');
@@ -168,27 +170,27 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // Comunicación
     Route::resource('/admin/mensajes', MensajeController::class)->names([
-            'index'   => 'mensajes.index',
-            'store'   => 'mensajes.store',
-            'update'  => 'mensajes.update',
-            'destroy' => 'mensajes.destroy',
+            'index'   => 'admin.mensajes.index',
+            'store'   => 'admin.mensajes.store',
+            'update'  => 'admin.mensajes.update',
+            'destroy' => 'admin.mensajes.destroy',
         ]);
 
     Route::resource('/admin/comentarios', ComentarioController::class)->names([
-            'index'   => 'comentarios.index',
-            'store'   => 'comentarios.store',
-            'update'  => 'comentarios.update',
-            'destroy' => 'comentarios.destroy',
+            'index'   => 'admin.comentarios.index',
+            'store'   => 'admin.comentarios.store',
+            'update'  => 'admin.comentarios.update',
+            'destroy' => 'admin.comentarios.destroy',
         ]);
 });
 
 Route::middleware(['auth', 'role:jefe'])->group(function () {
     Route::get('/jefe/perfil', [JefeController::class, 'perfil'])->name('jefe.perfil');
     Route::put('/jefe/perfil', [JefeController::class, 'actualizarPerfil'])->name('jefe.actualizarPerfil');
-    Route::get('/jefe/dashboard', [JefeController::class, 'dashboard'])->name('jefe.dashboard');
-    Route::get('/jefe', function () {
-        return Inertia::render('Jefe/Home');
-    })->name('jefe.home');
+    Route::get('/jefe/', [JefeController::class, 'dashboard'])->name('jefe.dashboard');
+    // Route::get('/jefe', function () {
+    //     return Inertia::render('Jefe/Dashboard/Dashboard');
+    // })->name('jefe.dashboard');
 
     Route::get('/jefe/pasantes', [JefeController::class, 'misPasantes'])->name('jefe.pasantes');
     Route::get('/jefe/pasantes/{id_pasantia}', [JefeController::class, 'misPasantes'])->name('jefe.pasantes.show');

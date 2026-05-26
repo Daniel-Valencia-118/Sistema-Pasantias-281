@@ -46,7 +46,7 @@ class MensajeJefeController extends Controller
 
         Mensaje::create($validated);
 
-        return redirect()->back()->with('message', 'Mensaje registrado correctamente.');
+        return redirect()->back()->with('success', 'Mensaje registrado correctamente.');
     }
 
     public function update(Request $request, $id)
@@ -63,13 +63,13 @@ class MensajeJefeController extends Controller
 
         $mensaje->update($validated);
 
-        return redirect()->back()->with('message', 'Mensaje actualizado.');
+        return redirect()->back()->with('success', 'Mensaje actualizado.');
     }
 
     public function destroy($id)
     {
         Mensaje::findOrFail($id)->delete();
-        return redirect()->back()->with('message', 'Mensaje eliminado del historial.');
+        return redirect()->back()->with('success', 'Mensaje eliminado del historial.');
     }
 
     /**

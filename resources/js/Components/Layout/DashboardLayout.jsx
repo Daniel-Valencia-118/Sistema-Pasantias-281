@@ -102,9 +102,17 @@ export default function DashboardLayout({ children, auth, header }) {
                                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                                 className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200"
                             >
-                                <div className="h-8 w-8 rounded-full bg-primary-blue flex items-center justify-center text-white font-bold shadow-sm text-sm">
-                                    {primeraLetra}
-                                </div>
+                                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue flex items-center justify-center text-white font-bold shadow-md overflow-hidden">
+                                        {auth.user?.avatar_url ? (
+                                            <img
+                                                src={auth.user.avatar_url}
+                                                alt="Avatar"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span>{primeraLetra}</span>
+                                        )}
+                                    </div>
                                 <span className="hidden md:block text-sm font-medium text-gray-700">
                                     {nombreCompleto.split(" ")[0]}
                                 </span>
@@ -119,8 +127,18 @@ export default function DashboardLayout({ children, auth, header }) {
                                     <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)}></div>
                                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-1">
                                         <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
-                                            <div className="h-11 w-11 rounded-full bg-primary-blue flex items-center justify-center text-white font-bold text-lg shadow-md">
-                                                {primeraLetra}
+                                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue flex items-center justify-center text-white font-bold shadow-md overflow-hidden">
+                                                {auth.user?.avatar_url ? (
+                                                    <img
+                                                        src={
+                                                            auth.user.avatar_url
+                                                        }
+                                                        alt="Avatar"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <span>{primeraLetra}</span>
+                                                )}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-bold text-gray-900 truncate">

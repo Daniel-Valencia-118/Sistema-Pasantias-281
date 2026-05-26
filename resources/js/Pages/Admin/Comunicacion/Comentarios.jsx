@@ -18,6 +18,9 @@ export default function Comentarios({ comentarios = [], pasantes = [], pasantias
     const [SelectInputedCom, setSelectedCom] = useState(null);
     const [editMode, setEditMode] = useState(false);
 
+    console.log(comentarios, pasantes, pasantias);
+    
+
     const { data, setData, post, put, processing, errors, reset } = useForm({
         id_comentario: '',
         descripcion: '',
@@ -39,12 +42,12 @@ export default function Comentarios({ comentarios = [], pasantes = [], pasantias
         { 
             key: 'pasante', 
             label: 'Pasante', 
-            render: (_, row) => <span className="font-bold text-primary-navy">{row.pasante?.usuario?.name}</span> 
+            render: (_, row) => <span className="font-bold text-primary-navy">{row.pasante?.user?.nombre + ' ' + row.pasante?.user?.ap_paterno + ' ' + row.pasante?.user?.ap_materno}</span> 
         },
         { 
             key: 'pasantia', 
             label: 'Empresa', 
-            render: (_, row) => <span className="text-slate-600">{row.pasantia?.empresa?.nombre_emp || 'N/A'}</span> 
+            render: (_, row) => <span className="text-slate-600">{row.pasantia?.empresa?.nombre || 'N/A'}</span> 
         },
         { 
             key: 'calificacion', 
@@ -98,9 +101,9 @@ export default function Comentarios({ comentarios = [], pasantes = [], pasantias
                     <h1 className="text-2xl font-black text-primary-navy uppercase">Feedback de Experiencias</h1>
                     <p className="text-slate-500 text-sm">Reseñas y valoraciones de los pasantes sobre sus puestos.</p>
                 </div>
-                <PrimaryButton onClick={openCreate} className="gap-2">
+                {/* <PrimaryButton onClick={openCreate} className="gap-2">
                     <MessageSquare size={18} /> Agregar Reseña
-                </PrimaryButton>
+                </PrimaryButton> */}
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -117,21 +120,21 @@ export default function Comentarios({ comentarios = [], pasantes = [], pasantias
             </div>
 
             {/* MODAL FORMULARIO */}
-            <Modal show={modalOpen} onClose={() => setModalOpen(false)} title={editMode ? "Editar Reseña" : "Nueva Reseña"} maxWidth="2xl">
+            <Modal show={modalOpen} onClose={() => setModalOpen(false)} title={editMode ? "Editar Reseña" : "Nueva Reseña"} maxWidth="4xl">
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <InputLabel value="Pasante" />
                             <SelectInput className="w-full rounded-xl border-slate-200" value={data.idU_pasante} onChange={e => setData('idU_pasante', e.target.value)} required>
                                 <option value="">Seleccionar...</option>
-                                {pasantes.map(p => <option key={p.idU_pasante} value={p.idU_pasante}>{p.usuario?.name}</option>)}
+                                {pasantes.map(p => <option key={p.idU_pasante} value={p.idU_pasante}>{p.user?.nombre + ' ' + p.user?.ap_paterno + ' ' + p.user?.ap_materno}</option>)}
                             </SelectInput>
                         </div>
                         <div>
                             <InputLabel value="Pasantía / Puesto" />
                             <SelectInput className="w-full rounded-xl border-slate-200" value={data.id_pasantia} onChange={e => setData('id_pasantia', e.target.value)} required>
                                 <option value="">Seleccionar...</option>
-                                {pasantias.map(p => <option key={p.id_pasantia} value={p.id_pasantia}>{p.empresa?.nombre_emp} - {p.titulo_pas}</option>)}
+                                {pasantias.map(p => <option key={p.id_pasantia} value={p.id_pasantia}>{p.empresa?.nombre} - {p.nombre_pas}</option>)}
                             </SelectInput>
                         </div>
                     </div>
