@@ -41,7 +41,94 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
         evaluacion: null,
     });
 
-    const toggleComments = (actividadId) => {
+    // =============================================
+    // FUNCIONES DE VALIDACIÓN POR FECHAS
+    // =============================================
+
+    // Función para obtener el estado de la actividad según fechas
+    const getActividadEstado = (fechaIni, fechaFin) => {
+        // hoy en Bolivia: extraemos solo la fecha local para comparar
+        const ahora = new Date();
+        const hoy = new Date(
+            ahora.getFullYear(),
+            ahora.getMonth(),
+            ahora.getDate(),
+        );
+
+        // fechaIni y fechaFin vienen de PostgreSQL como "2025-05-26" o "2025-05-26T..."
+        // Extraemos YYYY-MM-DD directamente para evitar que JS los interprete como UTC
+        // y corra el día atrás en Bolivia (UTC-4)
+        const [iniY, iniM, iniD] = fechaIni
+            .toString()
+            .slice(0, 10)
+            .split("-")
+            .map(Number);
+        const fechaInicio = new Date(iniY, iniM - 1, iniD);
+
+        const [finY, finM, finD] = fechaFin
+            .toString()
+            .slice(0, 10)
+            .split("-")
+            .map(Number);
+        const fechaFinal = new Date(finY, finM - 1, finD);
+
+        // No ha empezado: fecha actual < fecha inicio
+        if (hoy < fechaInicio) {
+            return "no_iniciada";
+        }
+
+        // En curso: fecha actual >= fecha inicio y fecha actual <= fecha fin
+        if (hoy >= fechaInicio && hoy <= fechaFinal) {
+            return "en_curso";
+        }
+
+        // Finalizada: fecha actual > fecha fin
+        return "finalizada";
+    };
+
+    // Función para mostrar alerta de actividad no iniciada
+    const mostrarAlertaNoIniciada = () => {
+        alert(
+            "⚠️ La actividad aún no ha empezado. No puedes realizar esta acción.",
+        );
+    };
+
+    // Función para mostrar alerta de actividad finalizada (para comentarios)
+    const mostrarAlertaFinalizada = () => {
+        alert("⚠️ La actividad ya ha finalizado. No puedes comentar.");
+    };
+
+    // Función para obtener badge de estado de actividad
+    const getEstadoBadge = (estado) => {
+        if (estado === "no_iniciada") {
+            return (
+                <span className="ml-3 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                    No iniciada
+                </span>
+            );
+        }
+        if (estado === "en_curso") {
+            return (
+                <span className="ml-3 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                    En curso
+                </span>
+            );
+        }
+        if (estado === "finalizada") {
+            return (
+                <span className="ml-3 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                    Finalizada
+                </span>
+            );
+        }
+        return null;
+    };
+
+    const toggleComments = (actividadId, estado) => {
+        if (estado === "no_iniciada") {
+            mostrarAlertaNoIniciada();
+            return;
+        }
         setExpandedComments((prev) => ({
             ...prev,
             [actividadId]: !prev[actividadId],
@@ -175,16 +262,39 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
     const formatFechaLabel = (fecha) => {
         if (!fecha) return "";
 
-        // Separamos el string por los guiones (ej: "2026-05-15" -> ["2026", "05", "15"])
         const [year, month, day] = fecha.split("-").map(Number);
-
-        // Creamos la fecha usando el constructor local.
-        // Ojo: los meses en JavaScript van de 0 a 11, por eso restamos 1 al mes.
         const d = new Date(year, month - 1, day);
 
         return d.toLocaleDateString("es-ES", {
             day: "numeric",
             month: "long",
+        });
+    };
+
+    // Convierte una hora UTC de PostgreSQL ("14:30:00") a hora Bolivia (UTC-4)
+    const formatHoraBolivia = (horaStr) => {
+        if (!horaStr) return "";
+        const partes = horaStr.toString().split(":");
+        const h = (partes[0] || "00").padStart(2, "0");
+        const m = (partes[1] || "00").padStart(2, "0");
+        const d = new Date(`2000-01-01T${h}:${m}:00Z`);
+        return d.toLocaleTimeString("es-BO", {
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "America/La_Paz",
+        });
+    };
+
+    // Convierte una fecha UTC de PostgreSQL a fecha Bolivia (UTC-4)
+    // Extrae YYYY-MM-DD del string directamente para evitar el corrimiento de día
+    const formatFechaBolivia = (fechaStr) => {
+        if (!fechaStr) return "";
+        const soloFecha = fechaStr.toString().slice(0, 10);
+        const [anio, mes, dia] = soloFecha.split("-").map(Number);
+        return new Date(anio, mes - 1, dia).toLocaleDateString("es-BO", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
         });
     };
 
@@ -277,376 +387,441 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
 
                 {/* ACTIVIDADES */}
                 <div className="space-y-4 -mt-7">
-                    {actividades.map((act) => (
-                        <div
-                            key={act.id}
-                            className="group -space-y-11 overflow-hidden rounded-[28px] border border-gray-200/70 bg-white shadow-sm hover:shadow-2xl transition-all duration-300"
-                        >
-                            {/* Header actividad */}
-                            <div className="-mt-2  border-gray-100 bg-gradient-to-b from-gray-50/80 to-white p-6 md:p-8">
-                                <div className="flex flex-col gap-4 ">
-                                    <div>
-                                        <h3 className="text-2xl md:text-2.5xl font-bold tracking-tight text-gray-800 group-hover:text-primary-blue transition-colors">
-                                            {act.nombre}
-                                        </h3>
+                    {actividades.map((act) => {
+                        const estadoActividad = getActividadEstado(
+                            act.fecha_ini,
+                            act.fecha_fin,
+                        );
 
-                                        <p className=" mt-2 text-gray-800 leading-relaxed text-[17px]">
-                                            {act.descripcion ||
-                                                "Sin descripción"}
-                                        </p>
-                                    </div>
-
-                                    <div className="flex flex-wrap gap-1 ">
-                                        <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-sm font-semibold">
-                                            Inicio:{" "}
-                                            {formatFechaLabel(act.fecha_ini)}
-                                        </span>
-                                        <span className="inline-flex items-center rounded-full bg-purple-50 text-purple-700 px-3 py-1 text-sm font-semibold">
-                                            Fin:{" "}
-                                            {formatFechaLabel(act.fecha_fin)}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Body */}
-                            <div className="p-6 md:p-7 space-y-2.5 -mt-3">
-                                {/* Acciones */}
-                                <div className="flex flex-wrap gap-2">
-                                    <button
-                                        onClick={() =>
-                                            setModalApuntes({
-                                                isOpen: true,
-                                                actividadId: act.id,
-                                                actividadNombre: act.nombre,
-                                                progresos: act.progresos,
-                                            })
-                                        }
-                                        className="px-5 py-3 rounded-2xl bg-white border border-gray-200 hover:border-primary-blue hover:bg-blue-50 text-gray-700 hover:text-primary-blue text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
-                                    >
-                                        📝 APUNTES
-                                    </button>
-
-                                    <button
-                                        onClick={() =>
-                                            setModalAutoEva({
-                                                isOpen: true,
-                                                actividadId: act.id,
-                                                actividadNombre: act.nombre,
-                                                autoevaluacion:
-                                                    act.autoevaluacion,
-                                            })
-                                        }
-                                        className="px-5 py-3 rounded-2xl bg-white border border-gray-200 hover:border-primary-blue hover:bg-blue-50 text-gray-700 hover:text-primary-blue text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
-                                    >
-                                        ✍️ AUTOEVALUARME
-                                    </button>
-                                </div>
-
-                                {/* Evaluación */}
-                                <div className="rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 shadow-sm">
-                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+                        return (
+                            <div
+                                key={act.id}
+                                className="group -space-y-11 overflow-hidden rounded-[28px] border border-gray-200/70 bg-white shadow-sm hover:shadow-2xl transition-all duration-300"
+                            >
+                                {/* Header actividad */}
+                                <div className="-mt-2 border-gray-100 bg-gradient-to-b from-gray-50/80 to-white p-6 md:p-8">
+                                    <div className="flex flex-col gap-4">
                                         <div>
-                                            <div className="text-sm font-medium text-gray-700">
-                                                EVALUACIÓN
-                                            </div>
-
-                                            <div className="mt-2">
-                                                {getEstadoEvaluacionBadge(
-                                                    act.estado_evaluacion,
+                                            <div className="flex items-center flex-wrap">
+                                                <h3 className="text-2xl md:text-2.5xl font-bold tracking-tight text-gray-800 group-hover:text-primary-blue transition-colors">
+                                                    {act.nombre}
+                                                </h3>
+                                                {getEstadoBadge(
+                                                    estadoActividad,
                                                 )}
                                             </div>
+
+                                            <p className="mt-2 text-gray-800 leading-relaxed text-[17px]">
+                                                {act.descripcion ||
+                                                    "Sin descripción"}
+                                            </p>
                                         </div>
 
-                                        {act.nota_evaluacion !== null && (
-                                            <div className="flex items-center gap-4">
-                                                <div className="text-right">
-                                                    <div className="text-xs uppercase tracking-wide text-gray-400">
-                                                        Nota
-                                                    </div>
-
-                                                    <div className="text-3xl font-bold text-gray-800">
-                                                        {act.nota_evaluacion}
-                                                        <span className="text-lg text-gray-400">
-                                                            /100
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <button
-                                                    onClick={() =>
-                                                        handleVerEvaluacion(
-                                                            act.id,
-                                                        )
-                                                    }
-                                                    className="px-4 py-2 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-800 text-sm font-semibold transition cursor-pointer"
-                                                >
-                                                    Ver evaluación
-                                                </button>
-                                            </div>
-                                        )}
+                                        <div className="flex flex-wrap gap-1">
+                                            <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-sm font-semibold">
+                                                Inicio:{" "}
+                                                {formatFechaLabel(
+                                                    act.fecha_ini,
+                                                )}
+                                            </span>
+                                            <span className="inline-flex items-center rounded-full bg-purple-50 text-purple-700 px-3 py-1 text-sm font-semibold">
+                                                Fin:{" "}
+                                                {formatFechaLabel(
+                                                    act.fecha_fin,
+                                                )}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Comentarios */}
-                                <div className="border-t border-gray-100 pt-5">
-                                    <button
-                                        onClick={() => toggleComments(act.id)}
-                                        className="group/comment flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-primary-blue transition cursor-pointer"
-                                    >
-                                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 group-hover/comment:bg-blue-100 transition cursor-pointer">
-                                            {expandedComments[act.id] ? (
-                                                <ChevronUp size={17} />
-                                            ) : (
-                                                <ChevronDown size={17} />
-                                            )}
-                                        </div>
+                                {/* Body */}
+                                <div className="p-6 md:p-7 space-y-2.5 -mt-3">
+                                    {/* Acciones */}
+                                    <div className="flex flex-wrap gap-2">
+                                        <button
+                                            onClick={() => {
+                                                if (
+                                                    estadoActividad ===
+                                                    "no_iniciada"
+                                                ) {
+                                                    mostrarAlertaNoIniciada();
+                                                    return;
+                                                }
+                                                setModalApuntes({
+                                                    isOpen: true,
+                                                    actividadId: act.id,
+                                                    actividadNombre: act.nombre,
+                                                    progresos: act.progresos,
+                                                });
+                                            }}
+                                            className="px-5 py-3 rounded-2xl bg-white border border-gray-200 hover:border-primary-blue hover:bg-blue-50 text-gray-700 hover:text-primary-blue text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
+                                        >
+                                            📝 APUNTES
+                                        </button>
 
-                                        <span>
-                                            {act.comentarios.length} comentarios
-                                        </span>
-                                    </button>
+                                        <button
+                                            onClick={() => {
+                                                if (
+                                                    estadoActividad ===
+                                                    "no_iniciada"
+                                                ) {
+                                                    mostrarAlertaNoIniciada();
+                                                    return;
+                                                }
+                                                setModalAutoEva({
+                                                    isOpen: true,
+                                                    actividadId: act.id,
+                                                    actividadNombre: act.nombre,
+                                                    autoevaluacion:
+                                                        act.autoevaluacion,
+                                                });
+                                            }}
+                                            className="px-5 py-3 rounded-2xl bg-white border border-gray-200 hover:border-primary-blue hover:bg-blue-50 text-gray-700 hover:text-primary-blue text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
+                                        >
+                                            ✍️ AUTOEVALUARME
+                                        </button>
+                                    </div>
 
-                                    {expandedComments[act.id] && (
-                                        <div className="mt-6 space-y-5 max-h-[500px] overflow-y-auto pr-2">
-                                            {act.comentarios.map((com) => (
-                                                <div
-                                                    key={com.id}
-                                                    className="space-y-4"
-                                                >
-                                                    {/* Comentario */}
-                                                    <div className="flex gap-2">
-                                                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-blue-400 text-white flex items-center justify-center text-sm font-bold shadow-md overflow-hidden">
-                                                            {com.autor_avatar_url ? (
-                                                                <img
-                                                                    src={
-                                                                        com.autor_avatar_url
-                                                                    }
-                                                                    alt={
-                                                                        com.autor_nombre
-                                                                    }
-                                                                    className="w-full h-full object-cover"
-                                                                />
-                                                            ) : (
-                                                                <span>
-                                                                    {com.autor_nombre.charAt(
-                                                                        0,
-                                                                    )}
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                    {/* Evaluación */}
+                                    <div className="rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 shadow-sm">
+                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+                                            <div>
+                                                <div className="text-sm font-medium text-gray-700">
+                                                    EVALUACIÓN
+                                                </div>
 
-                                                        <div className="flex-1 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm hover:shadow-md transition">
-                                                            <div className="flex justify-between gap-4 items-start">
-                                                                <div>
-                                                                    <div className="font-semibold text-gray-800">
-                                                                        {
-                                                                            com.autor_nombre
-                                                                        }
-                                                                    </div>
-
-                                                                    <div className="text-xs text-gray-500 mt-1">
-                                                                        {
-                                                                            com.hora
-                                                                        }{" "}
-                                                                        •{" "}
-                                                                        {new Date(
-                                                                            com.fecha,
-                                                                        ).toLocaleDateString(
-                                                                            "es-ES",
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-
-                                                                {com.puede_editar && (
-                                                                    <button
-                                                                        onClick={() =>
-                                                                            startEditComment(
-                                                                                com.id,
-                                                                                com.comentario,
-                                                                            )
-                                                                        }
-                                                                        className="text-gray-500 hover:text-primary-blue transition cursor-pointer"
-                                                                    >
-                                                                        <Pencil
-                                                                            size={
-                                                                                16
-                                                                            }
-                                                                        />
-                                                                    </button>
-                                                                )}
-                                                            </div>
-
-                                                            {editandoComentario ===
-                                                            com.id ? (
-                                                                <div className="mt-5 space-y-3">
-                                                                    <textarea
-                                                                        value={
-                                                                            editText
-                                                                        }
-                                                                        onChange={(
-                                                                            e,
-                                                                        ) =>
-                                                                            setEditText(
-                                                                                e
-                                                                                    .target
-                                                                                    .value,
-                                                                            )
-                                                                        }
-                                                                        rows={3}
-                                                                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-primary-blue focus:ring-4 focus:ring-blue-100 focus:bg-white transition "
-                                                                        autoFocus
-                                                                    />
-
-                                                                    <div className="flex items-center gap-3">
-                                                                        <button
-                                                                            onClick={() =>
-                                                                                saveEditComment(
-                                                                                    com.id,
-                                                                                )
-                                                                            }
-                                                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-sm font-semibold transition cursor-pointer"
-                                                                        >
-                                                                            <Check
-                                                                                size={
-                                                                                    15
-                                                                                }
-                                                                            />
-                                                                            Guardar
-                                                                        </button>
-
-                                                                        <button
-                                                                            onClick={
-                                                                                cancelEditComment
-                                                                            }
-                                                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-700 text-sm font-semibold transition cursor-pointer"
-                                                                        >
-                                                                            <X
-                                                                                size={
-                                                                                    15
-                                                                                }
-                                                                            />
-                                                                            Cancelar
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            ) : (
-                                                                <p className="mt-3 text-gray-700 leading-relaxed">
-                                                                    {
-                                                                        com.comentario
-                                                                    }
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Respuesta jefe */}
-                                                    {com.respuesta_jefe && (
-                                                        <div className="ml-8 pl-12 border-l-2 border-blue-200">
-                                                            <div className="flex gap-2">
-                                                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold overflow-hidden">
-                                                                    {com
-                                                                        .respuesta_jefe
-                                                                        .jefe_avatar_url ? (
-                                                                        <img
-                                                                            src={
-                                                                                com
-                                                                                    .respuesta_jefe
-                                                                                    .jefe_avatar_url
-                                                                            }
-                                                                            alt="Jefe"
-                                                                            className="w-full h-full object-cover"
-                                                                        />
-                                                                    ) : (
-                                                                        <span>
-                                                                            {com.respuesta_jefe.jefe_nombre.charAt(
-                                                                                0,
-                                                                            )}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-
-                                                                <div className="flex-1 rounded-2xl border border-amber-100 bg-amber-50 p-4 shadow-sm">
-                                                                    <div className="flex justify-between gap-4 items-start">
-                                                                        <div>
-                                                                            <div className="font-semibold text-amber-800">
-                                                                                {
-                                                                                    com
-                                                                                        .respuesta_jefe
-                                                                                        .jefe_nombre
-                                                                                }
-                                                                            </div>
-
-                                                                            <div className="text-xs text-amber-600/70 mt-1">
-                                                                                {
-                                                                                    com
-                                                                                        .respuesta_jefe
-                                                                                        .hora
-                                                                                }{" "}
-                                                                                •{" "}
-                                                                                {new Date(
-                                                                                    com
-                                                                                        .respuesta_jefe
-                                                                                        .fecha,
-                                                                                ).toLocaleDateString(
-                                                                                    "es-ES",
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <p className="mt-3 text-gray-700 leading-relaxed">
-                                                                        {
-                                                                            com
-                                                                                .respuesta_jefe
-                                                                                .comentario
-                                                                        }
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                <div className="mt-2">
+                                                    {getEstadoEvaluacionBadge(
+                                                        act.estado_evaluacion,
                                                     )}
                                                 </div>
-                                            ))}
+                                            </div>
 
-                                            {/* Nuevo comentario */}
-                                            {puedeComentar && (
-                                                <div className="flex items-center gap-3 pt-2">
-                                                    <input
-                                                        type="text"
-                                                        value={
-                                                            newComment[
-                                                                act.id
-                                                            ] || ""
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleNewCommentChange(
-                                                                act.id,
-                                                                e.target.value,
-                                                            )
-                                                        }
-                                                        placeholder="Escribe un comentario..."
-                                                        className="flex-1 rounded-2xl border border-gray-400 bg-gray-50 px-7 py-3 text-sm focus:border-primary-blue focus:ring-4 focus:ring-blue-100 focus:bg-white transition"
-                                                    />
+                                            {act.nota_evaluacion !== null && (
+                                                <div className="flex items-center gap-4">
+                                                    <div className="text-right">
+                                                        <div className="text-xs uppercase tracking-wide text-gray-400">
+                                                            Nota
+                                                        </div>
+
+                                                        <div className="text-3xl font-bold text-gray-800">
+                                                            {
+                                                                act.nota_evaluacion
+                                                            }
+                                                            <span className="text-lg text-gray-400">
+                                                                /100
+                                                            </span>
+                                                        </div>
+                                                    </div>
 
                                                     <button
                                                         onClick={() =>
-                                                            submitComment(
+                                                            handleVerEvaluacion(
                                                                 act.id,
                                                             )
                                                         }
-                                                        className="h-12 w-12 flex items-center justify-center rounded-2xl bg-primary-blue text-white hover:scale-90 hover:bg-primary-sky-blue shadow-md transition-all cursor-pointer"
+                                                        className="px-4 py-2 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-800 text-sm font-semibold transition cursor-pointer"
                                                     >
-                                                        <Send size={18} />
+                                                        Ver evaluación
                                                     </button>
                                                 </div>
                                             )}
                                         </div>
-                                    )}
+                                    </div>
+
+                                    {/* Comentarios */}
+                                    <div className="border-t border-gray-100 pt-5">
+                                        <button
+                                            onClick={() =>
+                                                toggleComments(
+                                                    act.id,
+                                                    estadoActividad,
+                                                )
+                                            }
+                                            className="group/comment flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-primary-blue transition cursor-pointer"
+                                        >
+                                            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 group-hover/comment:bg-blue-100 transition cursor-pointer">
+                                                {expandedComments[act.id] ? (
+                                                    <ChevronUp size={17} />
+                                                ) : (
+                                                    <ChevronDown size={17} />
+                                                )}
+                                            </div>
+
+                                            <span>
+                                                {act.comentarios.length}{" "}
+                                                comentarios
+                                            </span>
+                                        </button>
+
+                                        {expandedComments[act.id] && (
+                                            <div className="mt-6 space-y-5 max-h-[500px] overflow-y-auto pr-2">
+                                                {act.comentarios.map((com) => (
+                                                    <div
+                                                        key={com.id}
+                                                        className="space-y-4"
+                                                    >
+                                                        {/* Comentario */}
+                                                        <div className="flex gap-2">
+                                                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-blue-400 text-white flex items-center justify-center text-sm font-bold shadow-md overflow-hidden">
+                                                                {com.autor_avatar_url ? (
+                                                                    <img
+                                                                        src={
+                                                                            com.autor_avatar_url
+                                                                        }
+                                                                        alt={
+                                                                            com.autor_nombre
+                                                                        }
+                                                                        className="w-full h-full object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <span>
+                                                                        {com.autor_nombre.charAt(
+                                                                            0,
+                                                                        )}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+
+                                                            <div className="flex-1 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm hover:shadow-md transition">
+                                                                <div className="flex justify-between gap-4 items-start">
+                                                                    <div>
+                                                                        <div className="font-semibold text-gray-800">
+                                                                            {
+                                                                                com.autor_nombre
+                                                                            }
+                                                                        </div>
+
+                                                                        <div className="text-xs text-gray-500 mt-1">
+                                                                            {formatHoraBolivia(
+                                                                                com.hora,
+                                                                            )}{" "}
+                                                                            •{" "}
+                                                                            {formatFechaBolivia(
+                                                                                com.fecha,
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {com.puede_editar && (
+                                                                        <button
+                                                                            onClick={() =>
+                                                                                startEditComment(
+                                                                                    com.id,
+                                                                                    com.comentario,
+                                                                                )
+                                                                            }
+                                                                            className="text-gray-500 hover:text-primary-blue transition cursor-pointer"
+                                                                        >
+                                                                            <Pencil
+                                                                                size={
+                                                                                    16
+                                                                                }
+                                                                            />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+
+                                                                {editandoComentario ===
+                                                                com.id ? (
+                                                                    <div className="mt-5 space-y-3">
+                                                                        <textarea
+                                                                            value={
+                                                                                editText
+                                                                            }
+                                                                            onChange={(
+                                                                                e,
+                                                                            ) =>
+                                                                                setEditText(
+                                                                                    e
+                                                                                        .target
+                                                                                        .value,
+                                                                                )
+                                                                            }
+                                                                            rows={
+                                                                                3
+                                                                            }
+                                                                            className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-primary-blue focus:ring-4 focus:ring-blue-100 focus:bg-white transition"
+                                                                            autoFocus
+                                                                        />
+
+                                                                        <div className="flex items-center gap-3">
+                                                                            <button
+                                                                                onClick={() =>
+                                                                                    saveEditComment(
+                                                                                        com.id,
+                                                                                    )
+                                                                                }
+                                                                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-sm font-semibold transition cursor-pointer"
+                                                                            >
+                                                                                <Check
+                                                                                    size={
+                                                                                        15
+                                                                                    }
+                                                                                />
+                                                                                Guardar
+                                                                            </button>
+
+                                                                            <button
+                                                                                onClick={
+                                                                                    cancelEditComment
+                                                                                }
+                                                                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 hover:bg-red-200 text-red-700 text-sm font-semibold transition cursor-pointer"
+                                                                            >
+                                                                                <X
+                                                                                    size={
+                                                                                        15
+                                                                                    }
+                                                                                />
+                                                                                Cancelar
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <p className="mt-3 text-gray-700 leading-relaxed">
+                                                                        {
+                                                                            com.comentario
+                                                                        }
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Respuesta jefe */}
+                                                        {com.respuesta_jefe && (
+                                                            <div className="ml-8 pl-12 border-l-2 border-blue-200">
+                                                                <div className="flex gap-2">
+                                                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold overflow-hidden">
+                                                                        {com
+                                                                            .respuesta_jefe
+                                                                            .jefe_avatar_url ? (
+                                                                            <img
+                                                                                src={
+                                                                                    com
+                                                                                        .respuesta_jefe
+                                                                                        .jefe_avatar_url
+                                                                                }
+                                                                                alt="Jefe"
+                                                                                className="w-full h-full object-cover"
+                                                                            />
+                                                                        ) : (
+                                                                            <span>
+                                                                                {com.respuesta_jefe.jefe_nombre.charAt(
+                                                                                    0,
+                                                                                )}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div className="flex-1 rounded-2xl border border-amber-100 bg-amber-50 p-4 shadow-sm">
+                                                                        <div className="flex justify-between gap-4 items-start">
+                                                                            <div>
+                                                                                <div className="font-semibold text-amber-800">
+                                                                                    {
+                                                                                        com
+                                                                                            .respuesta_jefe
+                                                                                            .jefe_nombre
+                                                                                    }
+                                                                                </div>
+
+                                                                                <div className="text-xs text-amber-600/70 mt-1">
+                                                                                    {formatHoraBolivia(
+                                                                                        com
+                                                                                            .respuesta_jefe
+                                                                                            .hora,
+                                                                                    )}{" "}
+                                                                                    •{" "}
+                                                                                    {formatFechaBolivia(
+                                                                                        com
+                                                                                            .respuesta_jefe
+                                                                                            .fecha,
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <p className="mt-3 text-gray-700 leading-relaxed">
+                                                                            {
+                                                                                com
+                                                                                    .respuesta_jefe
+                                                                                    .comentario
+                                                                            }
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+
+                                                {/* Nuevo comentario - solo visible si actividad está en curso y la pasantía permite comentar */}
+                                                {puedeComentar &&
+                                                    estadoActividad ===
+                                                        "en_curso" && (
+                                                        <div className="flex items-center gap-3 pt-2">
+                                                            <input
+                                                                type="text"
+                                                                value={
+                                                                    newComment[
+                                                                        act.id
+                                                                    ] || ""
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleNewCommentChange(
+                                                                        act.id,
+                                                                        e.target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                placeholder="Escribe un comentario..."
+                                                                className="flex-1 rounded-2xl border border-gray-400 bg-gray-50 px-7 py-3 text-sm focus:border-primary-blue focus:ring-4 focus:ring-blue-100 focus:bg-white transition"
+                                                            />
+
+                                                            <button
+                                                                onClick={() =>
+                                                                    submitComment(
+                                                                        act.id,
+                                                                    )
+                                                                }
+                                                                className="h-12 w-12 flex items-center justify-center rounded-2xl bg-primary-blue text-white hover:scale-90 hover:bg-primary-sky-blue shadow-md transition-all cursor-pointer"
+                                                            >
+                                                                <Send
+                                                                    size={18}
+                                                                />
+                                                            </button>
+                                                        </div>
+                                                    )}
+
+                                                {/* Mensaje si actividad está finalizada */}
+                                                {puedeComentar &&
+                                                    estadoActividad ===
+                                                        "finalizada" && (
+                                                        <div className="mt-2 p-3 bg-gray-50 rounded-xl text-center text-gray-500 text-sm">
+                                                            Esta actividad ya
+                                                            finalizó. No puedes
+                                                            agregar nuevos
+                                                            comentarios.
+                                                        </div>
+                                                    )}
+
+                                                {/* Mensaje si actividad no ha iniciado */}
+                                                {estadoActividad ===
+                                                    "no_iniciada" && (
+                                                    <div className="mt-2 p-3 bg-yellow-50 rounded-xl text-center text-yellow-600 text-sm">
+                                                        Esta actividad aún no ha
+                                                        comenzado. Los
+                                                        comentarios se
+                                                        habilitarán en la fecha
+                                                        de inicio.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 

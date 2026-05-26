@@ -135,9 +135,7 @@ export default function Inscribirse({
                     response.data.message,
                     "success",
                 );
-
-                //(window.location.href = "/pasante/inscripciones/activas");
-                // Actualizar la lista localmente
+                //Actualizar la lista localmente
                 setPasantiasData((prevData) =>
                     prevData.map((p) => {
                         if (p.id === pasantia.id) {
@@ -150,6 +148,10 @@ export default function Inscribirse({
                         return p;
                     }),
                 );
+                // Esperar 3 segundos (tiempo para leer el mensaje) y luego redirigir
+                setTimeout(() => {
+                    window.location.href = "/pasante/inscripciones/activas";
+                }, 1500);
             }
         } catch (error) {
             const mensaje =

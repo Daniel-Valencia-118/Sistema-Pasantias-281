@@ -575,7 +575,7 @@ class InscripcionController extends Controller
         });
         
         // Ordenar por fecha inicio ascendente
-        $data = $data->sortBy('pasantia.fecha_ini')->values();
+        $data = $data->sortByDesc('pasantia.fecha_ini')->values();
         
         return Inertia::render('Pasante/Inscripciones/Finalizadas', [
             'inscripciones' => $data,

@@ -57,6 +57,7 @@ export const menuPasante = [
         name: "Actividades",
         icon: Calendar,
         href: "/pasante/actividades",
+        hide: true,
         single: true,
     },
     {

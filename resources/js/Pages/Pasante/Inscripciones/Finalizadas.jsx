@@ -1,6 +1,6 @@
 // resources/js/Pages/Pasante/Inscripciones/Finalizadas.jsx
 import React, { useState } from "react";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import axios from "axios";
 import PasanteLayout from "@/Components/Layout/PasanteLayout";
 import ModalDetallesEmpresa from "@/Components/Common/ModalDetallesEmpresa";
@@ -22,6 +22,7 @@ import {
     CheckCircle,
     XCircle,
     Info,
+    ChevronRight,
 } from "lucide-react";
 
 export default function Finalizadas({ auth, inscripciones }) {
@@ -187,7 +188,7 @@ export default function Finalizadas({ auth, inscripciones }) {
                 </div>
             </div>
 
-            {/* Cards Grid View */}
+            {/* Cards View */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredInscripciones.map((ins, idx) => {
                     const p = ins.pasantia;
@@ -196,19 +197,28 @@ export default function Finalizadas({ auth, inscripciones }) {
                     return (
                         <div
                             key={ins.id_inscripcion}
-                            className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-primary-blue/20"
+                            className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-[#2A5A8D]/20"
                         >
-                            {/* Card Header */}
-                            <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b border-gray-200">
-                                <div className="flex items-start justify-between gap-3 mb-2">
-                                    <h3 className="font-bold text-base text-gray-800 break-words flex-1 min-w-0">
-                                        {p.nombre}
-                                    </h3>
-                                    <span className="flex-shrink-0 px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full shadow-sm">
+                            {/* Card Header - Cambiado gradiente a tonos grises y Primary Blue */}
+                            <div className="bg-gradient-to-r from-blue-200 to-[#2A5A8D]/10 p-4 border-b border-gray-200">
+                                <div className="flex items-start justify-between gap-3 mb-3">
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-bold text-lg text-gray-800 break-words leading-tight">
+                                            {p.nombre}
+                                        </h3>
+                                    </div>
+                                    {/* Badge de Finalizado - Adaptado al color de acento Secondary / Teal */}
+                                    <span className="flex-shrink-0 px-3 py-1.5 bg-[#3C9087] text-white text-xs font-bold rounded-full shadow-sm flex items-center gap-1">
+                                        <CheckCircle size={12} />
                                         FINALIZADO
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                            </div>
+
+                            {/* Card Body */}
+                            <div className="p-4 space-y-3">
+                                {/* Empresa */}
+                                <div className="flex items-center gap-2 text-sm text-gray-600 pt-1 border-t border-gray-200/50">
                                     <button
                                         onClick={() =>
                                             setModalEmpresa({
@@ -216,60 +226,74 @@ export default function Finalizadas({ auth, inscripciones }) {
                                                 empresa: p.empresa,
                                             })
                                         }
-                                        className="flex items-center gap-2 flex-1 min-w-0 text-left hover:bg-primary-blue/5 rounded-lg p-1 -ml-1 transition-colors group"
+                                        className="flex items-center gap-2 flex-1 min-w-0 text-left hover:bg-[#2A5A8D]/10 rounded-lg px-2 py-1.5 -ml-2 transition-all duration-200 cursor-pointer group"
                                         title="Ver detalles empresa"
                                     >
-                                        <Building2
-                                            size={16}
-                                            className="text-primary-blue flex-shrink-0"
-                                        />
-                                        <span className="text-gray-700 font-medium break-words flex-1 min-w-0 group-hover:text-primary-blue transition-colors">
+                                        <div className="p-1 bg-[#2A5A8D]/10 rounded-lg group-hover:bg-[#2A5A8D]/20 transition-colors">
+                                            <Building2
+                                                size={20}
+                                                className="text-[#2A5A8D]"
+                                            />
+                                        </div>
+                                        <span className="text-gray-700 font-medium text-sm break-words flex-1 min-w-0 group-hover:text-[#2A5A8D] transition-colors">
                                             {p.empresa.nombre}
                                         </span>
+                                        <ChevronRight
+                                            size={14}
+                                            className="text-gray-400 group-hover:text-[#2A5A8D] group-hover:translate-x-0.5 transition-all opacity-0 group-hover:opacity-100"
+                                        />
                                     </button>
                                 </div>
-                            </div>
 
-                            {/* Card Body */}
-                            <div className="p-4 space-y-3">
                                 {/* Horario */}
-                                <button
-                                    onClick={() =>
-                                        setModalHorario({
-                                            isOpen: true,
-                                            turno: p.turno,
-                                            cargaHoraria: p.carga_horaria,
-                                            fechaIni: p.fecha_ini,
-                                            fechaFin: p.fecha_fin,
-                                            detalleHorario: p.detalles_horario,
-                                        })
-                                    }
-                                    className="w-full flex items-center justify-between text-sm hover:bg-gray-50 rounded-lg p-2 -mx-2 transition-colors group"
-                                    title="Ver horario y fechas completas"
-                                >
-                                    <div className="flex items-center gap-2 text-gray-600">
-                                        <Clock
-                                            size={18}
-                                            className="text-primary-blue"
-                                        />
-                                        <span>Hrs. y Fechas</span>
-                                    </div>
-                                    <div className="text-primary-blue group-hover:text-primary-sky-blue font-medium flex items-center gap-1">
-                                        {p.fecha_fin?.substring(0, 4)}
-                                    </div>
-                                </button>
+                                <div className="flex items-center justify-between ml-1 text-sm">
+                                    <button
+                                        onClick={() =>
+                                            setModalHorario({
+                                                isOpen: true,
+                                                turno: p.turno,
+                                                cargaHoraria: p.carga_horaria,
+                                                fechaIni: p.fecha_ini,
+                                                fechaFin: p.fecha_fin,
+                                                detalleHorario:
+                                                    p.detalles_horario,
+                                            })
+                                        }
+                                        className="w-full flex items-center justify-between text-sm hover:bg-gray-100 rounded-lg p-1 -mx-2 transition-colors cursor-pointer group"
+                                        title="Ver horario y fechas completas"
+                                    >
+                                        <div className="flex items-center gap-2 text-gray-600">
+                                            <Clock
+                                                size={18}
+                                                className="text-[#2A5A8D]"
+                                            />
+                                            <span>Horario y Fechas</span>
+                                        </div>
+                                        {/* Badge de fecha - Sincronizado con Primary Blue y hover con Sky Blue */}
+                                        <div className="px-4 py-1 -mx-3 bg-[#2A5A8D] text-white text-sm -ml-2 font-semibold rounded-md shadow-sm group-hover:bg-[#3890BB] transition-all duration-200 flex items-center gap-1">
+                                            <span>
+                                                {p.fecha_fin?.substring(0, 4)}
+                                            </span>
+                                            <ChevronRight
+                                                size={10}
+                                                className="text-white group-hover:translate-x-0.5 transition-transform"
+                                            />
+                                        </div>
+                                    </button>
+                                </div>
 
                                 {/* Promedio */}
                                 <div className="flex items-center justify-between text-sm">
                                     <div className="flex items-center gap-2 text-gray-600">
                                         <Award
                                             size={16}
-                                            className="text-primary-blue"
+                                            className="text-[#2A5A8D]"
                                         />
                                         <span>Promedio Actividades</span>
                                     </div>
                                     {abandono ? (
-                                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 shadow-sm">
+                                        /* Abandono - Suavizado usando un tono gris oscuro/cálido en vez de naranja chillón */
+                                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 shadow-sm border border-gray-200">
                                             ABANDONO
                                         </span>
                                     ) : (
@@ -283,7 +307,7 @@ export default function Finalizadas({ auth, inscripciones }) {
                                                 )}
                                                 {promedio}/100
                                             </div>
-                                            <button
+                                            {/* <button
                                                 onClick={() =>
                                                     setModalDetallePromedio({
                                                         isOpen: true,
@@ -292,22 +316,33 @@ export default function Finalizadas({ auth, inscripciones }) {
                                                             p.nombre,
                                                     })
                                                 }
-                                                className="text-primary-blue hover:text-primary-sky-blue p-1 hover:bg-primary-blue/10 rounded-lg transition-colors"
+                                                className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-[#3C9087] to-[#3C9087] text-white text-xs font-medium rounded-xl hover:brightness-85 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
                                                 title="Ver detalle promedios"
                                             >
-                                                <CalendarIcon size={16} />
-                                                ver
-                                            </button>
+                                                VER
+                                            </button> */}
                                         </div>
                                     )}
                                 </div>
-
+                                {/*Actividades*/}
+                                <button
+                                    onClick={() =>
+                                        router.visit(
+                                            `/pasante/actividades/${p.id}`,
+                                        )
+                                    }
+                                    className="w-full flex items-center justify-center gap-2 px-2 py-2 bg-gradient-to-r from-[#3890BB] to-[#2A5A8D] text-white rounded-xl font-medium hover:brightness-110 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
+                                    title="Ver actividades"
+                                >
+                                    <CalendarIcon size={16} />
+                                    Actividades
+                                </button>
                                 {/* Informe Final */}
                                 <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                                     <div className="flex items-center gap-2 text-gray-600">
                                         <FileText
                                             size={16}
-                                            className="text-primary-blue"
+                                            className="text-[#2A5A8D]"
                                         />
                                         <span className="text-sm">
                                             Informe Final
@@ -318,13 +353,14 @@ export default function Finalizadas({ auth, inscripciones }) {
                                             no disponible
                                         </span>
                                     ) : (
+                                        /* Generar Informe - Cambiado a Accent / Mint Green con hover adaptado */
                                         <a
                                             href={route(
                                                 "pasante.informe-final",
                                                 { idPasantia: p.id },
                                             )}
                                             target="_blank"
-                                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#3C9087] to-[#3C9087] text-white text-sm font-medium rounded-xl hover:brightness-85 transition-all duration-200 shadow-md hover:shadow-lg"
                                         >
                                             <FileText size={16} />
                                             GENERAR INFORME
@@ -336,9 +372,10 @@ export default function Finalizadas({ auth, inscripciones }) {
                                 <div className="pt-2">
                                     <button
                                         onClick={() => abrirModalCalificar(ins)}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-xl font-medium hover:from-yellow-500 hover:to-amber-600 transition-all duration-200 shadow-md hover:shadow-lg"
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white rounded-xl font-medium hover:from-yellow-500 hover:to-amber-600 transition-all duration-200 shadow-md hover:shadow-lg cursor-pointer"
                                     >
                                         <Star size={18} />
+
                                         <span>
                                             {ins.ya_califico
                                                 ? "Ver Calificación"
