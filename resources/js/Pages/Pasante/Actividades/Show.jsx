@@ -16,7 +16,13 @@ import {
     X,
 } from "lucide-react";
 
-export default function Show({ auth, pasantia, actividades, puedeComentar }) {
+export default function Show({
+    auth,
+    pasantia,
+    actividades,
+    puedeComentar,
+    estado_inscripcion,
+}) {
     const [expandedComments, setExpandedComments] = useState({});
     const [newComment, setNewComment] = useState({});
     const [editandoComentario, setEditandoComentario] = useState(null);
@@ -27,6 +33,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
         actividadId: null,
         actividadNombre: null,
         progresos: null,
+        readOnly: false,
     });
 
     const [modalAutoEva, setModalAutoEva] = useState({
@@ -34,6 +41,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
         actividadId: null,
         actividadNombre: null,
         autoevaluacion: null,
+        readOnly: false,
     });
 
     const [modalEvaluacion, setModalEvaluacion] = useState({
@@ -47,7 +55,6 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
 
     // Función para obtener el estado de la actividad según fechas
     const getActividadEstado = (fechaIni, fechaFin) => {
-        // hoy en Bolivia: extraemos solo la fecha local para comparar
         const ahora = new Date();
         const hoy = new Date(
             ahora.getFullYear(),
@@ -55,9 +62,6 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
             ahora.getDate(),
         );
 
-        // fechaIni y fechaFin vienen de PostgreSQL como "2025-05-26" o "2025-05-26T..."
-        // Extraemos YYYY-MM-DD directamente para evitar que JS los interprete como UTC
-        // y corra el día atrás en Bolivia (UTC-4)
         const [iniY, iniM, iniD] = fechaIni
             .toString()
             .slice(0, 10)
@@ -72,17 +76,14 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
             .map(Number);
         const fechaFinal = new Date(finY, finM - 1, finD);
 
-        // No ha empezado: fecha actual < fecha inicio
         if (hoy < fechaInicio) {
             return "no_iniciada";
         }
 
-        // En curso: fecha actual >= fecha inicio y fecha actual <= fecha fin
         if (hoy >= fechaInicio && hoy <= fechaFinal) {
             return "en_curso";
         }
 
-        // Finalizada: fecha actual > fecha fin
         return "finalizada";
     };
 
@@ -93,30 +94,25 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
         );
     };
 
-    // Función para mostrar alerta de actividad finalizada (para comentarios)
-    const mostrarAlertaFinalizada = () => {
-        alert("⚠️ La actividad ya ha finalizado. No puedes comentar.");
-    };
-
     // Función para obtener badge de estado de actividad
     const getEstadoBadge = (estado) => {
         if (estado === "no_iniciada") {
             return (
-                <span className="ml-3 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                <span className="ml-3 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-base font-medium text-gray-600">
                     No iniciada
                 </span>
             );
         }
         if (estado === "en_curso") {
             return (
-                <span className="ml-3 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                <span className="ml-3 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-base font-medium text-green-700">
                     En curso
                 </span>
             );
         }
         if (estado === "finalizada") {
             return (
-                <span className="ml-3 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                <span className="ml-3 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-base font-medium text-red-700">
                     Finalizada
                 </span>
             );
@@ -271,7 +267,6 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
         });
     };
 
-    // Convierte una hora UTC de PostgreSQL ("14:30:00") a hora Bolivia (UTC-4)
     const formatHoraBolivia = (horaStr) => {
         if (!horaStr) return "";
         const partes = horaStr.toString().split(":");
@@ -285,8 +280,6 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
         });
     };
 
-    // Convierte una fecha UTC de PostgreSQL a fecha Bolivia (UTC-4)
-    // Extrae YYYY-MM-DD del string directamente para evitar el corrimiento de día
     const formatFechaBolivia = (fechaStr) => {
         if (!fechaStr) return "";
         const soloFecha = fechaStr.toString().slice(0, 10);
@@ -306,15 +299,20 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                 {/* Botón volver */}
                 <div className="mb-2 -mt-18">
                     <button
-                        onClick={() =>
-                            router.visit("/pasante/inscripciones/activas")
-                        }
+                        onClick={() => {
+                            if (estado_inscripcion === "finalizado") {
+                                router.visit(
+                                    "/pasante/inscripciones/finalizadas",
+                                );
+                            } else {
+                                router.visit("/pasante/inscripciones/activas");
+                            }
+                        }}
                         className="group flex items-center gap-2 text-gray-600 hover:text-primary-blue transition"
                     >
                         <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-gray-200 shadow-sm group-hover:border-primary-blue transition cursor-pointer">
                             <ChevronLeft size={15} />
                         </div>
-
                         <span className="font-medium ">Volver a pasantias</span>
                     </button>
                 </div>
@@ -350,7 +348,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
 
                                 <div className="rounded-2xl bg-white/10 border border-white/10 backdrop-blur-sm px-4 py-3">
                                     <div className="text-xs uppercase tracking-wider text-blue-100">
-                                        Gestión
+                                        Año
                                     </div>
 
                                     <div className="mt-1 font-semibold">
@@ -360,7 +358,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
 
                                 <div className="rounded-2xl bg-white/10 border border-white/10 backdrop-blur-sm px-4 py-3">
                                     <div className="text-xs uppercase tracking-wider text-blue-100">
-                                        Jefe pASANTE
+                                        Jefe de Pasante
                                     </div>
 
                                     <div className="mt-1 font-semibold">
@@ -381,7 +379,6 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                         </div>
                     </div>
 
-                    {/* Glow */}
                     <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/10 blur-3xl" />
                 </div>
 
@@ -392,6 +389,20 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                             act.fecha_ini,
                             act.fecha_fin,
                         );
+
+                        // Calcular si el usuario puede editar (apuntes, autoevaluación, comentarios)
+                        const puedeEditar =
+                            estado_inscripcion !== "finalizado" && // La inscripción no está finalizada
+                            estadoActividad === "en_curso" && // La actividad está en curso
+                            act.estado_evaluacion !== "COMPLETADA" && // No está calificada como COMPLETADA
+                            act.estado_evaluacion !==
+                                "COMPLETADA PARCIALMENTE" &&
+                            act.estado_evaluacion !== "NO REALIZADA";
+
+                        const puedeComentarActividad =
+                            puedeComentar &&
+                            puedeEditar &&
+                            estadoActividad === "en_curso";
 
                         return (
                             <div
@@ -452,6 +463,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                     actividadId: act.id,
                                                     actividadNombre: act.nombre,
                                                     progresos: act.progresos,
+                                                    readOnly: !puedeEditar,
                                                 });
                                             }}
                                             className="px-5 py-3 rounded-2xl bg-white border border-gray-200 hover:border-primary-blue hover:bg-blue-50 text-gray-700 hover:text-primary-blue text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
@@ -474,6 +486,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                     actividadNombre: act.nombre,
                                                     autoevaluacion:
                                                         act.autoevaluacion,
+                                                    readOnly: !puedeEditar,
                                                 });
                                             }}
                                             className="px-5 py-3 rounded-2xl bg-white border border-gray-200 hover:border-primary-blue hover:bg-blue-50 text-gray-700 hover:text-primary-blue text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
@@ -603,23 +616,24 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                                         </div>
                                                                     </div>
 
-                                                                    {com.puede_editar && (
-                                                                        <button
-                                                                            onClick={() =>
-                                                                                startEditComment(
-                                                                                    com.id,
-                                                                                    com.comentario,
-                                                                                )
-                                                                            }
-                                                                            className="text-gray-500 hover:text-primary-blue transition cursor-pointer"
-                                                                        >
-                                                                            <Pencil
-                                                                                size={
-                                                                                    16
+                                                                    {com.puede_editar &&
+                                                                        puedeEditar && (
+                                                                            <button
+                                                                                onClick={() =>
+                                                                                    startEditComment(
+                                                                                        com.id,
+                                                                                        com.comentario,
+                                                                                    )
                                                                                 }
-                                                                            />
-                                                                        </button>
-                                                                    )}
+                                                                                className="text-gray-500 hover:text-primary-blue transition cursor-pointer"
+                                                                            >
+                                                                                <Pencil
+                                                                                    size={
+                                                                                        16
+                                                                                    }
+                                                                                />
+                                                                            </button>
+                                                                        )}
                                                                 </div>
 
                                                                 {editandoComentario ===
@@ -754,46 +768,42 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                                                     </div>
                                                 ))}
 
-                                                {/* Nuevo comentario - solo visible si actividad está en curso y la pasantía permite comentar */}
-                                                {puedeComentar &&
-                                                    estadoActividad ===
-                                                        "en_curso" && (
-                                                        <div className="flex items-center gap-3 pt-2">
-                                                            <input
-                                                                type="text"
-                                                                value={
-                                                                    newComment[
-                                                                        act.id
-                                                                    ] || ""
-                                                                }
-                                                                onChange={(e) =>
-                                                                    handleNewCommentChange(
-                                                                        act.id,
-                                                                        e.target
-                                                                            .value,
-                                                                    )
-                                                                }
-                                                                placeholder="Escribe un comentario..."
-                                                                className="flex-1 rounded-2xl border border-gray-400 bg-gray-50 px-7 py-3 text-sm focus:border-primary-blue focus:ring-4 focus:ring-blue-100 focus:bg-white transition"
-                                                            />
+                                                {/* Nuevo comentario - solo si puede comentar y actividad en curso */}
+                                                {puedeComentarActividad && (
+                                                    <div className="flex items-center gap-3 pt-2">
+                                                        <input
+                                                            type="text"
+                                                            value={
+                                                                newComment[
+                                                                    act.id
+                                                                ] || ""
+                                                            }
+                                                            onChange={(e) =>
+                                                                handleNewCommentChange(
+                                                                    act.id,
+                                                                    e.target
+                                                                        .value,
+                                                                )
+                                                            }
+                                                            placeholder="Escribe un comentario..."
+                                                            className="flex-1 rounded-2xl border border-gray-400 bg-gray-50 px-7 py-3 text-sm focus:border-primary-blue focus:ring-4 focus:ring-blue-100 focus:bg-white transition"
+                                                        />
 
-                                                            <button
-                                                                onClick={() =>
-                                                                    submitComment(
-                                                                        act.id,
-                                                                    )
-                                                                }
-                                                                className="h-12 w-12 flex items-center justify-center rounded-2xl bg-primary-blue text-white hover:scale-90 hover:bg-primary-sky-blue shadow-md transition-all cursor-pointer"
-                                                            >
-                                                                <Send
-                                                                    size={18}
-                                                                />
-                                                            </button>
-                                                        </div>
-                                                    )}
+                                                        <button
+                                                            onClick={() =>
+                                                                submitComment(
+                                                                    act.id,
+                                                                )
+                                                            }
+                                                            className="h-12 w-12 flex items-center justify-center rounded-2xl bg-primary-blue text-white hover:scale-90 hover:bg-primary-sky-blue shadow-md transition-all cursor-pointer"
+                                                        >
+                                                            <Send size={18} />
+                                                        </button>
+                                                    </div>
+                                                )}
 
-                                                {/* Mensaje si actividad está finalizada */}
-                                                {puedeComentar &&
+                                                {/* Mensaje si actividad está finalizada y no se puede comentar */}
+                                                {!puedeComentarActividad &&
                                                     estadoActividad ===
                                                         "finalizada" && (
                                                         <div className="mt-2 p-3 bg-gray-50 rounded-xl text-center text-gray-500 text-sm">
@@ -832,6 +842,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                 actividadId={modalApuntes.actividadId}
                 actividadNombre={modalApuntes.actividadNombre}
                 progresos={modalApuntes.progresos}
+                readOnly={modalApuntes.readOnly || false}
             />
 
             <ModalAutoEva
@@ -840,6 +851,7 @@ export default function Show({ auth, pasantia, actividades, puedeComentar }) {
                 actividadId={modalAutoEva.actividadId}
                 actividadNombre={modalAutoEva.actividadNombre}
                 autoevaluacion={modalAutoEva.autoevaluacion}
+                readOnly={modalAutoEva.readOnly || false}
             />
 
             <ModalVerEvaluacion

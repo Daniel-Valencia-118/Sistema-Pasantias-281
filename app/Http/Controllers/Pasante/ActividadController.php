@@ -211,7 +211,7 @@ class ActividadController extends Controller
                 'nota_evaluacion' => $notaEvaluacion,
                 'progresos' => $progresos,
                 'autoevaluacion' => $autoevaluacion,
-                'comentarios' => $comentarios,
+                'comentarios' => $comentarios,                
             ];
         });
 
@@ -222,6 +222,7 @@ class ActividadController extends Controller
             'pasantia' => $headerData,
             'actividades' => $actividadesData,
             'puedeComentar' => $puedeComentar,
+            'estado_inscripcion' => $inscripcion->estado, // 'iniciado' o 'finalizado'
         ]);
     }
 

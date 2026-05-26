@@ -102,7 +102,7 @@ export default function ModalHorario({
                                 <p
                                     className={`text-xs mt-1 ${
                                         yaIniciada
-                                            ? "text-orange-600"
+                                            ? "text-green-800"
                                             : "text-green-600"
                                     }`}
                                 >
@@ -125,7 +125,7 @@ export default function ModalHorario({
                                     className={`text-xs mt-1 ${
                                         yaTerminada
                                             ? "text-red-600"
-                                            : "text-green-600"
+                                            : "text-orange-600"
                                     }`}
                                 >
                                     {yaTerminada
