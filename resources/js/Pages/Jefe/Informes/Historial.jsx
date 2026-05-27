@@ -8,6 +8,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import InfoItem from '@/Components/InfoItem';
 import axios from 'axios';
 import { FileText, Download, Award, Calendar, BookmarkCheck } from 'lucide-react';
+import BadgeFecha from '@/Components/BadgeFecha';
 
 export default function Historial({ pasantia, informes = [], auth }) {
     const [selectedInforme, setSelectedInforme] = useState(null);
@@ -70,7 +71,7 @@ export default function Historial({ pasantia, informes = [], auth }) {
                 </span>
             ),
         },
-        { key: 'fecha', label: 'Fecha Emisión', sortable: true },
+        { key: 'fecha', label: 'Fecha Emisión', sortable: true, render: (value) => <BadgeFecha fecha={value} neutral={true} /> },
     ];
 
     const renderAcciones = (row) => (

@@ -11,6 +11,7 @@ import InputError from "@/Components/InputError";
 import TextArea from "@/Components/TextArea";
 import SelectInput from "@/Components/SelectInput";
 import InfoItem from "@/Components/InfoItem";
+import BadgeFecha from "@/Components/BadgeFecha";
 import {
     Eye,
     ClipboardCheck,
@@ -277,10 +278,10 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                                             <th className="py-4 px-6 w-3/12">
                                                 Actividad Requerida
                                             </th>
-                                            <th className="py-4 px-6 w-2/12">
+                                            <th className="py-4 px-6 w-2/12 text-center">
                                                 Vigencia (Plazos)
                                             </th>
-                                            <th className="py-4 px-6 w-2/12">
+                                            <th className="py-4 px-6 w-2/12 text-center">
                                                 Progreso
                                             </th>
                                             <th className="py-4 px-6 w-2/12 text-center">
@@ -303,22 +304,10 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                                                     </td>
 
                                                     {/* NUEVO: Columna Vigencia con colores */}
-                                                    <td className="py-4 px-6">
+                                                    <td className="py-4 px-6 text-center">
                                                         <div className="flex flex-col gap-1 text-xs font-bold">
-                                                            <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md w-max">
-                                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                                Inicia:{" "}
-                                                                {
-                                                                    actividad.fecha_ini
-                                                                }
-                                                            </span>
-                                                            <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md w-max">
-                                                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                                                Termina:{" "}
-                                                                {
-                                                                    actividad.fecha_fin
-                                                                }
-                                                            </span>
+                                                                <BadgeFecha fecha={actividad.fecha_ini} />
+                                                                <BadgeFecha fecha={actividad.fecha_fin} />
                                                         </div>
                                                     </td>
 

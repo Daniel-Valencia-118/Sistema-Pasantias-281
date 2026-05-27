@@ -581,6 +581,11 @@ public function dashboard()
         $actividadesBase = Actividad::where('id_pasantia', $id_pasantia)
             ->orderBy('id_actividad', 'asc')
             ->get();
+        
+        // actividades ordenadas por fecha_ini ascendente tomando en cuenta el dia y el mes.
+        $actividadesBase = $actividadesBase->sortBy(function($act) {
+            return strtotime(date('Y') . '-' . date('m', strtotime($act->fecha_ini)) . '-' . date('d', strtotime($act->fecha_ini)));
+        })->values();
 
         $pasantesData = $inscripciones->map(function ($inscripcion) use ($actividadesBase, $jefe) {
             $pasante = $inscripcion->pasante; 

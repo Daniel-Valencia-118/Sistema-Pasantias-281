@@ -10,6 +10,8 @@ import InputLabel from "@/Components/InputLabel";
 import InputError from "@/Components/InputError";
 import TextArea from "@/Components/TextArea";
 import SelectInput from "@/Components/SelectInput";
+import { meses, formatDateToSpanish, getFechaStyle } from '@/Utils/dateUtils';
+import BadgeFecha from '@/Components/BadgeFecha';
 import axios from "axios";
 import {
     PlusCircle,
@@ -124,8 +126,8 @@ export default function Actividades({
                 );
             },
         },
-        { key: "fecha_ini", label: "Fecha Inicio", sortable: true },
-        { key: "fecha_fin", label: "Fecha Fin", sortable: true },
+        { key: "fecha_ini", label: "Fecha Inicio", sortable: true, render: (value) => <BadgeFecha fecha={value} /> },
+        { key: "fecha_fin", label: "Fecha Fin", sortable: true, render: (value) => <BadgeFecha fecha={value} />  },
         {
             key: "tiempo_restante",
             label: "Tiempo Restante / Estado",

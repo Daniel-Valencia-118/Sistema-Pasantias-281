@@ -141,6 +141,13 @@ class ActividadController extends Controller
                 'nombre' => $p->user->nombre . ' ' . $p->user->ap_paterno,
             ]);
 
+        //ordenar actividades por fecha de inicio ascendente, tomando en cuenta el dia y el mes
+        $actividades = $actividades->sortBy(function($act) {
+            return Carbon::createFromFormat('d/m/Y', $act['fecha_ini'])->timestamp;
+        })->values();
+        // ordenar pasantes por nombre ascendente
+        $pasantes = $pasantes->sortBy('nombre')->values();
+
         return Inertia::render('Jefe/Evaluaciones/Actividades', [
             'pasantia' => [
                 'id' => $pasantia->id_pasantia,
