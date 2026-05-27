@@ -17,7 +17,8 @@ export default defineConfig({
     //         '@': path.resolve(__dirname, 'resources/js'),
     //     },
     // },
-        // AÑADE ESTA SECCIÓN SERVER COMPLETA:
+    
+    // AÑADE ESTA SECCIÓN SERVER COMPLETA:
     // server: {
     //     host: 'localhost', // Volvemos a la estabilidad local
     //     port: 5173,
@@ -28,4 +29,8 @@ export default defineConfig({
     //         origin: '*', // Permite que el túnel de internet lea los componentes
     //     },
     // },
+    server: {
+        host: '0.0.0.0',
+        port: 5173,
+    }
 });
