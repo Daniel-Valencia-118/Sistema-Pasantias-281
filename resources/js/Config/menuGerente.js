@@ -50,9 +50,9 @@ export const menuGerente = [
                 icon: FileText,
             },
             {
-                name: "Pasantías Publicadas",
+                name: "Gestión de Pasantias",
                 href: "/gerente/pasantias",
-                icon: Play,
+                icon: ClipboardList,
             },
             // {
             //     name: "Pasantías Iniciadas",
