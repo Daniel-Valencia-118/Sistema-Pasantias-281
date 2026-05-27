@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, CheckCircle } from "lucide-react";
+import { X, CheckCircle, ClipboardList, Calendar } from "lucide-react";
 import axios from "axios";
 import { formatDateToSpanish } from "@/Utils/dateUtils";
 
@@ -20,10 +20,12 @@ export default function ModalActividadesFinalizadas({
 
     const cargarActividades = async () => {
         setLoading(true);
+
         try {
             const response = await axios.get(
                 `/gerente/pasantias/${pasantiaId}/actividades-realizados`,
             );
+
             setActividades(response.data.actividades);
         } catch (error) {
             console.error("Error:", error);
@@ -36,128 +38,201 @@ export default function ModalActividadesFinalizadas({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full mx-4 my-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
+            <div className="bg-white rounded-2xl border border-gray-200 max-w-6xl w-full overflow-hidden">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-primary-navy to-primary-blue px-6 py-4 rounded-t-xl">
+                <div className="bg-gradient-to-r from-primary-navy to-primary-blue px-6 py-5">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="text-xl font-bold text-white">
+                            <h3 className="text-2xl font-bold text-white">
                                 Actividades de la Pasantía
                             </h3>
-                            <p className="text-primary-sky-blue text-sm">
+
+                            <p className="text-base text-white">
                                 {pasantiaNombre}
                             </p>
                         </div>
+
                         <button
                             onClick={onClose}
-                            className="text-white hover:bg-white/20 p-2 rounded-lg"
+                            className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 text-white hover:bg-white/20"
                         >
                             <X size={20} />
                         </button>
                     </div>
                 </div>
 
-                <div className="p-6 max-h-[70vh] overflow-y-auto">
+                {/* Contenido */}
+                <div className="bg-gray-50 p-6 max-h-[70vh] overflow-y-auto">
                     {loading ? (
-                        <div className="text-center py-12 text-gray-500">
-                            Cargando actividades...
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                            <div className="w-12 h-12 border-4 border-gray-200 border-t-primary-blue rounded-full animate-spin"></div>
+
+                            <p className="mt-4 text-gray-500 font-medium">
+                                Cargando actividades...
+                            </p>
                         </div>
                     ) : actividades.length === 0 ? (
-                        <div className="text-center py-12 text-gray-500">
-                            No hay actividades registradas
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                                <ClipboardList
+                                    size={30}
+                                    className="text-gray-400"
+                                />
+                            </div>
+
+                            <h4 className="text-lg font-semibold text-gray-700">
+                                No hay actividades registradas
+                            </h4>
+
+                            <p className="mt-2 text-sm text-gray-500 max-w-md">
+                                Aún no existen actividades registradas para esta
+                                pasantía.
+                            </p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500">
-                                            Nro
-                                        </th>
-                                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500">
-                                            Actividad
-                                        </th>
-                                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500">
-                                            Tipo
-                                        </th>
-                                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500">
-                                            Descripción
-                                        </th>
-                                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500">
-                                            Fecha Inicio
-                                        </th>
-                                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500">
-                                            Fecha Fin
-                                        </th>
-                                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500">
-                                            Realizados
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200">
-                                    {actividades.map((act, index) => (
-                                        <tr
-                                            key={act.id}
-                                            className="hover:bg-gray-50"
-                                        >
-                                            <td className="px-3 py-3 text-gray-500">
-                                                {index + 1}
-                                            </td>
-                                            <td className="px-3 py-3 font-medium text-gray-900">
-                                                {act.nombre_act}
-                                            </td>
-                                            <td className="px-3 py-3">
-                                                <span
-                                                    className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                                                        act.tipo === "OPERATIVA"
-                                                            ? "bg-blue-100 text-blue-800"
-                                                            : "bg-purple-100 text-purple-800"
-                                                    }`}
-                                                >
-                                                    {act.tipo}
-                                                </span>
-                                            </td>
-                                            <td className="px-3 py-3 text-gray-600 max-w-xs truncate">
-                                                {act.descripcion ||
-                                                    "Sin descripción"}
-                                            </td>
-                                            <td className="px-3 py-3 text-gray-600">
-                                                {formatDateToSpanish(
-                                                    act.fecha_ini,
-                                                )}
-                                            </td>
-                                            <td className="px-3 py-3 text-gray-600">
-                                                {formatDateToSpanish(
-                                                    act.fecha_fin,
-                                                )}
-                                            </td>
-                                            <td className="px-3 py-3 text-center">
-                                                <div className="flex items-center justify-center gap-1">
-                                                    <CheckCircle
-                                                        size={14}
-                                                        className="text-green-500"
-                                                    />
-                                                    <span className="font-medium">
-                                                        {act.realizados}
-                                                    </span>
-                                                    <span className="text-gray-400 text-xs">
-                                                        pasantes
-                                                    </span>
-                                                </div>
-                                            </td>
+                        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                            <div className="overflow-x-auto">
+                                <table className="w-full border-separate border-spacing-0">
+                                    <thead>
+                                        <tr className="bg-gradient-to-r from-primary-navy to-primary-slate">
+                                            <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                Nro
+                                            </th>
+
+                                            <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                Actividad
+                                            </th>
+
+                                            <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                Tipo
+                                            </th>
+
+                                            <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                Descripción
+                                            </th>
+
+                                            <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                Fecha Inicio
+                                            </th>
+
+                                            <th className="px-4 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-white">
+                                                Fecha Fin
+                                            </th>
+
+                                            <th className="px-4 py-4 text-center text-[11px] font-bold uppercase tracking-wider text-white">
+                                                Realizado por:
+                                            </th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+
+                                    <tbody className="bg-white">
+                                        {actividades.map((act, index) => (
+                                            <tr
+                                                key={act.id}
+                                                className="hover:bg-gray-50"
+                                            >
+                                                <td className="px-4 py-4 border-b border-gray-100">
+                                                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-xs font-bold text-gray-600">
+                                                        {index + 1}
+                                                    </div>
+                                                </td>
+
+                                                <td className="px-4 py-4 border-b border-gray-100">
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-100 text-primary-blue">
+                                                            <ClipboardList
+                                                                size={18}
+                                                            />
+                                                        </div>
+
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-gray-800">
+                                                                {act.nombre_act}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                <td className="px-4 py-4 border-b border-gray-100">
+                                                    <span
+                                                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                                                            act.tipo ===
+                                                            "OPERATIVA"
+                                                                ? "bg-blue-100 text-blue-800"
+                                                                : "bg-purple-100 text-purple-800"
+                                                        }`}
+                                                    >
+                                                        {act.tipo}
+                                                    </span>
+                                                </td>
+
+                                                <td
+                                                    className="px-4 py-4 border-b border-gray-100"
+                                                    title={act.descripcion}
+                                                >
+                                                    <p className="text-sm text-gray-600 max-w-xs line-clamp-2">
+                                                        {act.descripcion ||
+                                                            "Sin descripción"}
+                                                    </p>
+                                                </td>
+
+                                                <td className="px-4 py-4 border-b border-gray-100">
+                                                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-sm font-medium">
+                                                        <Calendar size={14} />
+
+                                                        {formatDateToSpanish(
+                                                            act.fecha_ini,
+                                                        )}
+                                                    </span>
+                                                </td>
+
+                                                <td className="px-4 py-4 border-b border-gray-100">
+                                                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-sm font-medium">
+                                                        <Calendar size={14} />
+
+                                                        {formatDateToSpanish(
+                                                            act.fecha_fin,
+                                                        )}
+                                                    </span>
+                                                </td>
+
+                                                <td className="px-4 py-4 text-center border-b border-gray-100">
+                                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 text-green-700">
+                                                        <CheckCircle
+                                                            size={16}
+                                                        />
+
+                                                        <span className="font-semibold text-base">
+                                                            {act.realizados}
+                                                        </span>
+
+                                                        <span className="text-base">
+                                                            pasantes
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     )}
                 </div>
 
-                <div className="flex justify-end p-4 border-t bg-gray-50 rounded-b-xl">
+                {/* Footer */}
+                <div className="flex items-center justify-between px-6 py-4 border-t bg-white">
+                    <div className="text-sm text-gray-500">
+                        Total actividades:{" "}
+                        <span className="font-semibold text-gray-700">
+                            {actividades.length}
+                        </span>
+                    </div>
+
                     <button
                         onClick={onClose}
-                        className="px-5 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                        className="px-6 py-2.5 bg-gray-600 text-white text-sm font-semibold rounded-xl hover:bg-gray-700"
                     >
                         Cerrar
                     </button>

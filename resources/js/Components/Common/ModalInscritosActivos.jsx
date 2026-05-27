@@ -356,7 +356,10 @@ export default function ModalInscritosActivos({
                                                                 <Eye
                                                                     size={19}
                                                                 />
-                                                                Ver
+                                                                <p>
+                                                                    Ver <br />{" "}
+                                                                    Perfil
+                                                                </p>
                                                             </button>
                                                         </td>
 
@@ -377,7 +380,11 @@ export default function ModalInscritosActivos({
                                                                 <ClipboardList
                                                                     size={15}
                                                                 />
-                                                                Ver Evaluaciones
+                                                                <p>
+                                                                    Actividades{" "}
+                                                                    <br />{" "}
+                                                                    Evaluadas
+                                                                </p>
                                                             </button>
                                                         </td>
 

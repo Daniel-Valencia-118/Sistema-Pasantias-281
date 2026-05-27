@@ -384,13 +384,13 @@ export default function Index({ auth, pasantias }) {
                             <Briefcase size={22} className="text-white" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-white tracking-tight">
-                                PASANTÍAS PUBLICADAS
+                            <h2 className="text-2xl font-bold text-white tracking-tight">
+                                GESTIONA TUS PASANTÍAS PUBLICADAS
                             </h2>
-                            <p className="text-white/70 text-sm mt-0.5 flex items-center gap-1.5">
+                            <p className="text-white/100 text-base mt-0.5 flex items-center gap-1.5">
                                 <span className="inline-block w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-                                Pasantías en publicadas, gestiona a los nuevos
-                                inscritos y asígnales un jefe de pasante
+                                Gestiona las actividades, inscripciones y a tus
+                                pasantes inscritos en las diferentes pasantias
                             </p>
                         </div>
                     </div>

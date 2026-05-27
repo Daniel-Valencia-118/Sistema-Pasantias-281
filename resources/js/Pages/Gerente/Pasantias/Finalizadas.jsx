@@ -30,6 +30,7 @@ import {
     FileText,
     Archive,
     RefreshCw,
+    ChevronRight,
 } from "lucide-react";
 
 export default function Finalizadas({ auth, pasantias }) {
@@ -141,6 +142,16 @@ export default function Finalizadas({ auth, pasantias }) {
         );
     };
 
+    const formatFechaBolivia = (fechaStr) => {
+        if (!fechaStr) return "";
+        const soloFecha = fechaStr.toString().slice(0, 10);
+        const [anio, mes, dia] = soloFecha.split("-").map(Number);
+        return new Date(anio, mes - 1, dia).toLocaleDateString("es-BO", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+        });
+    };
     const filteredAndSorted = useMemo(() => {
         let filtered = [...pasantiasData];
 
@@ -328,42 +339,46 @@ export default function Finalizadas({ auth, pasantias }) {
                                         {/* Card Body */}
                                         <div className="p-5 space-y-4">
                                             {/* Fechas */}
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div className="flex items-center gap-2 text-sm">
-                                                    <Calendar
-                                                        size={14}
-                                                        className="text-gray-400"
-                                                    />
-                                                    <div>
-                                                        <p className="text-xs text-gray-400">
-                                                            Inicio
-                                                        </p>
-                                                        <BadgeFecha
-                                                            fecha={
-                                                                pasantia.fecha_ini
-                                                            }
+                                            <div className="flex items-center gap-4 text-sm">
+                                                {/* Sección Fecha de Inicio */}
+                                                <div className="flex items-center gap-2">
+                                                    <div className="p-1 bg-green-100 rounded-lg">
+                                                        <Calendar
+                                                            size={15}
+                                                            className="text-green-600"
                                                         />
                                                     </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs text-green-700 font-medium">
+                                                            {formatFechaBolivia(
+                                                                pasantia.fecha_ini,
+                                                            )}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-2 text-sm">
-                                                    <Calendar
-                                                        size={14}
-                                                        className="text-gray-400"
-                                                    />
-                                                    <div>
-                                                        <p className="text-xs text-gray-400">
-                                                            Fin
-                                                        </p>
-                                                        <BadgeFecha
-                                                            fecha={
-                                                                pasantia.fecha_fin
-                                                            }
+
+                                                {/* Línea divisoria vertical | */}
+                                                <div className="h-7 w-[3px] bg-gray-200" />
+
+                                                {/* Sección Fecha de Fin */}
+                                                <div className="flex items-center gap-2">
+                                                    <div className="p-1 bg-red-100 rounded-lg">
+                                                        <Calendar
+                                                            size={15}
+                                                            className="text-red-600"
                                                         />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs text-red-700 font-medium">
+                                                            {formatFechaBolivia(
+                                                                pasantia.fecha_fin,
+                                                            )}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            {/* Stats */}
+                                            {/* Stats - Botón de pasantes mejorado */}
                                             <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                                                 <button
                                                     onClick={() =>
@@ -375,41 +390,43 @@ export default function Finalizadas({ auth, pasantias }) {
                                                                 pasantia.nombre,
                                                         })
                                                     }
-                                                    className="flex flex-col items-start gap-1 p-2 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors w-full text-left"
+                                                    className="flex flex-col items-start gap-1 p-2 bg-secondary-teal/5 border border-secondary-teal/30 rounded-lg hover:bg-secondary-teal/15 hover:border-secondary-teal transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md w-full text-left group/btn"
                                                     title="Ver pasantes, actividades y notas finales"
                                                 >
                                                     <div className="flex items-center gap-2 w-full">
-                                                        <Users
-                                                            size={14}
-                                                            className="text-primary-blue"
-                                                        />
-                                                        <span className="text-sm font-semibold text-gray-700">
+                                                        <div className="p-1 bg-secondary-teal/15 rounded-lg group-hover/btn:bg-secondary-teal/25 transition-colors">
+                                                            <Users
+                                                                size={14}
+                                                                className="text-secondary-teal"
+                                                            />
+                                                        </div>
+                                                        <span className="text-sm font-semibold text-blue-800">
                                                             {pasantia.inscritos}{" "}
-                                                            pasantes
+                                                            PASANTES
                                                         </span>
+                                                        <ChevronRight
+                                                            size={14}
+                                                            className="ml-auto text-secondary-teal/40 group-hover/btn:text-secondary-teal group-hover/btn:translate-x-0.5 transition-all opacity-0 group-hover/btn:opacity-100"
+                                                        />
                                                     </div>
-                                                    <div className="flex items-center gap-3 text-[10px] text-gray-400 pl-6">
-                                                        <span className="flex items-center gap-1">
+                                                    <div className="flex items-center gap-3 text-[10px] text-gray-400 pl-7">
+                                                        <span className="flex text-xs  items-center gap-1">
                                                             <FileText
-                                                                size={10}
+                                                                size={13}
                                                             />{" "}
                                                             Actividades
                                                         </span>
-                                                        <span className="flex items-center gap-1">
+                                                        <span className="flex text-xs items-center gap-1">
                                                             <FileText
-                                                                size={10}
+                                                                size={13}
                                                             />{" "}
                                                             Nota final
                                                         </span>
                                                     </div>
                                                 </button>
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                                    <CheckCircle size={12} />
-                                                    Finalizado
-                                                </span>
                                             </div>
 
-                                            {/* Calificaciones */}
+                                            {/* Calificaciones - Botón mejorado */}
                                             <button
                                                 onClick={() =>
                                                     setModalCalificaciones({
@@ -421,18 +438,22 @@ export default function Finalizadas({ auth, pasantias }) {
                                                             pasantia.promedio_calificaciones,
                                                     })
                                                 }
-                                                className="w-full bg-gray-50 hover:bg-blue-50 rounded-xl p-3 transition-all duration-200 cursor-pointer group text-left"
+                                                className="w-full bg-primary-sky-blue/5 border border-primary-sky-blue/30 hover:bg-primary-sky-blue/15 hover:border-primary-sky-blue rounded-xl p-3 transition-all duration-200 cursor-pointer group text-left shadow-sm hover:shadow-md"
                                                 title="Ver calificaciones detalladas"
                                             >
                                                 <div className="flex items-center justify-between mb-2">
-                                                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide group-hover:text-primary-blue transition-colors">
+                                                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide group-hover:text-primary-sky-blue transition-colors">
                                                         Calificaciones
                                                     </span>
-                                                    <span className="text-xs text-gray-400">
+                                                    <span className="text-sm text-gray-500 group-hover:text-primary-sky-blue transition-colors">
                                                         {
                                                             pasantia.total_calificaciones
                                                         }{" "}
                                                         opiniones
+                                                        <ChevronRight
+                                                            size={12}
+                                                            className="inline ml-1 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-0.5"
+                                                        />
                                                     </span>
                                                 </div>
                                                 <div className="hover:opacity-80 transition-opacity">
@@ -441,8 +462,9 @@ export default function Finalizadas({ auth, pasantias }) {
                                                     )}
                                                 </div>
                                             </button>
-                                            {/* Botones de acción */}
-                                            <div className="grid grid-cols-3 gap-2 pt-2">
+
+                                            {/* Botones de acción - Mejorados */}
+                                            <div className="grid grid-cols-3 gap-3 pt-2">
                                                 <button
                                                     onClick={() =>
                                                         setModalHorario({
@@ -458,14 +480,14 @@ export default function Finalizadas({ auth, pasantias }) {
                                                                 pasantia.detalles_horario,
                                                         })
                                                     }
-                                                    className="flex flex-col items-center gap-1 p-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                                                    className="flex flex-col items-center gap-1.5 p-2 bg-primary-sky-blue/10 border border-primary-sky-blue/30 rounded-lg hover:bg-primary-sky-blue/20 hover:border-primary-sky-blue transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
                                                     title="Ver detalles"
                                                 >
                                                     <Eye
-                                                        size={16}
-                                                        className="text-gray-500"
+                                                        size={18}
+                                                        className="text-primary-sky-blue"
                                                     />
-                                                    <span className="text-[10px] text-gray-500">
+                                                    <span className="text-[12px] font-medium text-primary-sky-blue">
                                                         Detalles
                                                     </span>
                                                 </button>
@@ -479,14 +501,14 @@ export default function Finalizadas({ auth, pasantias }) {
                                                                 pasantia.nombre,
                                                         })
                                                     }
-                                                    className="flex flex-col items-center gap-1 p-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                                                    className="flex flex-col items-center gap-1.5 p-2 bg-primary-sky-blue/10 border border-primary-sky-blue/30 rounded-lg hover:bg-primary-sky-blue/20 hover:border-primary-sky-blue transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
                                                     title="Ver actividades"
                                                 >
                                                     <FileText
-                                                        size={16}
-                                                        className="text-gray-500"
+                                                        size={18}
+                                                        className="text-primary-sky-blue"
                                                     />
-                                                    <span className="text-[10px] text-gray-500">
+                                                    <span className="text-[12px] font-medium text-primary-sky-blue">
                                                         Actividades
                                                     </span>
                                                 </button>
@@ -500,15 +522,15 @@ export default function Finalizadas({ auth, pasantias }) {
                                                                 pasantia.nombre,
                                                         })
                                                     }
-                                                    className="flex flex-col items-center gap-1 p-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors group"
+                                                    className="flex flex-col items-center gap-1.5 p-2 bg-primary-blue border border-primary-blue rounded-lg hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg group/btn"
                                                     title="Abrir pasantía nuevamente"
                                                 >
-                                                    <LockOpen
-                                                        size={16}
-                                                        className="text-blue-600"
+                                                    <RefreshCw
+                                                        size={18}
+                                                        className="text-white"
                                                     />
-                                                    <span className="text-[10px] text-blue-700 font-medium">
-                                                        Reabrir Pasantia
+                                                    <span className="text-[12px] font-semibold text-white">
+                                                        Reabrir
                                                     </span>
                                                 </button>
                                             </div>
@@ -522,7 +544,6 @@ export default function Finalizadas({ auth, pasantias }) {
             </div>
 
             {/* Modales - Sin cambios */}
-
             <ModalHorario
                 isOpen={modalHorario.isOpen}
                 onClose={() =>

@@ -93,10 +93,10 @@ export default function ModalAsignarJefe({
                     <div className="bg-gradient-to-r from-primary-navy to-primary-blue px-6 py-4 rounded-t-xl">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="text-xl font-bold text-white">
+                                <h3 className="text-2xl font-bold text-white">
                                     Asignar Jefe de Pasante
                                 </h3>
-                                <p className="text-primary-sky-blue text-sm">
+                                <p className="text-base text-white">
                                     Seleccione un jefe para {pasante?.nombre}{" "}
                                     {pasante?.ap_paterno}
                                 </p>
@@ -196,10 +196,10 @@ export default function ModalAsignarJefe({
                                                                 usuario: jefe,
                                                             })
                                                         }
-                                                        className="text-primary-blue hover:text-primary-sky-blue transition-all"
+                                                        className="text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer"
                                                         title="Ver perfil"
                                                     >
-                                                        <Eye size={18} />
+                                                        <Eye size={25} />
                                                     </button>
                                                 </td>
                                                 <td className="px-3 py-3 text-center">
@@ -207,9 +207,9 @@ export default function ModalAsignarJefe({
                                                         onClick={() =>
                                                             handleAsignar(jefe)
                                                         }
-                                                        className="flex items-center gap-1 px-3 py-1 bg-primary-blue text-white text-xs rounded hover:bg-primary-sky-blue transition-all"
+                                                        className="flex items-center gap-1 px-3 py-1 bg-primary-blue text-white text-xs rounded hover:bg-primary-sky-blue transition-all cursor-pointer"
                                                     >
-                                                        <UserPlus size={14} />
+                                                        <UserPlus size={17} />
                                                         ASIGNAR
                                                     </button>
                                                 </td>

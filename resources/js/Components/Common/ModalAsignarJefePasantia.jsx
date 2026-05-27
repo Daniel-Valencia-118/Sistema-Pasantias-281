@@ -81,12 +81,12 @@ export default function ModalAsignarJefePasantia({
                     <div className="bg-gradient-to-r from-primary-navy to-primary-blue px-6 py-4 rounded-t-xl">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="text-xl font-bold text-white">
-                                    Asignar Jefe Responsable
+                                <h3 className="text-2xl font-bold text-white">
+                                    Asignar Jefe de Pasantia
                                 </h3>
-                                <p className="text-primary-sky-blue text-sm">
-                                    Seleccione un jefe de pasante para esta
-                                    pasantía
+                                <p className="text-base text-white">
+                                    Cada pasante que se inscriba tendrá como
+                                    jefe, el jefe de pasante seleccionado
                                 </p>
                             </div>
                             <button
@@ -184,10 +184,10 @@ export default function ModalAsignarJefePasantia({
                                                                 usuario: jefe,
                                                             })
                                                         }
-                                                        className="text-primary-blue hover:text-primary-sky-blue transition-all"
+                                                        className="text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer"
                                                         title="Ver perfil"
                                                     >
-                                                        <Eye size={18} />
+                                                        <Eye size={24} />
                                                     </button>
                                                 </td>
                                                 <td className="px-3 py-3 text-center">
@@ -195,9 +195,9 @@ export default function ModalAsignarJefePasantia({
                                                         onClick={() =>
                                                             handleAsignar(jefe)
                                                         }
-                                                        className="flex items-center gap-1 px-3 py-1 bg-primary-blue text-white text-xs rounded hover:bg-primary-sky-blue transition-all"
+                                                        className="flex items-center gap-1 px-3 py-1 bg-primary-blue text-white text-xs rounded hover:bg-primary-sky-blue transition-all cursor-pointer"
                                                     >
-                                                        <UserPlus size={14} />
+                                                        <UserPlus size={17} />
                                                         ASIGNAR
                                                     </button>
                                                 </td>

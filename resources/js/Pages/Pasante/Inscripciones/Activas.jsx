@@ -115,8 +115,9 @@ export default function Activas({ auth, inscripciones }) {
                                 Pasantías Inscritas
                             </h1>
                         </div>
-                        <p className="text-white/80 text-lg mb-6">
-                            Gestiona y da seguimiento a tus pasantías
+                        <p className="text-white/100 text-lg mb-6">
+                            Gestiona tus actividades y da seguimiento a tus
+                            pasantías
                         </p>
 
                         {/* Stats Cards

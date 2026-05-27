@@ -144,8 +144,7 @@ export default function ModalHorario({
                                 className="text-yellow-600"
                             />
                             <p className="text-xs text-yellow-700">
-                                Esta pasantía ya finalizó. Puedes calificarla en
-                                la sección "Inscripciones Finalizadas".
+                                Esta pasantía ya finalizó.
                             </p>
                         </div>
                     )}
