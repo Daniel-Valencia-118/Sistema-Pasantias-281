@@ -30,7 +30,7 @@ import {
 export const menuConfig = {
     admin: [
         {
-            name: 'Dashboard',
+            name: 'Estadísticas',
             icon: LayoutDashboard,
             single: true,
             href: '/admin',
@@ -147,10 +147,10 @@ export const menuConfig = {
         //     ],
         // },
         {
-            name: 'Dashboard',
+            name: 'Estadísticas',
             icon: LayoutDashboard,
             single: true,
-            href: '/jefe/dashboard',
+            href: '/jefe',
         },
         {
             name: 'Mis Pasantías',

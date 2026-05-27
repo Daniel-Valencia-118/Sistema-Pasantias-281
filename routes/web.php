@@ -187,7 +187,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 Route::middleware(['auth', 'role:jefe'])->group(function () {
     Route::get('/jefe/perfil', [JefeController::class, 'perfil'])->name('jefe.perfil');
     Route::put('/jefe/perfil', [JefeController::class, 'actualizarPerfil'])->name('jefe.actualizarPerfil');
-    Route::get('/jefe/', [JefeController::class, 'dashboard'])->name('jefe.dashboard');
+    Route::get('/jefe', [JefeController::class, 'dashboard'])->name('jefe.dashboard');
     // Route::get('/jefe', function () {
     //     return Inertia::render('Jefe/Dashboard/Dashboard');
     // })->name('jefe.dashboard');
