@@ -775,7 +775,7 @@ export default function Index({ auth, pasantias }) {
                     </div>
 
                     {abiertasFiltradas.length === 0 && (
-                        <div className="text-center py-12">
+                        <div className="text-center py-3">
                             <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-3">
                                 <Briefcase
                                     size={28}
@@ -783,7 +783,7 @@ export default function Index({ auth, pasantias }) {
                                 />
                             </div>
                             <p className="text-gray-500 font-medium">
-                                No hay pasantías con inscripciones abiertas
+                                No tienes ninguna pasantía publicada
                             </p>
                             {searchAbiertas && (
                                 <button
@@ -1207,7 +1207,7 @@ export default function Index({ auth, pasantias }) {
                     </div>
 
                     {iniciadasFiltradas.length === 0 && (
-                        <div className="text-center py-12">
+                        <div className="text-center py-3">
                             <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-3">
                                 <Briefcase
                                     size={28}
@@ -1629,7 +1629,7 @@ export default function Index({ auth, pasantias }) {
                     </div>
 
                     {comenzadasFiltradas.length === 0 && (
-                        <div className="text-center py-12">
+                        <div className="text-center py-3">
                             <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-3">
                                 <Briefcase
                                     size={28}
@@ -1637,7 +1637,7 @@ export default function Index({ auth, pasantias }) {
                                 />
                             </div>
                             <p className="text-gray-500 font-medium">
-                                No hay pasantías comenzadas
+                                No tienes ninguna pasantía iniciada
                             </p>
                             {searchComenzadas && (
                                 <button
