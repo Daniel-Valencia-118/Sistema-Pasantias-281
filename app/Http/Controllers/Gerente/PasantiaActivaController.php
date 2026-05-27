@@ -53,6 +53,7 @@ class PasantiaActivaController extends Controller
         ]);
     }
     
+    //USAN EN PASANTIA PUBLICADA
     public function getInscritosConEvaluaciones($idPasantia)
     {
         $pasantia = Pasantia::findOrFail($idPasantia);
@@ -112,6 +113,7 @@ class PasantiaActivaController extends Controller
                     'matricula' => $inscripcion->pasante->matricula,
                     'semestre' => $inscripcion->pasante->semestre,
                     'mencion' => $inscripcion->pasante->mencion,
+                    'avatar_url' => $inscripcion->pasante->user->avatar_url,
                     'jefe' => $inscripcion->jefe ? [
                         'id' => $inscripcion->jefe->idU_jefe,
                         'nombre' => $inscripcion->jefe->user->nombre,
@@ -123,6 +125,7 @@ class PasantiaActivaController extends Controller
                         'correo' => $inscripcion->jefe->user->correo,
                         'cargo' => $inscripcion->jefe->cargo,
                         'area' => $inscripcion->jefe->area,
+                        'avatar_url' => $inscripcion->jefe->user->avatar_url,
 
                     ] : null,
                     'evaluaciones' => $evaluaciones

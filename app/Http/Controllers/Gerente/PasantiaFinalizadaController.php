@@ -32,6 +32,7 @@ class PasantiaFinalizadaController extends Controller
                     'mencion' => $pasantia->mencion,
                     'turno' => $pasantia->turno,
                     'carga_horaria' => $pasantia->carga_horaria,
+                    'detalles_horario' => $pasantia->detalles_horario ?? null,
                     'fecha_ini' => $pasantia->fecha_ini,
                     'fecha_fin' => $pasantia->fecha_fin,
                     'cupos' => $pasantia->cupos,
@@ -172,6 +173,7 @@ class PasantiaFinalizadaController extends Controller
                         'matricula' => $inscripcion->pasante->matricula,
                         'semestre' => $inscripcion->pasante->semestre,
                         'mencion' => $inscripcion->pasante->mencion,
+                        'avatar_url' => $inscripcion->pasante->user->avatar_url,
                         'jefe' => $inscripcion->jefe ? [
                             'id' => $inscripcion->jefe->idU_jefe,
                             'ap_paterno' => $inscripcion->jefe->user->ap_paterno,
@@ -183,6 +185,7 @@ class PasantiaFinalizadaController extends Controller
                             'correo' => $inscripcion->jefe->user->correo,
                             'cargo' => $inscripcion->jefe->cargo,
                             'area' => $inscripcion->jefe->user->jefePas->area,
+                            'avatar_url' => $inscripcion->jefe->user->avatar_url,
                         ] : null,
                         'promedio' => $promedio,
                         'color_promedio' => $color,
@@ -259,6 +262,7 @@ class PasantiaFinalizadaController extends Controller
             'turno' => $pasantiaOriginal->turno,
             'carga_horaria' => $pasantiaOriginal->carga_horaria,
             'cupos' => $pasantiaOriginal->cupos,
+            'detalles_horario' => $pasantiaOriginal->detalles_horario,
             // Las fechas se dejan vacías
             'fecha_ini' => null,
             'fecha_fin' => null,

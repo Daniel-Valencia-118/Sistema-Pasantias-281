@@ -74,10 +74,10 @@ export default function ModalCalificaciones({
                     <div className="bg-gradient-to-r from-primary-navy to-primary-blue px-6 py-4 rounded-t-xl">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="text-xl font-bold text-white">
+                                <h3 className="text-2xl font-bold text-white">
                                     Calificaciones y Opiniones
                                 </h3>
-                                <p className="text-primary-sky-blue text-sm">
+                                <p className="text-base text-white">
                                     {pasantiaNombre}
                                 </p>
                             </div>
@@ -181,27 +181,13 @@ export default function ModalCalificaciones({
                                                     <td className="px-3 py-3 text-gray-600">
                                                         {cal.ci}
                                                     </td>
-                                                    <td className="px-3 py-3 text-center">
-                                                        <button
-                                                            onClick={() =>
-                                                                setModalComentario(
-                                                                    {
-                                                                        isOpen: true,
-                                                                        comentario:
-                                                                            cal.descripcion,
-                                                                        autor: `${cal.nombre} ${cal.ap_paterno}`,
-                                                                    },
-                                                                )
-                                                            }
-                                                            className="text-primary-blue hover:text-primary-sky-blue flex items-center gap-1 mx-auto"
-                                                        >
-                                                            <MessageCircle
-                                                                size={16}
-                                                            />
-                                                            <span className="text-xs">
-                                                                Ver
-                                                            </span>
-                                                        </button>
+                                                    <td className="px-3 py-3">
+                                                        <div className="max-w-xs bg-primary-blue/5 rounded-lg px-3 py-2 border border-primary-blue/20 shadow-sm">
+                                                            <p className="text-xs text-gray-900 leading-relaxed break-words">
+                                                                {cal.descripcion ||
+                                                                    "Sin descripción"}
+                                                            </p>
+                                                        </div>
                                                     </td>
                                                     <td className="px-3 py-3 text-center">
                                                         {renderStars(

@@ -30,6 +30,7 @@ export default function Activas({ auth, inscripciones }) {
             cargaHoraria: null,
             fechaIni: null,
             fechaFin: null,
+            detalleHorario: null,
         },
         actividades: { isOpen: false, nombre: null, actividades: [] },
         companeros: { isOpen: false, pasantiaId: null, pasantiaNombre: null },
@@ -52,8 +53,8 @@ export default function Activas({ auth, inscripciones }) {
         if (estado === "iniciado") {
             return (
                 <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md">
-                    <PlayCircle size={12} />
-                    CURSANDO
+                    <PlayCircle size={10} />
+                    INSCRITO
                 </span>
             );
         }
@@ -64,7 +65,23 @@ export default function Activas({ auth, inscripciones }) {
             </span>
         );
     };
+    const formatRangoFechas = (fechaIni, fechaFin) => {
+        if (!fechaIni || !fechaFin) return "";
 
+        // Función auxiliar para crear la fecha local sin interferencia de UTC
+        const crearFechaLocal = (fechaStr) => {
+            const [year, month, day] = fechaStr.split("-").map(Number);
+            return new Date(year, month - 1, day);
+        };
+
+        // Convertimos ambas fechas de forma segura
+        const ini = crearFechaLocal(fechaIni);
+        const fin = crearFechaLocal(fechaFin);
+
+        const opciones = { day: "numeric", month: "long" };
+
+        return `${ini.toLocaleDateString("es-ES", opciones)} - ${fin.toLocaleDateString("es-ES", opciones)}`;
+    };
     const filteredInscripciones = inscripciones.filter((inscripcion) =>
         inscripcion.pasantia.nombre
             .toLowerCase()
@@ -97,14 +114,15 @@ export default function Activas({ auth, inscripciones }) {
                                 <Briefcase size={28} />
                             </div>
                             <h1 className="text-3xl font-bold">
-                                Pasantías Activas
+                                Pasantías Inscritas
                             </h1>
                         </div>
-                        <p className="text-white/80 text-lg mb-6">
-                            Gestiona y da seguimiento a tus pasantías en curso
+                        <p className="text-white/100 text-lg mb-6">
+                            Gestiona tus actividades y da seguimiento a tus
+                            pasantías
                         </p>
 
-                        {/* Stats Cards */}
+                        {/* Stats Cards
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300">
                                 <div className="flex items-center justify-between">
@@ -150,11 +168,11 @@ export default function Activas({ auth, inscripciones }) {
                                     </div>
                                     <Clock
                                         size={32}
-                                        className="text-yellow-300"
+                                        className="text-green-300"
                                     />
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>
@@ -173,12 +191,12 @@ export default function Activas({ auth, inscripciones }) {
                                 className={`p-4 border-b ${
                                     inscripcion.estado_inscripcion ===
                                     "iniciado"
-                                        ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-100"
+                                        ? "bg-gradient-to-r from-blue-200 to-emerald-50 border-blue-200"
                                         : "bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-100"
                                 }`}
                             >
-                                <div className="flex items-start justify-between gap-3 mb-2">
-                                    <h3 className="font-bold text-base text-gray-800 break-words flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-3 mb-1">
+                                    <h3 className="font-bold text-base text-gray-900 break-words flex-1 min-w-0">
                                         {p.nombre}
                                     </h3>
                                     <div className="flex-shrink-0">
@@ -202,10 +220,13 @@ export default function Activas({ auth, inscripciones }) {
                                         title="Ver detalles de la empresa"
                                     >
                                         <Building2
-                                            size={16}
-                                            className="text-primary-blue flex-shrink-0"
+                                            size={20}
+                                            className="text-primary-blue flex-shrink-0 cursor-pointer"
                                         />
-                                        <span className="text-gray-700 font-medium break-words flex-1 min-w-0 group-hover:text-primary-blue transition-colors">
+                                        <p className="text-sm text-gray-600 cursor-pointer">
+                                            Empresa:
+                                        </p>
+                                        <span className="text-gray-700 text-base font-medium break-words flex-1 min-w-0 group-hover:text-primary-blue transition-colors cursor-pointer">
                                             {p.empresa.nombre}
                                         </span>
                                     </button>
@@ -213,7 +234,7 @@ export default function Activas({ auth, inscripciones }) {
                             </div>
 
                             {/* Card Body */}
-                            <div className="p-4 space-y-3">
+                            <div className="p-3 space-y-3">
                                 {/* Actividades & Horario */}
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
@@ -222,7 +243,7 @@ export default function Activas({ auth, inscripciones }) {
                                                 `/pasante/actividades/${p.id}`,
                                             )
                                         }
-                                        className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-primary-blue to-primary-sky-blue text-white rounded-lg hover:from-primary-sky-blue hover:to-primary-blue transition-all duration-200 shadow-md hover:shadow-lg text-sm font-medium"
+                                        className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-primary-blue to-primary-sky-blue text-white rounded-lg hover:from-primary-sky-blue hover:to-primary-blue transition-all duration-200 shadow-md hover:shadow-lg text-sm font-medium cursor-pointer"
                                         title="Ver actividades"
                                     >
                                         <CalendarIcon size={16} />
@@ -239,14 +260,16 @@ export default function Activas({ auth, inscripciones }) {
                                                         p.carga_horaria,
                                                     fechaIni: p.fecha_ini,
                                                     fechaFin: p.fecha_fin,
+                                                    detalleHorario:
+                                                        p.detalles_horario,
                                                 },
                                             })
                                         }
-                                        className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm font-medium"
+                                        className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm font-medium cursor-pointer"
                                         title="Ver horario"
                                     >
                                         <Clock size={16} />
-                                        Hrs. y Fechas
+                                        Horario y Fechas
                                     </button>
                                 </div>
 
@@ -254,11 +277,11 @@ export default function Activas({ auth, inscripciones }) {
                                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
                                     <div className="flex items-center gap-2">
                                         <UserCheck
-                                            size={16}
+                                            size={19}
                                             className="text-green-600"
                                         />
                                         <span className="text-sm font-medium text-gray-700">
-                                            Jefe Asignado
+                                            Jefe de Pasantia:
                                         </span>
                                     </div>
                                     {inscripcion.jefe_asignado ? (
@@ -270,12 +293,13 @@ export default function Activas({ auth, inscripciones }) {
                                             {
                                                 inscripcion.jefe_asignado
                                                     .ap_materno
-                                            }{" "}
+                                            }
+                                            {", "}
                                             {inscripcion.jefe_asignado.nombre}
                                         </span>
                                     ) : (
                                         <span className="text-xs text-gray-400 italic">
-                                            No Asignado
+                                            Jefe No Asignado
                                         </span>
                                     )}
                                 </div>
@@ -292,23 +316,23 @@ export default function Activas({ auth, inscripciones }) {
                                             },
                                         })
                                     }
-                                    className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 hover:from-purple-100 hover:to-pink-100 transition-all duration-200 group"
+                                    className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-green-100 to-green-50 rounded-xl border border-green-100 hover:from-green-100 hover:to-green-100 transition-all duration-200 group cursor-pointer"
                                     title="Ver compañeros inscritos"
                                 >
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 ">
                                         <Users
                                             size={18}
-                                            className="text-purple-600"
+                                            className="text-green-800"
                                         />
-                                        <span className="text-sm font-medium text-gray-700">
-                                            Compañeros inscritos
+                                        <span className="text-sm font-medium text-gray-700 cursor-pointer">
+                                            Compañeros de Pasantia
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-xl font-bold text-purple-700">
+                                        <span className="text-xl font-bold text-green-700">
                                             {p.total_inscritos}
                                         </span>
-                                        <span className="text-purple-600 group-hover:translate-x-1 transition-transform">
+                                        <span className="text-green-600 group-hover:translate-x-1 transition-transform cursor-pointer">
                                             →
                                         </span>
                                     </div>
@@ -392,6 +416,7 @@ export default function Activas({ auth, inscripciones }) {
                             cargaHoraria: null,
                             fechaIni: null,
                             fechaFin: null,
+                            detalleHorario: null,
                         },
                     })
                 }
@@ -399,6 +424,7 @@ export default function Activas({ auth, inscripciones }) {
                 cargaHoraria={modales.horario.cargaHoraria}
                 fechaIni={modales.horario.fechaIni}
                 fechaFin={modales.horario.fechaFin}
+                detalleHorario={modales.horario.detalleHorario}
             />
 
             <ModalActividadesPasante

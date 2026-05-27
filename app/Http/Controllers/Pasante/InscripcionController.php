@@ -37,7 +37,7 @@ class InscripcionController extends Controller
             ->map(function($pasantia) use ($pasante) {
                 // Calcular cupos disponibles reales
                 $inscritosActivos = $pasantia->inscripciones()
-                    ->whereIn('estado', ['inscrito', 'iniciado'])
+                    ->whereIn('estado', ['inscrito', 'iniciado','finalizado'])
                     ->count();
                 $cuposDisponibles = max(0, $pasantia->cupos - $inscritosActivos);
                 
@@ -82,6 +82,7 @@ class InscripcionController extends Controller
                     'carga_horaria' => $pasantia->carga_horaria,
                     'fecha_ini' => $pasantia->fecha_ini,
                     'fecha_fin' => $pasantia->fecha_fin,
+                    'detalles_horario' => $pasantia->detalles_horario,
                     'cupos_disponibles' => $cuposDisponibles,
                     'ya_inscrito' => $yaInscrito,
                     'mencion_coincide' => $mencionCoincide,
@@ -200,23 +201,41 @@ class InscripcionController extends Controller
             }
             
             // 4. Crear la inscripción
+            // Obtener la pasantía para verificar si tiene jefe asignado
+            $pasantia = Pasantia::findOrFail($idPasantia);
+
+            // Determinar el idU_jefe para la inscripción
+            $idU_jefe_inscripcion = $pasantia->idU_jefe ?? null;
+
             $inscripcion = Inscripcion::create([
                 'fecha_insc' => now()->format('Y-m-d'),
                 'hora_insc' => now()->format('H:i:s'),
-                'estado' => 'inscrito',
+                'estado' => 'inscrito',  // O 'inscrito' como estado inicial
                 'idU_pasante' => $pasante->idU_pasante,
                 'id_pasantia' => $idPasantia,
-                'idU_jefe' => null,
+                'idU_jefe' => $idU_jefe_inscripcion,  // Ahora toma el jefe de la pasantía si existe
             ]);
             
-            DB::commit();
+            // ======================================================================
+            // NUEVO: Verificar si con esta nueva inscripción se llenaron los cupos
+            // ======================================================================
+            // Volvemos a contar incluyendo la inscripción que acabamos de hacer
+            $totalInscritos = Inscripcion::where('id_pasantia', $idPasantia)
+                ->whereIn('estado', ['inscrito', 'iniciado', 'finalizado'])
+                ->count();
             
+            if ($totalInscritos >= $pasantia->cupos) {
+                $pasantia->estado = 'INICIADO';
+                $pasantia->save(); // Se guarda de manera permanente si se llenó
+            }
+            
+            // Si todo salió bien, hacemos el Commit de la inscripción y el cambio de estado
+            DB::commit();
+
             // =============================================
             // NOTIFICACIÓN #1: Nuevo inscrito para el GERENTE
             // =============================================
             // Obtener el gerente de la empresa
-            $gerente = $pasantia->empresa->gerente;
-
             $gerente = $pasantia->empresa->gerente;
             if ($gerente) {
                 $this->crearNotificacion(
@@ -233,12 +252,9 @@ class InscripcionController extends Controller
             // NOTIFICACIÓN #2: Cupos completados (si aplica)
             // =============================================
             // Contar inscritos activos (inscrito + iniciado)
-            
-            $totalInscritos = Inscripcion::where('id_pasantia', $idPasantia)
-                ->whereIn('estado', ['inscrito', 'iniciado','finalizado'])
-                ->count();
-            
+                    
             $cuposTotales = $pasantia->cupos;
+
             if ($totalInscritos == $cuposTotales) {
                 $this->crearNotificacion(
                     $gerente->idU_gerente,
@@ -287,23 +303,16 @@ class InscripcionController extends Controller
             $actualizado = false;
             
             // Regla 1: Si la pasantía está ABIERTA, la inscripción debe estar 'inscrito'
-            if ($estadoPasantia === 'ABIERTA' && $estadoInscripcion !== 'inscrito') {
-                $inscripcion->estado = 'inscrito';
+            if ($estadoPasantia === 'ABIERTA' && $estadoInscripcion !== 'finalizado') {
+                $inscripcion->estado = 'iniciado';
                 $actualizado = true;
             }
             
             // Regla 2: Si la pasantía está INICIADO, la inscripción debe estar 'iniciado'
-            if ($estadoPasantia === 'INICIADO' && $estadoInscripcion == 'inscrito') {
+            if ($estadoPasantia === 'INICIADO' && $estadoInscripcion !== 'finalizado') {
                 $inscripcion->estado = 'iniciado';
                 $actualizado = true;
             }
-            
-            // Regla 3: Si la pasantía está FINALIZADO y la inscripción está 'inscrito', pasa a 'iniciado'
-            if ($estadoPasantia === 'FINALIZADO' && $estadoInscripcion === 'inscrito') {
-                $inscripcion->estado = 'iniciado';
-                $actualizado = true;
-            }
-            
             // Guardar cambios si es necesario
             if ($actualizado) {
                 $inscripcion->save();
@@ -404,6 +413,7 @@ class InscripcionController extends Controller
                     'carga_horaria' => $pasantia->carga_horaria,
                     'fecha_ini' => $pasantia->fecha_ini,
                     'fecha_fin' => $pasantia->fecha_fin,
+                    'detalles_horario' => $pasantia->detalles_horario,
                     'cupos_disponibles' => $cuposDisponibles,
                     'total_inscritos' => $totalInscritos,
                     'actividades' => $actividades,
@@ -543,6 +553,7 @@ class InscripcionController extends Controller
                     'fecha_fin' => $pasantia->fecha_fin,
                     'turno' => $pasantia->turno,
                     'carga_horaria' => $pasantia->carga_horaria,
+                    'detalles_horario' => $pasantia->detalles_horario,
                     'mencion' => $pasantia->mencion,
                     'empresa' => [
                         'id' => $pasantia->empresa->id_empresa,
@@ -564,7 +575,7 @@ class InscripcionController extends Controller
         });
         
         // Ordenar por fecha inicio ascendente
-        $data = $data->sortBy('pasantia.fecha_ini')->values();
+        $data = $data->sortByDesc('pasantia.fecha_ini')->values();
         
         return Inertia::render('Pasante/Inscripciones/Finalizadas', [
             'inscripciones' => $data,

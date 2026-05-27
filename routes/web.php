@@ -276,6 +276,9 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         
         Route::get('/gerente/estadisticas', [App\Http\Controllers\Gerente\EstadisticaController::class, 'index'])->name('gerente.estadisticas');
         
+        // Jefes disponibles para pasantía
+        Route::get('/gerente/pasantias/jefes-disponibles', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'getJefesDisponiblesParaPasantia'])->name('gerente.pasantias.jefes-disponibles-pasantia');
+        
         //------> id
         Route::get('/gerente/jefes/{id}/pasantes', [App\Http\Controllers\Gerente\JefeController::class, 'getPasantesAsignacion'])->name('gerente.jefes.pasantes');
         Route::patch('/gerente/jefes/{id}/toggle-estado', [App\Http\Controllers\Gerente\JefeController::class, 'toggleEstado'])->name('gerente.jefes.toggle-estado');
@@ -315,6 +318,13 @@ Route::middleware(['auth', 'role:gerente'])->group(function () {
         Route::put('/gerente/pasantias/{id}', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'updatePasantia'])->name('gerente.pasantias.update');
 
         Route::get('/gerente/pasantias/finalizadas/{id}/clonar', [App\Http\Controllers\Gerente\PasantiaFinalizadaController::class, 'clonarPasantia'])->name('gerente.pasantias.finalizadas.clonar');
+        Route::patch('/gerente/pasantias/{id}/abrir', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'abrirPasantia'])->name('gerente.pasantias.abrir');
+
+
+        // Asignar/Designar jefe a pasantía
+        Route::patch('/gerente/pasantias/{id}/asignar-jefe-pasantia', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'asignarJefeAPasantia'])->name('gerente.pasantias.asignar-jefe-pasantia');
+        Route::patch('/gerente/pasantias/{id}/designar-jefe-pasantia', [App\Http\Controllers\Gerente\PasantiaPublicadaController::class, 'designarJefeDePasantia'])->name('gerente.pasantias.designar-jefe-pasantia');
+
 });
 
 

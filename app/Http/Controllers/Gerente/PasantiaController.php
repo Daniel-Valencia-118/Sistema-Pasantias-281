@@ -25,7 +25,7 @@ class PasantiaController extends Controller
             'Seguridad de la Información'
         ];
         
-        $turnos = ['tiempo completo', 'medio tiempo', 'mañana', 'tarde', 'noche'];
+        $turnos = ['Tiempo completo', 'Medio tiempo', 'Mañana', 'Tarde', 'Noche'];
         $tiposActividad = ['OPERATIVA', 'TECNICA'];
         
         return Inertia::render('Gerente/Pasantias/Create', [
@@ -35,9 +35,6 @@ class PasantiaController extends Controller
         ]);
     }
     
-
-
-
     public function store(Request $request)
     {
         // Debug: ver qué datos llegan
@@ -60,7 +57,7 @@ class PasantiaController extends Controller
                 'actividades.*.tipo' => 'required|string|in:OPERATIVA,TECNICA',
                 'actividades.*.descripcion' => 'nullable|string',
                 'actividades.*.fecha_ini' => 'required|date',
-                'actividades.*.fecha_fin' => 'required|date|after:actividades.*.fecha_ini',
+                'actividades.*.fecha_fin' => 'required|date|after_or_equal:actividades.*.fecha_ini',
             ]);
             
             \Log::info('Validación pasada');
@@ -77,8 +74,10 @@ class PasantiaController extends Controller
                 'cupos' => $request->cupos,
                 'cupos_disponibles' => $request->cupos,
                 'carga_horaria' => $request->carga_horaria ?? 0,
+                'detalles_horario' => $request->detalles_horario ?? null,
                 'turno' => $request->turno,
                 'id_empresa' => $empresa->id_empresa,
+                
             ]);
             
             \Log::info('Pasantía creada ID: ' . $pasantia->id_pasantia);

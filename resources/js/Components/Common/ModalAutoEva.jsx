@@ -1,7 +1,7 @@
 // resources/js/Components/Common/ModalAutoEva.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { X, Save, Edit, Star } from "lucide-react";
+import { X, Edit, Star, Eye, Save } from "lucide-react";
 
 export default function ModalAutoEva({
     isOpen,
@@ -9,6 +9,7 @@ export default function ModalAutoEva({
     actividadId,
     actividadNombre,
     autoevaluacion,
+    readOnly = false, // ← Nueva prop
 }) {
     const [comentario, setComentario] = useState("");
     const [nota, setNota] = useState("");
@@ -29,6 +30,7 @@ export default function ModalAutoEva({
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (readOnly) return;
         if (!comentario.trim()) {
             alert("Debes escribir una justificación.");
             return;
@@ -55,9 +57,15 @@ export default function ModalAutoEva({
             <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full mx-4">
                 <div className="flex justify-between items-center p-5 border-b">
                     <div className="flex items-center gap-2">
-                        <Star size={22} className="text-yellow-500" />
+                        {readOnly ? (
+                            <Eye size={22} className="text-gray-500" />
+                        ) : (
+                            <Star size={22} className="text-yellow-500" />
+                        )}
                         <h3 className="text-xl font-bold text-primary-navy">
-                            Autoevaluación - {actividadNombre}
+                            {readOnly
+                                ? "Autoevaluación (Finalizada o Ya Calificada)"
+                                : `Autoevaluación - ${actividadNombre}`}
                         </h3>
                     </div>
                     <button
@@ -81,52 +89,63 @@ export default function ModalAutoEva({
                                 onChange={(e) =>
                                     setNota(Number(e.target.value))
                                 }
-                                disabled={yaExiste}
-                                className={`w-full rounded-2xl border-2 border-gray-200 px-4 py-3 focus:border-primary-blue focus:ring-4 focus:ring-blue-50 outline-none transition-all resize-none text-gray-700 placeholder:text-gray-400 ${yaExiste ? "bg-gray-100 text-gray-500" : "bg-white"}`}
+                                disabled={yaExiste || readOnly}
+                                className={`w-full rounded-2xl border-2 border-gray-200 px-4 py-3 focus:border-primary-blue focus:ring-4 focus:ring-blue-50 outline-none transition-all resize-none text-gray-700 placeholder:text-gray-400 ${
+                                    yaExiste || readOnly
+                                        ? "bg-gray-100 text-gray-500"
+                                        : "bg-white"
+                                }`}
                             />
-                            {yaExiste && (
+                            {(yaExiste || readOnly) && (
                                 <span className="absolute right-3 top-2 text-xs text-gray-400">
-                                    No editable
+                                    {readOnly ? "Solo lectura" : "No editable"}
                                 </span>
                             )}
                         </div>
                     </div>
                     <div>
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1 ml-1">
-                                Justificación del puntaje
-                            </label>
-                            <textarea
-                                value={comentario}
-                                onChange={(e) => setComentario(e.target.value)}
-                                rows={4}
-                                className="w-full rounded-2xl border-2 border-gray-200 px-4 py-3 focus:border-primary-blue focus:ring-4 focus:ring-blue-50 outline-none transition-all resize-none text-gray-700 placeholder:text-gray-400"
-                                placeholder="¿Qué logros o dificultades justifican esta nota?"
-                                required
-                            />
+                        <label className="block text-sm font-semibold text-gray-700 mb-1 ml-1">
+                            Justificación del puntaje
+                        </label>
+                        <textarea
+                            value={comentario}
+                            onChange={(e) => setComentario(e.target.value)}
+                            rows={4}
+                            disabled={readOnly}
+                            className={`w-full rounded-2xl border-2 border-gray-200 px-4 py-3 focus:border-primary-blue focus:ring-4 focus:ring-blue-50 outline-none transition-all resize-none text-gray-700 placeholder:text-gray-400 ${
+                                readOnly ? "bg-gray-100" : ""
+                            }`}
+                            placeholder="¿Qué logros o dificultades justifican esta nota?"
+                            required={!readOnly}
+                        />
+                    </div>
+                    {!readOnly && (
+                        <div className="flex justify-end gap-3 pt-3">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="px-4 py-2 border rounded-xl cursor-pointer"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="px-4 py-2 bg-primary-blue text-white rounded-xl hover:bg-primary-sky-blue flex items-center gap-2 shadow-md cursor-pointer"
+                            >
+                                {yaExiste ? (
+                                    <Edit size={16} />
+                                ) : (
+                                    <Save size={16} />
+                                )}
+                                {loading
+                                    ? "Guardando..."
+                                    : yaExiste
+                                      ? "Editar justificación"
+                                      : "Guardar autoevaluación"}
+                            </button>
                         </div>
-                    </div>
-                    <div className="flex justify-end gap-3 pt-3">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 border rounded-xl"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="px-4 py-2 bg-primary-blue text-white rounded-xl hover:bg-primary-sky-blue flex items-center gap-2 shadow-md"
-                        >
-                            {yaExiste ? <Edit size={16} /> : <Save size={16} />}
-                            {loading
-                                ? "Guardando..."
-                                : yaExiste
-                                  ? "Editar justificación"
-                                  : "Guardar autoevaluación"}
-                        </button>
-                    </div>
+                    )}
                 </form>
             </div>
         </div>

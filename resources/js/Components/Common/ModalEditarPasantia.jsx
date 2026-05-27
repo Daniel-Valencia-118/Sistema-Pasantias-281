@@ -28,11 +28,11 @@ export default function ModalEditarPasantia({
     ];
 
     const turnoOptions = [
-        "tiempo completo",
-        "medio tiempo",
-        "mañana",
-        "tarde",
-        "noche",
+        "Tiempo completo",
+        "Medio tiempo",
+        "Mañana",
+        "Tarde",
+        "Noche",
     ];
 
     useEffect(() => {
@@ -43,6 +43,7 @@ export default function ModalEditarPasantia({
                 carga_horaria: pasantia.carga_horaria || "",
                 fecha_ini: pasantia.fecha_ini || "",
                 fecha_fin: pasantia.fecha_fin || "",
+                detalles_horario: pasantia.detalles_horario || "",
             });
             setError(null);
         }
@@ -149,7 +150,7 @@ export default function ModalEditarPasantia({
                     {/* Carga Horaria */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Carga Horaria (horas totales)
+                            Carga Horaria (horas por Semana)
                         </label>
                         <input
                             type="number"
@@ -157,6 +158,20 @@ export default function ModalEditarPasantia({
                             value={form.carga_horaria}
                             onChange={handleChange}
                             min="0"
+                            className="w-full rounded-lg border-2 border-gray-300 bg-white px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all"
+                        />
+                    </div>
+
+                    {/* Detalles de Horario y Días */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Detalles de Horario y Días
+                        </label>
+                        <textarea
+                            name="detalles_horario"
+                            value={form.detalles_horario}
+                            onChange={handleChange}
+                            rows={1}
                             className="w-full rounded-lg border-2 border-gray-300 bg-white px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all"
                         />
                     </div>

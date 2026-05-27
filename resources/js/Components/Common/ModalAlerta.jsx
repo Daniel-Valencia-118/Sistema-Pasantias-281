@@ -70,7 +70,7 @@ export default function ModalAlerta({
                 <div className="flex justify-center p-4 border-t bg-gray-50 rounded-b-xl">
                     <button
                         onClick={onClose}
-                        className={`px-6 py-2 rounded-lg text-white transition-all ${c.buttonBg}`}
+                        className={`px-6 py-2 rounded-lg text-white transition-all cursor-pointer ${c.buttonBg}`}
                     >
                         Aceptar
                     </button>

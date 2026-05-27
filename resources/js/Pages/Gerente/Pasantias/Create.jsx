@@ -3,6 +3,7 @@ import { router } from "@inertiajs/react";
 import { useEffect } from "react";
 import GerenteLayout from "@/Components/Layout/GerenteLayout";
 import ModalActividad from "@/Components/Common/ModalActividad";
+import ModalAlerta from "@/Components/Common/ModalAlerta";
 import { ArrowLeft, Plus, Edit, Trash2, Save, XCircle } from "lucide-react";
 
 export default function Create({ auth, menciones, turnos, tiposActividad }) {
@@ -14,6 +15,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
         carga_horaria: "",
         fecha_ini: "",
         fecha_fin: "",
+        detalles_horario: "",
     });
 
     const [actividades, setActividades] = useState([]);
@@ -22,6 +24,18 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
 
+    // Estados para Modales de Alerta
+    const [alerta, setAlerta] = useState({
+        isOpen: false,
+        titulo: "",
+        mensaje: "",
+        type: "error",
+    });
+
+    const mostrarAlerta = (titulo, mensaje, type = "error") => {
+        setAlerta({ isOpen: true, titulo, mensaje, type });
+    };
+
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
         if (errors[e.target.name]) {
@@ -29,86 +43,189 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
         }
     };
 
-    // Agrega esta función para validar fechas de actividades
-    const validarFechasActividades = () => {
-        if (
-            !form.fecha_ini ||
-            !form.fecha_fin ||
-            form.fecha_ini > form.fecha_fin
-        ) {
-            return {
-                valid: false,
-                message:
-                    "Defina la fecha inicial y final de la pasantia correctamente",
-            };
+    // Validar campos obligatorios del formulario principal
+    const validarCamposObligatoriosPasantia = () => {
+        if (!form.nombre_pas.trim()) {
+            mostrarAlerta(
+                "Campo requerido",
+                "Llene los campos obligatorios (*)",
+            );
+            return false;
+        }
+        if (!form.mencion) {
+            mostrarAlerta(
+                "Campo requerido",
+                "Llene los campos obligatorios (*)",
+            );
+            return false;
+        }
+        if (!form.cupos) {
+            mostrarAlerta(
+                "Campo requerido",
+                "Llene los campos obligatorios (*)",
+            );
+            return false;
+        }
+        if (!form.turno) {
+            mostrarAlerta(
+                "Campo requerido",
+                "Llene los campos obligatorios (*)",
+            );
+            return false;
+        }
+        if (!form.fecha_ini) {
+            mostrarAlerta(
+                "Campo requerido",
+                "La fecha de inicio de la pasantia es obligatoria.",
+            );
+            return false;
+        }
+        if (!form.fecha_fin) {
+            mostrarAlerta(
+                "Campo requerido",
+                "La fecha de fin de la pasantia es obligatoria.",
+            );
+            return false;
+        }
+        if (form.fecha_ini > form.fecha_fin) {
+            mostrarAlerta(
+                "Error de fechas",
+                "La fecha de fin de la pasanta debe ser posterior a la fecha de inicio de la pasantia.",
+            );
+            return false;
+        }
+        return true;
+    };
+
+    // Validar que una actividad esté dentro del rango de fechas de la pasantía
+    const validarFechaActividadEnRango = (fecha_ini_act, fecha_fin_act) => {
+        if (!form.fecha_ini || !form.fecha_fin) {
+            mostrarAlerta(
+                "Fechas de pasantía",
+                "Primero debe definir las fechas de la pasantía antes de agregar actividades.",
+            );
+            return false;
+        }
+
+        if (fecha_ini_act < form.fecha_ini) {
+            mostrarAlerta(
+                "Fecha fuera de rango",
+                `La fecha de inicio de la actividad (${fecha_ini_act}) es anterior al inicio de la pasantía (${form.fecha_ini}).`,
+            );
+            return false;
+        }
+
+        if (fecha_fin_act > form.fecha_fin) {
+            mostrarAlerta(
+                "Fecha fuera de rango",
+                `La fecha de fin de la actividad (${fecha_fin_act}) es posterior al fin de la pasantía (${form.fecha_fin}).`,
+            );
+            return false;
+        }
+
+        if (fecha_ini_act > fecha_fin_act) {
+            mostrarAlerta(
+                "Error de fechas",
+                "La fecha de inicio de la actividad no puede ser posterior a su fecha de fin.",
+            );
+            return false;
+        }
+
+        return true;
+    };
+
+    // Validar todas las actividades antes de publicar
+    const validarActividadesParaPublicar = () => {
+        if (actividades.length === 0) {
+            mostrarAlerta(
+                "Sin actividades",
+                "Debe agregar al menos una actividad antes de publicar la pasantía.",
+            );
+            return false;
         }
 
         for (let i = 0; i < actividades.length; i++) {
             const act = actividades[i];
+
+            if (!act.fecha_ini || !act.fecha_fin) {
+                mostrarAlerta(
+                    "Actividad incompleta",
+                    `La actividad "${act.nombre_act}" tiene fechas vacías. Complete las fechas para continuar.`,
+                );
+                return false;
+            }
+
             if (act.fecha_ini < form.fecha_ini) {
-                return {
-                    valid: false,
-                    message: `La actividad "${act.nombre_act}" tiene fecha de inicio anterior al inicio de la pasantía`,
-                };
+                mostrarAlerta(
+                    "Actividad fuera de rango",
+                    `La actividad "${act.nombre_act}" comienza antes que la pasantía.`,
+                );
+                return false;
             }
+
             if (act.fecha_fin > form.fecha_fin) {
-                return {
-                    valid: false,
-                    message: `La actividad "${act.nombre_act}" tiene fecha de fin posterior al fin de la pasantía`,
-                };
+                mostrarAlerta(
+                    "Actividad fuera de rango",
+                    `La actividad "${act.nombre_act}" termina después que la pasantía.`,
+                );
+                return false;
             }
+
             if (act.fecha_ini > act.fecha_fin) {
-                return {
-                    valid: false,
-                    message: `La actividad "${act.nombre_act}" tiene fecha de inicio posterior a su fecha de fin`,
-                };
+                mostrarAlerta(
+                    "Error en actividad",
+                    `La actividad "${act.nombre_act}" tiene fechas inconsistentes.`,
+                );
+                return false;
             }
         }
-        return { valid: true };
+        return true;
     };
-    // Dentro del componente, después de los useState:
-    useEffect(() => {
-        // Verificar si hay datos clonados en sessionStorage
-        const datosClonados = sessionStorage.getItem("pasantia_clonada");
 
+    // Clonar datos al cargar
+    useEffect(() => {
+        const datosClonados = sessionStorage.getItem("pasantia_clonada");
         if (datosClonados) {
             const { pasantia, actividades } = JSON.parse(datosClonados);
-
-            // Llenar el formulario con los datos clonados
             setForm({
                 nombre_pas: pasantia.nombre_pas || "",
                 mencion: pasantia.mencion || "",
                 cupos: pasantia.cupos || "",
                 turno: pasantia.turno || "",
                 carga_horaria: pasantia.carga_horaria || "",
-                fecha_ini: "", // Vacío
-                fecha_fin: "", // Vacío
+                detalles_horario: pasantia.detalles_horario || "",
+                fecha_ini: "",
+                fecha_fin: "",
             });
-
-            // Convertir actividades al formato esperado
             const actividadesClonadas = actividades.map((act) => ({
                 nombre_act: act.nombre_act,
                 tipo: act.tipo,
                 descripcion: act.descripcion || "sin descripción",
-                fecha_ini: "", // Vacío
-                fecha_fin: "", // Vacío
+                fecha_ini: "",
+                fecha_fin: "",
             }));
-
             setActividades(actividadesClonadas);
-
-            // Limpiar sessionStorage para que no se reutilice accidentalmente
             sessionStorage.removeItem("pasantia_clonada");
         }
-    }, []); // Solo se ejecuta una vez al montar el componente
+    }, []);
+
     const handleAgregarActividad = (actividad) => {
+        // Validar que la actividad esté en rango antes de agregar
+        if (
+            !validarFechaActividadEnRango(
+                actividad.fecha_ini,
+                actividad.fecha_fin,
+            )
+        ) {
+            return; // No agrega la actividad, muestra el error
+        }
+
         if (actividadEditando !== null) {
-            // Editar actividad existente
             const nuevasActividades = [...actividades];
             nuevasActividades[actividadEditando] = actividad;
             setActividades(nuevasActividades);
             setActividadEditando(null);
         } else {
-            // Agregar nueva actividad
             setActividades([...actividades, actividad]);
         }
     };
@@ -128,73 +245,61 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
         }
     };
 
-    // Modifica handleSubmit:
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const newErrors = {};
-
-        if (!form.nombre_pas.trim())
-            newErrors.nombre_pas = "El nombre de la pasantía es requerido";
-        if (!form.mencion) newErrors.mencion = "La mención es requerida";
-        if (!form.cupos) newErrors.cupos = "El número de cupos es requerido";
-        if (!form.turno) newErrors.turno = "El turno es requerido";
-        if (!form.fecha_ini)
-            newErrors.fecha_ini = "La fecha de inicio es requerida";
-        if (!form.fecha_fin)
-            newErrors.fecha_fin = "La fecha de fin es requerida";
-
-        if (
-            form.fecha_ini &&
-            form.fecha_fin &&
-            form.fecha_ini > form.fecha_fin
-        ) {
-            newErrors.fecha_fin =
-                "La fecha de fin debe ser posterior a la fecha de inicio";
+        // 1. Validar campos obligatorios de la pasantía
+        if (!validarCamposObligatoriosPasantia()) {
+            return;
         }
 
+        // 2. Validar que tenga al menos una actividad
         if (actividades.length === 0) {
-            alert("Debe agregar al menos una actividad");
+            mostrarAlerta(
+                "Sin actividades",
+                "Debe agregar al menos una actividad antes de publicar la pasantía.",
+            );
             return;
         }
 
-        // Validar fechas de actividades dentro del rango
-        const validacionActividades = validarFechasActividades();
-        if (!validacionActividades.valid) {
-            alert(validacionActividades.message);
+        // 3. Validar todas las actividades
+        if (!validarActividadesParaPublicar()) {
             return;
         }
 
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
-
-        // Confirmar publicación
+        // 4. Confirmar publicación
         if (
             confirm(
                 "¿Estás seguro de publicar esta pasantía? Se guardarán todos los datos.",
             )
         ) {
             setLoading(true);
-
             const dataToSend = {
                 ...form,
                 carga_horaria: form.carga_horaria || 0,
+                detalles_horario: form.detalles_horario || null,
                 actividades: actividades,
             };
 
             router.post("/gerente/pasantias", dataToSend, {
                 onSuccess: () => {
-                    alert("¡Pasantía publicada exitosamente!");
-                    router.visit("/gerente/pasantias"); // /gerente/pasantias
+                    mostrarAlerta(
+                        "¡Éxito!",
+                        "Pasantía publicada exitosamente.",
+                        "success",
+                    );
+                    setTimeout(() => {
+                        router.visit("/gerente/pasantias");
+                    }, 1500);
                 },
                 onError: (error) => {
                     console.error("Error:", error);
                     setErrors(error);
                     setLoading(false);
-                    alert(
+                    mostrarAlerta(
+                        "Error",
                         "Error al publicar la pasantía. Verifique los datos.",
+                        "error",
                     );
                 },
             });
@@ -220,7 +325,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                         <span>Volver</span>
                     </button>
                     <h1 className="text-2xl font-bold text-primary-navy">
-                        Publicar Nueva Pasantía
+                        Publica una Nueva Oferta de Pasantía
                     </h1>
                 </div>
 
@@ -298,7 +403,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                                     name="cupos"
                                     value={form.cupos}
                                     onChange={handleChange}
-                                    className="w-full rounded-lg border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all cursor-pointer"
+                                    className="w-full rounded-lg border-3 border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all cursor-pointer"
                                 >
                                     <option value="">Seleccionar cupos</option>
                                     {cuposOptions.map((c) => (
@@ -322,7 +427,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                                     name="turno"
                                     value={form.turno}
                                     onChange={handleChange}
-                                    className="w-full rounded-lg border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all cursor-pointer"
+                                    className="w-full rounded-lg border-3 border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all cursor-pointer"
                                 >
                                     <option value="">Seleccionar turno</option>
                                     {turnos.map((t) => (
@@ -339,7 +444,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Carga Horaria (horas totales)
+                                    Carga Horaria (hrs. por Semana)
                                 </label>
                                 <input
                                     type="number"
@@ -347,16 +452,31 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                                     value={form.carga_horaria}
                                     onChange={handleChange}
                                     min="0"
-                                    className="w-full rounded-lg border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all"
+                                    className="w-full rounded-lg border-3 border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all"
                                 />
                             </div>
+                        </div>
+
+                        {/* Fila 3: Detalles de Horarios y Días */}
+                        <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Detalles de Horario y Días (Opcional)
+                            </label>
+                            <textarea
+                                name="detalles_horario"
+                                value={form.detalles_horario}
+                                onChange={handleChange}
+                                rows={1}
+                                className="w-full rounded-lg border-2 border-gray-300 bg-white px-4 py-2.5 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all"
+                                placeholder="Ejemplo: Lunes, Miércoles y Viernes de 14:00 a 16:00"
+                            />
                         </div>
 
                         {/* Fechas de pasantía */}
                         <div className="grid md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Fecha de Inicio{" "}
+                                    Fecha de Inicio de la Pasantía{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -376,7 +496,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Fecha de Fin{" "}
+                                    Fecha de Final de la Pasantía{" "}
                                     <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -414,6 +534,10 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                         <button
                             type="button"
                             onClick={() => {
+                                // Validar que los campos obligatorios de la pasantía estén llenos
+                                if (!validarCamposObligatoriosPasantia()) {
+                                    return;
+                                }
                                 setActividadEditando(null);
                                 setModalActividad(true);
                             }}
@@ -466,7 +590,7 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                                                 </td>
                                                 <td className="px-4 py-3 text-sm">
                                                     <span
-                                                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                        className={`inline-flex  px-2 py-0.5 rounded-full text-xs font-medium ${
                                                             act.tipo ===
                                                             "OPERATIVA"
                                                                 ? "bg-blue-100 text-blue-800"
@@ -575,8 +699,17 @@ export default function Create({ auth, menciones, turnos, tiposActividad }) {
                         : null
                 }
                 tiposActividad={tiposActividad}
-                fechaDefectoIni={form.fecha_ini} //m1
-                fechaDefectoFin={form.fecha_fin} //m1
+                fechaDefectoIni={form.fecha_ini}
+                fechaDefectoFin={form.fecha_fin}
+            />
+
+            {/* Modal de Alerta */}
+            <ModalAlerta
+                isOpen={alerta.isOpen}
+                onClose={() => setAlerta({ ...alerta, isOpen: false })}
+                titulo={alerta.titulo}
+                mensaje={alerta.mensaje}
+                type={alerta.type}
             />
         </GerenteLayout>
     );

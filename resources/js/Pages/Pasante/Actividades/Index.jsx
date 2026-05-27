@@ -210,8 +210,8 @@ export default function Index({ auth, tarjetas }) {
                                             className="text-primary-blue mt-0.5 flex-shrink-0"
                                         />
                                         <div>
-                                            <p className="text-xs text-gray-400">
-                                                Período
+                                            <p className="text-sm text-gray-600">
+                                                Fecha Inicio y Final
                                             </p>
                                             <p className="font-medium text-gray-800">
                                                 {formatRangoFechas(
@@ -229,7 +229,7 @@ export default function Index({ auth, tarjetas }) {
                                             className="text-primary-blue mt-0.5 flex-shrink-0"
                                         />
                                         <div>
-                                            <p className="text-xs text-gray-400">
+                                            <p className="text-sm text-gray-600">
                                                 Empresa
                                             </p>
                                             <p className="font-medium text-gray-800">
@@ -245,7 +245,7 @@ export default function Index({ auth, tarjetas }) {
                                             className="text-primary-blue mt-0.5 flex-shrink-0"
                                         />
                                         <div>
-                                            <p className="text-xs text-gray-400">
+                                            <p className="text-sm text-gray-600">
                                                 Jefe Asignado
                                             </p>
                                             <p className="font-medium text-gray-800">

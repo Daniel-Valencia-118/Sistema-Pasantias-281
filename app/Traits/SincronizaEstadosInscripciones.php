@@ -26,19 +26,13 @@ trait SincronizaEstadosInscripciones
             $actualizado = false;
 
             // Regla 1: Si la pasantía está ABIERTA, la inscripción debe estar 'inscrito'
-            if ($estadoPasantia === 'ABIERTA' && $estadoInscripcion !== 'inscrito') {
-                $inscripcion->estado = 'inscrito';
-                $actualizado = true;
-            }
-            
-            // Regla 2: Si la pasantía está INICIADO, la inscripción debe estar 'iniciado'
-            if ($estadoPasantia === 'INICIADO' && $estadoInscripcion == 'inscrito') {
+            if ($estadoPasantia === 'ABIERTA' && $estadoInscripcion !== 'finalizado') {
                 $inscripcion->estado = 'iniciado';
                 $actualizado = true;
             }
             
-            // Regla 3: Si la pasantía está FINALIZADO y la inscripción está 'inscrito', pasa a 'iniciado'
-            if ($estadoPasantia === 'FINALIZADO' && $estadoInscripcion === 'inscrito') {
+            // Regla 2: Si la pasantía está INICIADO, la inscripción debe estar 'iniciado'
+            if ($estadoPasantia === 'INICIADO' && $estadoInscripcion !== 'finalizado') {
                 $inscripcion->estado = 'iniciado';
                 $actualizado = true;
             }

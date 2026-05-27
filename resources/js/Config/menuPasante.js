@@ -18,6 +18,7 @@ export const menuPasante = [
         name: "Home",
         icon: Home,
         href: "/pasante",
+        hide: true,
         single: true,
     },
     {
@@ -56,6 +57,7 @@ export const menuPasante = [
         name: "Actividades",
         icon: Calendar,
         href: "/pasante/actividades",
+        hide: true,
         single: true,
     },
     {

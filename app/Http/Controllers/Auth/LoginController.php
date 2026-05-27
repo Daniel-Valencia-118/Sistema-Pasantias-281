@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Pasantia;
+use App\Models\Inscripcion;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
@@ -57,7 +59,10 @@ class LoginController extends Controller
             return back()->withErrors(['login' => 'El acceso para tutores académicos estará disponible próximamente.']);
         }
         
-        return redirect()->intended($this->redirectTo($role));
+        // return redirect()->intended($this->redirectTo($role));
+        // //return redirect($this->redirectTo($role));
+         // Redirigir según el rol
+        return redirect($this->redirectTo($user, $role)); //NUEVO
     }
 
     private function getUserRole($user)
@@ -70,15 +75,68 @@ class LoginController extends Controller
         return null;
     }
 
-    private function redirectTo($role)
+    //REDIRECCIONAMIENTOS AL INICIAR SESION:
+    
+     private function redirectTo($user, $role)
     {
-        return match($role) {
-            'admin' => '/admin' ,
-            'gerente' => '/gerente',
+        // Redirección por defecto según rol
+        $baseRedirect = match($role) {
+            'admin' => '/admin',
+            'gerente' => $this->getGerenteRedirect($user),
             'jefe' => '/jefe',
-            'pasante' => '/pasante',
+            'pasante' => $this->getPasanteRedirect($user),
             'tutor' => '/tutor',
             default => '/dashboard',
         };
+        
+        return $baseRedirect;
+    }
+ 
+    /**
+     * Redirección personalizada para el gerente
+     */
+    private function getGerenteRedirect($user)
+    {
+        // Obtener la empresa del gerente
+        $empresa = $user->gerente->empresa;
+        
+        if (!$empresa) {
+            return '/gerente/pasantias/crear';
+        }
+        
+        // Verificar si existe al menos una pasantía en estado ABIERTA o INICIADO
+        $tienePasantiasActivas = Pasantia::where('id_empresa', $empresa->id_empresa)
+            ->whereIn('estado', ['ABIERTA', 'INICIADO'])
+            ->exists();
+        
+        if ($tienePasantiasActivas) {
+            return '/gerente/pasantias';
+        }
+        
+        return '/gerente/pasantias/crear';
+    }
+
+
+    /**
+     * Redirección personalizada para el pasante
+     */
+    private function getPasanteRedirect($user)
+    {
+        $pasante = $user->pasante;
+        
+        if (!$pasante) {
+            return '/pasante';
+        }
+        
+        // Verificar si tiene al menos una inscripción en estado 'inscrito' o 'iniciado'
+        $tieneInscripcionActiva = Inscripcion::where('idU_pasante', $pasante->idU_pasante)
+            ->whereIn('estado', ['inscrito', 'iniciado'])
+            ->exists();
+        
+        if ($tieneInscripcionActiva) {
+            return '/pasante/inscripciones/activas';
+        }
+        
+        return '/pasante/inscribirse';
     }
 }

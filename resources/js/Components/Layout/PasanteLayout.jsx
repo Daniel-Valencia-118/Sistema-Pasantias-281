@@ -115,14 +115,14 @@ export default function PasanteLayout({ children, header }) {
                         className={`${
                             itemActive
                                 ? "text-white"
-                                : "group-hover:scale-110 transition-transform"
+                                : "group-hover:scale-110 transition-transform "
                         }`}
                     />
                     {!collapsed && (
                         <span className="font-medium">{item.name}</span>
                     )}
                     {itemActive && (
-                        <div className="absolute left-0 w-1 h-6 bg-primary-blue rounded-r-full" />
+                        <div className="absolute left-0 w-1 h-6 bg-primary-blue rounded-r-full " />
                     )}
                 </Link>
             );
@@ -142,7 +142,7 @@ export default function PasanteLayout({ children, header }) {
                                 : "text-gray-300 hover:bg-primary-blue/20 hover:text-white"
                         }`}
                     >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 cursor-pointer">
                             <Icon size={20} />
                             {!collapsed && (
                                 <span className="font-medium">{item.name}</span>
@@ -150,8 +150,8 @@ export default function PasanteLayout({ children, header }) {
                         </div>
                         {!collapsed && (
                             <ChevronRight
-                                size={16}
-                                className={`transition-transform duration-300 ${
+                                size={18}
+                                className={`transition-transform duration-300 cursor-pointer ${
                                     isOpen ? "rotate-90" : ""
                                 }`}
                             />
@@ -159,7 +159,7 @@ export default function PasanteLayout({ children, header }) {
                     </button>
 
                     <div
-                        className={`grid transition-all duration-300 ease-in-out ${
+                        className={`grid transition-all duration-300 ease-in-out  ${
                             !collapsed && isOpen
                                 ? "grid-rows-[1fr] opacity-100"
                                 : "grid-rows-[0fr] opacity-0"
@@ -200,10 +200,10 @@ export default function PasanteLayout({ children, header }) {
                                             className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
                                                 subActive
                                                     ? "bg-primary-blue/20 text-white font-semibold"
-                                                    : "text-gray-400 hover:bg-primary-blue/20 hover:text-white"
+                                                    : "text-gray-300 hover:bg-primary-blue/20 hover:text-white"
                                             }`}
                                         >
-                                            {SubIcon && <SubIcon size={16} />}
+                                            {SubIcon && <SubIcon size={17} />}
                                             <span
                                                 className={`text-sm ${
                                                     subActive
@@ -278,7 +278,7 @@ export default function PasanteLayout({ children, header }) {
     // Polling cada 30 segundos
     useEffect(() => {
         cargarNotificaciones();
-        const interval = setInterval(cargarNotificaciones, 15000);
+        const interval = setInterval(cargarNotificaciones, 12000);
         return () => clearInterval(interval);
     }, []);
 
@@ -331,12 +331,12 @@ export default function PasanteLayout({ children, header }) {
                 >
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        className="absolute -right-3 top-12 z-50 bg-primary-navy border border-primary-slate rounded-full p-1.5 text-gray-300 hover:text-white hover:bg-primary-blue/20 shadow-xl"
+                        className="absolute -right-3 top-12 z-50 bg-primary-navy border border-primary-slate rounded-full p-2.5 text-gray-300 hover:text-white hover:bg-primary-blue/20 shadow-xl cursor-pointer"
                     >
                         {collapsed ? (
-                            <ChevronRight size={14} />
+                            <ChevronRight size={18} />
                         ) : (
-                            <ChevronLeft size={14} />
+                            <ChevronLeft size={18} />
                         )}
                     </button>
                     <div className="flex items-center justify-between p-5 border-b border-primary-slate mb-2">
@@ -457,11 +457,11 @@ export default function PasanteLayout({ children, header }) {
                             <button
                                 ref={notifButtonRef}
                                 onClick={() => setNotifOpen(!notifOpen)}
-                                className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors relative"
+                                className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors relative cursor-pointer"
                             >
                                 <Bell size={20} />
                                 {noLeidas > 0 && (
-                                    <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                                    <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center ">
                                         {noLeidas > 9 ? "9+" : noLeidas}
                                     </span>
                                 )}
@@ -470,7 +470,7 @@ export default function PasanteLayout({ children, header }) {
                             {notifOpen && (
                                 <div
                                     ref={notifDropdownRef}
-                                    className="absolute right-40 -mt-6 w-90 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden"
+                                    className="absolute right-40 -mt-6 w-90 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden "
                                     style={{
                                         maxHeight: "calc(100vh - 100px)",
                                         top: "100%",
@@ -483,9 +483,9 @@ export default function PasanteLayout({ children, header }) {
                                         {noLeidas > 0 && (
                                             <button
                                                 onClick={marcarTodasLeidas}
-                                                className="text-xs text-primary-blue hover:underline flex items-center gap-1"
+                                                className="text-sm text-primary-blue hover:underline flex items-center gap-1 cursor-pointer"
                                             >
-                                                <CheckCheck size={14} /> Marcar
+                                                <CheckCheck size={15} /> Marcar
                                                 todas
                                             </button>
                                         )}
@@ -555,7 +555,7 @@ export default function PasanteLayout({ children, header }) {
                                     onClick={() =>
                                         setUserMenuOpen(!userMenuOpen)
                                     }
-                                    className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                                    className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
                                 >
                                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue flex items-center justify-center text-white font-bold shadow-md overflow-hidden">
                                         {auth.user?.avatar_url ? (
@@ -639,7 +639,7 @@ export default function PasanteLayout({ children, header }) {
                                                     setUserMenuOpen(false);
                                                     handleLogout();
                                                 }}
-                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors"
+                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors cursor-pointer"
                                             >
                                                 <LogOut size={16} />
                                                 Cerrar Sesión

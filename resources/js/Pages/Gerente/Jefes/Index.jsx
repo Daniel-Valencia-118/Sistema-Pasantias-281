@@ -305,21 +305,21 @@ export default function Index({ auth, jefes }) {
                                                         jefeNombre: `${jefe.ap_paterno} ${jefe.ap_materno}, ${jefe.nombre}`,
                                                     })
                                                 }
-                                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-blue/10 border border-primary-blue/20 rounded-lg hover:bg-primary-blue/20 transition-all duration-200 cursor-pointer group"
+                                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-blue text-white rounded-lg hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
                                                 title="Asignar o desasignar pasantes"
                                             >
                                                 <Users
                                                     size={16}
-                                                    className="text-primary-blue"
+                                                    className="text-white"
                                                 />
-                                                <span className="text-sm font-semibold text-primary-blue">
+                                                <span className="text-sm font-semibold">
                                                     {jefe.pasantes_asignados}
                                                 </span>
-                                                <span className="text-xs text-gray-500 group-hover:text-primary-blue transition-colors">
+                                                <span className="text-xs">
                                                     pasantes
                                                 </span>
                                             </button>
-                                            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">
+                                            <span className="text-[11px] font-medium text-gray-700 uppercase tracking-wide">
                                                 Gestionar Pasantes
                                             </span>
                                         </div>

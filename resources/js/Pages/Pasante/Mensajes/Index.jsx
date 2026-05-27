@@ -285,7 +285,7 @@ export default function Index({ auth, contactos }) {
                                         onClick={() =>
                                             seleccionarContacto(contacto)
                                         }
-                                        className={`w-full p-4 text-left hover:bg-gray-50 transition border-b ${
+                                        className={`w-full p-4 text-left hover:bg-gray-50 transition border-b cursor-pointer ${
                                             contactoActivo?.id ===
                                                 contacto.id_contacto &&
                                             contactoActivo?.tipo ===
@@ -296,7 +296,7 @@ export default function Index({ auth, contactos }) {
                                         }`}
                                     >
                                         <div className="flex gap-3">
-                                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue text-white flex items-center justify-center font-bold shadow-sm overflow-hidden">
+                                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue text-white flex items-center justify-center font-bold shadow-sm overflow-hidden ">
                                                 {getAvatarUrl(contacto) ? (
                                                     <img
                                                         src={getAvatarUrl(
@@ -397,7 +397,7 @@ export default function Index({ auth, contactos }) {
                         <>
                             {/* Header del chat */}
                             <div className="p-4 border-b bg-gray-50 flex items-center justify-between flex-shrink-0">
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 ">
                                     <button
                                         onClick={volverALista}
                                         className="md:hidden p-2 text-gray-500 hover:bg-gray-200 rounded-full"
@@ -405,7 +405,7 @@ export default function Index({ auth, contactos }) {
                                         <ArrowLeft size={20} />
                                     </button>
 
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue text-white flex items-center justify-center font-bold shadow-sm overflow-hidden">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-primary-sky-blue text-white flex items-center justify-center font-bold shadow-sm overflow-hidden ">
                                         {contactoActivo.info?.avatar_url ? (
                                             <img
                                                 src={
@@ -528,7 +528,7 @@ export default function Index({ auth, contactos }) {
                                                 : "Escribe un mensaje..."
                                         }
                                         disabled={bloqueado}
-                                        className="flex-1 rounded-full border-gray-200 px-4 py-2 text-sm focus:border-primary-blue focus:ring-1 focus:ring-primary-blue disabled:bg-gray-100"
+                                        className="flex-1 rounded-full border-gray-100 px-4 py-2 text-sm focus:border-primary-blue focus:ring-1 focus:ring-primary-blue disabled:bg-gray-100"
                                     />
                                     <button
                                         onClick={enviarMensaje}
@@ -537,7 +537,7 @@ export default function Index({ auth, contactos }) {
                                             enviando ||
                                             bloqueado
                                         }
-                                        className="bg-primary-blue text-white rounded-full p-2 hover:bg-primary-sky-blue transition disabled:opacity-50"
+                                        className="bg-primary-blue text-white rounded-full p-2 hover:bg-primary-sky-blue transition disabled:opacity-50 cursor-pointer"
                                     >
                                         <Send size={18} />
                                     </button>

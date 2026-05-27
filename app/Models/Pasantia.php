@@ -20,7 +20,9 @@ class Pasantia extends Model
         'cupos_disponibles',
         'carga_horaria',
         'turno',
+        'detalles_horario',
         'id_empresa',
+        'idU_jefe',
     ];
 
     public function empresa()
@@ -42,6 +44,9 @@ class Pasantia extends Model
     {
         return $this->hasMany(Comentario::class, 'id_pasantia', 'id_pasantia');
     }
-    
+    public function jefeResponsable()
+    {
+        return $this->belongsTo(JefePas::class, 'idU_jefe', 'idU_jefe');
+    }
    
 }

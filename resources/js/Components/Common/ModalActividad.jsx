@@ -27,8 +27,8 @@ export default function ModalActividad({
                 nombre_act: actividad.nombre_act || "",
                 tipo: actividad.tipo || "",
                 descripcion: actividad.descripcion || "",
-                fecha_ini: actividad.fecha_ini || "",
-                fecha_fin: actividad.fecha_fin || "",
+                fecha_ini: actividad.fecha_ini || fechaDefectoIni || "",
+                fecha_fin: actividad.fecha_fin || fechaDefectoFin || "",
             });
         } else {
             // Prioridad 2: Fechas del formulario padre
@@ -62,6 +62,15 @@ export default function ModalActividad({
         if (!form.tipo) {
             newErrors.tipo = "El tipo de actividad es requerido";
         }
+
+        if (form.fecha_ini < fechaDefectoIni) {
+            newErrors.fecha_ini = "Fecha fuera de rango de la pasantia";
+        }
+
+        if (form.fecha_fin > fechaDefectoFin) {
+            newErrors.fecha_fin = "Fecha fuera de rango de la pasantia";
+        }
+
         if (!form.fecha_ini) {
             newErrors.fecha_ini = "La fecha de inicio es requerida";
         }
@@ -72,7 +81,7 @@ export default function ModalActividad({
         if (
             form.fecha_ini &&
             form.fecha_fin &&
-            form.fecha_ini >= form.fecha_fin
+            form.fecha_ini > form.fecha_fin
         ) {
             newErrors.fecha_fin =
                 "La fecha de fin debe ser posterior a la fecha de inicio";
@@ -126,7 +135,7 @@ export default function ModalActividad({
                             name="nombre_act"
                             value={form.nombre_act}
                             onChange={handleChange}
-                            className="w-full rounded-lg border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all"
+                            className="w-full rounded-lg border-2 border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all"
                         />
                         {errors.nombre_act && (
                             <p className="text-red-500 text-xs mt-1">
@@ -143,7 +152,7 @@ export default function ModalActividad({
                             name="tipo"
                             value={form.tipo}
                             onChange={handleChange}
-                            className="w-full rounded-lg border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all cursor-pointer"
+                            className="w-full rounded-lg border-2 border-gray-200 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all cursor-pointer"
                         >
                             <option value="">Seleccionar tipo</option>
                             {tiposActividad.map((tipo) => (
@@ -168,7 +177,7 @@ export default function ModalActividad({
                             value={form.descripcion}
                             onChange={handleChange}
                             rows={3}
-                            className="w-full rounded-lg border-gray-300 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all"
+                            className="w-full rounded-lg border-2 border-gray-300 px-4 py-2 focus:border-primary-blue focus:ring-2 focus:ring-primary-blue/20 transition-all"
                             placeholder="Descripción de la actividad (opcional)"
                         />
                     </div>

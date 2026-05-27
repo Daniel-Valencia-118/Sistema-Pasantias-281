@@ -4,10 +4,9 @@ import axios from "axios";
 import ModalConfirmacion from "./ModalConfirmacion";
 import ModalPerfil from "./ModalPerfil";
 
-export default function ModalAsignarJefe({
+export default function ModalAsignarJefePasantia({
     isOpen,
     onClose,
-    pasante,
     pasantiaId,
     onAsignado,
 }) {
@@ -35,24 +34,10 @@ export default function ModalAsignarJefe({
             const response = await axios.get(
                 "/gerente/pasantias/jefes-disponibles",
             );
-            if (response.data.jefes) {
-                setJefes(response.data.jefes);
-            } else {
-                setJefes([]);
-            }
+            setJefes(response.data.jefes);
         } catch (error) {
-            console.error("Error detallado:", error);
-            let errorMsg = "Error al cargar los jefes";
-            if (error.response?.data?.error) {
-                errorMsg += ": " + error.response.data.error;
-            } else if (error.response?.status === 404) {
-                errorMsg =
-                    "La ruta no existe. Verifique que el backend esté correcto.";
-            } else if (error.response?.status === 403) {
-                errorMsg = "No autorizado. Verifique su sesión.";
-            }
-            alert(errorMsg);
-            setJefes([]);
+            console.error("Error:", error);
+            alert("Error al cargar los jefes");
         } finally {
             setLoading(false);
         }
@@ -64,14 +49,17 @@ export default function ModalAsignarJefe({
 
     const confirmAsignar = async () => {
         try {
-            await axios.patch(
-                `/gerente/pasantias/${pasantiaId}/asignar-jefe/${pasante.idU_pasante}`,
+            const response = await axios.patch(
+                `/gerente/pasantias/${pasantiaId}/asignar-jefe-pasantia`,
                 {
                     idU_jefe: modalConfirm.jefe.id,
                 },
             );
-            if (onAsignado) onAsignado();
+            if (response.data.message && onAsignado) {
+                onAsignado(response.data.jefe);
+            }
             setModalConfirm({ isOpen: false, jefe: null });
+            onClose();
         } catch (error) {
             alert(error.response?.data?.message || "Error al asignar jefe");
         }
@@ -94,11 +82,11 @@ export default function ModalAsignarJefe({
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className="text-2xl font-bold text-white">
-                                    Asignar Jefe de Pasante
+                                    Asignar Jefe de Pasantia
                                 </h3>
                                 <p className="text-base text-white">
-                                    Seleccione un jefe para {pasante?.nombre}{" "}
-                                    {pasante?.ap_paterno}
+                                    Cada pasante que se inscriba tendrá como
+                                    jefe, el jefe de pasante seleccionado
                                 </p>
                             </div>
                             <button
@@ -160,7 +148,7 @@ export default function ModalAsignarJefe({
                                                 CI
                                             </th>
                                             <th className="px-3 py-3 text-center text-xs font-medium text-gray-500">
-                                                Datos
+                                                Perfil
                                             </th>
                                             <th className="px-3 py-3 text-center text-xs font-medium text-gray-500">
                                                 Acción
@@ -199,7 +187,7 @@ export default function ModalAsignarJefe({
                                                         className="text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer"
                                                         title="Ver perfil"
                                                     >
-                                                        <Eye size={25} />
+                                                        <Eye size={24} />
                                                     </button>
                                                 </td>
                                                 <td className="px-3 py-3 text-center">
@@ -238,13 +226,13 @@ export default function ModalAsignarJefe({
                 isOpen={modalConfirm.isOpen}
                 onClose={() => setModalConfirm({ isOpen: false, jefe: null })}
                 onConfirm={confirmAsignar}
-                titulo="Asignar Jefe"
-                mensaje={`¿Estás seguro de asignar a ${modalConfirm.jefe?.nombre} ${modalConfirm.jefe?.ap_paterno} como jefe de ${pasante?.nombre} ${pasante?.ap_paterno}?`}
+                titulo="Asignar Jefe a Pasantía"
+                mensaje={`¿Estás seguro de asignar a ${modalConfirm.jefe?.nombre} ${modalConfirm.jefe?.ap_paterno} como jefe responsable de esta pasantía?`}
                 type="info"
                 confirmText="Asignar"
             />
 
-            {/* Modal de perfil del jefe */}
+            {/* Modal de perfil */}
             <ModalPerfil
                 isOpen={modalPerfil.isOpen}
                 onClose={() => setModalPerfil({ isOpen: false, usuario: null })}

@@ -27,6 +27,7 @@ export default function ModalHorario({
     cargaHoraria,
     fechaIni,
     fechaFin,
+    detalleHorario,
 }) {
     if (!isOpen) return null;
 
@@ -45,7 +46,7 @@ export default function ModalHorario({
                         <div className="flex items-center gap-2">
                             <Clock size={20} className="text-white" />
                             <h3 className="text-lg font-bold text-white">
-                                Horario de la Pasantía
+                                Horarios y Fechas de la Pasantía
                             </h3>
                         </div>
                         <button
@@ -61,29 +62,38 @@ export default function ModalHorario({
                 <div className="p-5 space-y-4">
                     {/* Turno */}
                     <div className="bg-gray-50 rounded-lg p-3">
-                        <label className="block text-xs font-medium text-gray-500">
+                        <label className="block text-sm font-medium text-gray-500">
                             Turno
                         </label>
                         <p className="text-gray-900 font-medium text-lg capitalize">
-                            {turno || "-"}
+                            {turno || "No especificado"}
                         </p>
                     </div>
 
                     {/* Carga Horaria */}
                     <div className="bg-gray-50 rounded-lg p-3">
-                        <label className="block text-xs font-medium text-gray-500 flex items-center gap-1">
-                            <CalendarDays size={14} /> Carga Horaria Total
+                        <label className="block text-sm font-medium text-gray-500 flex items-center gap-1">
+                            <CalendarDays size={14} /> Carga Horaria (Hrs. por
+                            Semana)
                         </label>
-                        <p className="text-gray-900 font-medium text-lg">
-                            {cargaHoraria || 0} horas
+                        <p className="text-gray-900 font-medium text-lg capitalize">
+                            {cargaHoraria || "No especificado"}
                         </p>
                     </div>
-
+                    {/* Detalles de Horario y Días */}
+                    <div className="bg-gray-50 rounded-lg p-3">
+                        <label className="block text-sm font-medium text-gray-500">
+                            Detalles de Horario y Días
+                        </label>
+                        <p className="text-gray-900 font-medium text-lg">
+                            {detalleHorario || "No especificado"}
+                        </p>
+                    </div>
                     {/* Fechas */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-gray-50 rounded-lg p-3">
                             <label className="block text-xs font-medium text-gray-500 flex items-center gap-1">
-                                <Calendar size={14} /> Fecha Inicio
+                                <Calendar size={14} /> Fecha Inicio Pasantia
                             </label>
                             <p className="text-gray-900 font-medium">
                                 {fechaIni ? formatDateToSpanish(fechaIni) : "-"}
@@ -92,7 +102,7 @@ export default function ModalHorario({
                                 <p
                                     className={`text-xs mt-1 ${
                                         yaIniciada
-                                            ? "text-orange-600"
+                                            ? "text-green-800"
                                             : "text-green-600"
                                     }`}
                                 >
@@ -105,7 +115,7 @@ export default function ModalHorario({
 
                         <div className="bg-gray-50 rounded-lg p-3">
                             <label className="block text-xs font-medium text-gray-500 flex items-center gap-1">
-                                <Calendar size={14} /> Fecha Final
+                                <Calendar size={14} /> Fecha Final Pasantia
                             </label>
                             <p className="text-gray-900 font-medium">
                                 {fechaFin ? formatDateToSpanish(fechaFin) : "-"}
@@ -115,7 +125,7 @@ export default function ModalHorario({
                                     className={`text-xs mt-1 ${
                                         yaTerminada
                                             ? "text-red-600"
-                                            : "text-green-600"
+                                            : "text-orange-600"
                                     }`}
                                 >
                                     {yaTerminada
@@ -134,8 +144,7 @@ export default function ModalHorario({
                                 className="text-yellow-600"
                             />
                             <p className="text-xs text-yellow-700">
-                                Esta pasantía ya finalizó. Puedes calificarla en
-                                la sección "Inscripciones Finalizadas".
+                                Esta pasantía ya finalizó.
                             </p>
                         </div>
                     )}
