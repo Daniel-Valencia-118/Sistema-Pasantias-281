@@ -250,52 +250,6 @@ public function dashboard()
         ]);
     }
 
-    // Ver mis pasantes asignados
-    // public function misPasantes()
-    // {
-    //     $user = Auth::user();
-    //     $jefe = $user->jefePas;
-        
-    //     $pasantes = Inscripcion::with(['pasante.user', 'pasantia.actividades', 'pasantia.actividades.evaluaciones'])
-    //         ->where('idU_jefe', $jefe->idU_jefe)
-    //         ->get()
-    //         ->map(function($inscripcion) {
-    //             return [
-    //                 'inscripcion_id' => $inscripcion->id_inscripcion,
-    //                 'pasante' => [
-    //                     'id' => $inscripcion->pasante->idU_pasante,
-    //                     'nombre' => $inscripcion->pasante->user->nombre . ' ' . $inscripcion->pasante->user->ap_paterno,
-    //                     'ru' => $inscripcion->pasante->ru,
-    //                     'matricula' => $inscripcion->pasante->matricula,
-    //                 ],
-    //                 'pasantia' => [
-    //                     'id' => $inscripcion->pasantia->id_pasantia,
-    //                     'nombre' => $inscripcion->pasantia->nombre_pas,
-    //                 ],
-    //                 'estado' => $inscripcion->estado,
-    //                 // Extraer y aplanar todas las evaluaciones de todas las actividades de esta pasantía
-    //                 'bitacora' => $inscripcion->pasantia->actividades->flatMap(function($actividad) {
-    //                     return $actividad->evaluaciones->map(function($eva) use ($actividad) {
-    //                         return [
-    //                             'id_bitacora' => $eva->id_bitacora,
-    //                             'descripcion' => $eva->descripcion,
-    //                             'nota' => $eva->nota,
-    //                             'observacion' => $eva->observacion,
-    //                             'recomendacion' => $eva->recomendacion,
-    //                             'fecha' => $eva->fecha,
-    //                             'actividad_nombre' => $actividad->nombre_act,
-    //                         ];
-    //                     });
-    //                 }),
-    //             ];
-    //         });
-        
-    //     // return response()->json(['data' => $pasantes]);
-    //     return Inertia::render('Jefe/MisPasantes', [
-    //         'pasantes' => $pasantes,
-    //     ]);
-    // }
-
     public function misPasantias()
     {
         // 1. Obtener el jefe autenticado con su respectiva empresa
@@ -458,125 +412,6 @@ public function dashboard()
             return response()->json(['data' => $bitacora]);
     }    
 
-    // =============================================
-    // ASIGNAR SUBACTIVIDAD (sin nota, estado pendiente)
-    // =============================================
-    // public function asignarSubactividad(Request $request)
-    // {
-    //     $user = Auth::user();
-    //     $jefe = $user->jefePas;
-        
-    //     $request->validate([
-    //         'idU_pasante' => 'required|exists:pasante,idU_pasante',
-    //         'id_actividad' => 'required|exists:actividad,id_actividad',
-    //         'descripcion' => 'required|string',
-    //         'estado' => 'requiered|string|in:pendiente,realizada,no realizada',           
-    //     ]);
-        
-    //     // Verificar que el pasante está asignado a este jefe
-    //     Inscripcion::where('idU_pasante', $request->idU_pasante)
-    //         ->where('idU_jefe', $jefe->idU_jefe)
-    //         ->firstOrFail();
-        
-    //     // Verificar que la actividad pertenece a una pasantía donde el pasante está inscrito
-    //     $inscripcion = Inscripcion::where('idU_pasante', $request->idU_pasante)
-    //         ->whereHas('pasantia.actividades', function($q) use ($request) {
-    //             $q->where('id_actividad', $request->id_actividad);
-    //         })
-    //         ->firstOrFail(); 
-            
-
-    //     $bitacora = BitacoraEva::create([
-    //         'descripcion' => $request->descripcion,
-    //         'nota' => null,
-    //         'observacion' => null,
-    //         'recomendacion' => null,
-    //         'estado' => 'pendiente',
-    //         'idU_pasante' => $request->idU_pasante,
-    //         'id_actividad' => $request->id_actividad,
-    //         'idU_jefe' => $jefe->idU_jefe,
-    //         'fecha' => null,
-    //         'hora' => null,
-    //     ]);
-        
-    //     return response()->json(['message' => 'Subactividad asignada', 'data' => $bitacora], 201);
-    // }
-
-    // =============================================
-    // EVALUAR SUBACTIVIDAD EXISTENTE 
-    // =============================================
-    // public function evaluarBitacora(Request $request)
-    // {
-    //     $user = Auth::user();
-    //     $jefe = $user->jefePas;
-        
-    //     $request->validate([
-    //         'idBitacora' => 'required|exists:bitacora_eva,id_bitacora',
-    //         'nota' => 'required|integer|min:0|max:100',
-    //         'observacion' => 'nullable|string',
-    //         'recomendacion' => 'nullable|string',
-    //         //'estado' => 'requiered|string|in:pendiente,realizada,no realizada',           
-    //     ]);
-        
-    //     $bitacora = BitacoraEva::where('idU_jefe', $jefe->idU_jefe)
-    //         ->findOrFail($request->idBitacora);
-        
-    //     $bitacora->update([
-    //         'nota' => $request->nota,
-    //         'observacion' => $request->observacion,
-    //         'recomendacion' => $request->recomendacion,
-    //         'estado' => 'realizada',
-    //         'fecha' => now()->toDateString(),
-    //         'hora' => now()->toTimeString(),
-    //     ]);
-        
-    //     return response()->json(['message' => 'Evaluación guardada', 'data' => $bitacora]);
-    // }
-    
-    // // Evaluar subactividad (crear o actualizar bitácora)
-    // public function evaluarSubactividad(Request $request)
-    // {
-    //     $user = Auth::user();
-    //     $jefe = $user->jefePas;
-        
-    //     $request->validate([
-    //         'idU_pasante' => 'required|exists:pasante,idU_pasante',
-    //         'id_actividad' => 'required|exists:actividad,id_actividad',
-    //         'descripcion' => 'required|string', // descripción de la subactividad de la actividad
-    //         'nota' => 'required|integer|min:0|max:100',
-    //         'observacion' => 'nullable|string',
-    //         'recomendacion' => 'nullable|string',
-    //         'estado' => 'requiered|string|in:pendiente,realizada,no realizada',
-    //     ]);
-        
-    //     // Verificar que el pasante está asignado a este jefe
-    //     Inscripcion::where('idU_pasante', $request->idU_pasante)
-    //         ->where('idU_jefe', $jefe->idU_jefe)
-    //         ->firstOrFail();
-        
-    //     // Verificar que la actividad pertenece a una pasantía donde el pasante está inscrito
-    //     $inscripcion = Inscripcion::where('idU_pasante', $request->idU_pasante)
-    //         ->whereHas('pasantia.actividades', function($q) use ($request) {
-    //             $q->where('id_actividad', $request->id_actividad);
-    //         })
-    //         ->firstOrFail();
-        
-    //     $bitacora = BitacoraEva::create([
-    //         'descripcion' => $request->descripcion,
-    //         'nota' => $request->nota,
-    //         'observacion' => $request->observacion,
-    //         'recomendacion' => $request->recomendacion,
-    //         'idU_pasante' => $request->idU_pasante,
-    //         'id_actividad' => $request->id_actividad,
-    //         'idU_jefe' => $jefe->idU_jefe,
-    //         'estado' => 'realizada',
-    //         'fecha' => now()->toDateString(),
-    //         'hora' => now()->toTimeString(),
-    //     ]);
-        
-    //     return response()->json(['message' => 'Evaluación guardada', 'data' => $bitacora], 201);
-    // }
-    
     // Actualizar evaluación de subactividad
     public function actualizarEvaluacion(Request $request, $idBitacora)
     {
@@ -737,25 +572,20 @@ public function dashboard()
         if (!$jefe) {
             return redirect()->back()->with('error', 'Perfil de jefe no válido.');
         }
-
         $pasantia = Pasantia::with('empresa')->findOrFail($id_pasantia);
-
         $inscripciones = Inscripcion::with(['pasante.user'])
             ->where('id_pasantia', $id_pasantia)
             ->where('idU_jefe', $jefe->idU_jefe)
             ->get();
 
-        // Traemos explícitamente fecha_ini y fecha_fin del modelo Actividad
         $actividadesBase = Actividad::where('id_pasantia', $id_pasantia)
             ->orderBy('id_actividad', 'asc')
             ->get();
 
         $pasantesData = $inscripciones->map(function ($inscripcion) use ($actividadesBase, $jefe) {
-            $pasante = $inscripcion->pasante;
-            
-            $actividadesEvaluadas = $actividadesBase->map(function ($actividad) use ($pasante, $jefe) {
-                
-                // 1. Historial de Progresos (PROGRESO_ACT)
+            $pasante = $inscripcion->pasante; 
+            $actividadesEvaluadas = $actividadesBase->map(function ($actividad) use ($pasante, $jefe) { 
+                // 1. Historial de Progresos
                 $progresos = \DB::table('progreso_act')
                     ->where('id_actividad', $actividad->id_actividad)
                     ->where('idU_pasante', $pasante->idU_pasante)
@@ -774,7 +604,25 @@ public function dashboard()
                 $ultimoProgreso = $progresos->last();
                 $porcentajeProgreso = $ultimoProgreso ? $ultimoProgreso['porcentaje'] : 0;
 
-                // 2. NUEVO: Obtener la Autoevaluación del Pasante (AUTO_EVA)
+                // === NUEVO: 1.5. Obtener el Chat de Comentarios (COM_ACTIVIDAD) ===
+                $comentarios = \DB::table('com_actividad')
+                    ->where('id_actividad', $actividad->id_actividad)
+                    ->where('idU_pasante', $pasante->idU_pasante)
+                    ->orderBy('fecha', 'asc')
+                    ->orderBy('hora', 'asc')
+                    ->get()
+                    ->map(function($c) {
+                        return [
+                            'id_comactividad' => $c->id_comactividad,
+                            'fecha' => $c->fecha ? date('d/m/Y', strtotime($c->fecha)) : '',
+                            'hora' => $c->hora ? date('H:i', strtotime($c->hora)) : '',
+                            // Identificamos quién envió el mensaje para renderizar las burbujas
+                            'remitente' => !is_null($c->com_jefe) ? 'jefe' : 'pasante',
+                            'texto' => $c->com_jefe ?? $c->com_pasante ?? '',
+                        ];
+                    });
+
+                // 2. Obtener la Autoevaluación del Pasante
                 $autoeva = \DB::table('auto_eva')
                     ->where('id_actividad', $actividad->id_actividad)
                     ->where('idU_pasante', $pasante->idU_pasante)
@@ -786,29 +634,21 @@ public function dashboard()
                     ->where('idU_jefe', $jefe->idU_jefe)
                     ->first();
 
-                // 1. Obtener la fecha de hoy en formato Y-m-d (sin horas) para una comparación limpia
                 $hoy = date('Y-m-d');
-
-                // 2. Evaluar las condiciones con las fechas crudas de la base de datos
                 $yaEmpezo = $actividad->fecha_ini && $actividad->fecha_ini <= $hoy;
                 $yaVencioPlazo = $actividad->fecha_fin && $actividad->fecha_fin <= $hoy;
                 $progresoAl100 = (int)$porcentajeProgreso === 100;
-
-                // 3. Regla de negocio: Debe haber empezado Y (estar al 100% O haber vencido el plazo)
                 $puedeEvaluar = $yaEmpezo && ($progresoAl100 || $yaVencioPlazo);
 
                 return [
                     'id_actividad' => $actividad->id_actividad,
                     'nombre_act' => $actividad->nombre_act,
-                    // Formateo de fechas de la actividad con valores por defecto seguros
                     'fecha_ini' => $actividad->fecha_ini ? date('d/m/Y', strtotime($actividad->fecha_ini)) : 'Sin fecha',
                     'fecha_fin' => $actividad->fecha_fin ? date('d/m/Y', strtotime($actividad->fecha_fin)) : 'Sin fecha',
                     'porcentaje_progreso' => $porcentajeProgreso,
-                    'historial_progresos' => $progresos,
-                    
-                    // Nueva verificación enviada al frontend
+                    'historial_progresos' => $progresos,                    
+                    'comentarios' => $comentarios, // <-- AGREGADO AL PAYLOAD
                     'puede_evaluar' => $puedeEvaluar,
-
                     'tiene_autoevaluacion' => !is_null($autoeva),
                     'autoevaluacion' => $autoeva ? [
                         'id' => $autoeva->id_autoeva,
@@ -821,6 +661,8 @@ public function dashboard()
                         'id' => $bitacora->id_bitacora,
                         'nota' => $bitacora->nota,
                         'observacion' => $bitacora->observacion,
+                        'recomendacion' => $bitacora->recomendacion,
+                        'descripcion' => $bitacora->descripcion,
                         'estado' => $bitacora->estado,
                         'fecha' => $bitacora->fecha ? $bitacora->fecha->format('d/m/Y') : '',
                     ] : null,
@@ -839,6 +681,9 @@ public function dashboard()
             ];
         });
 
+        // Ordenar pasantes por nombre completo
+        $pasantesData = $pasantesData->sortBy('nombre_completo')->values();
+
         return Inertia::render('Jefe/Evaluaciones/Bitacoras', [
             'pasantia' => [
                 'id' => $pasantia->id_pasantia,
@@ -847,6 +692,52 @@ public function dashboard()
             ],
             'pasantesData' => $pasantesData,
         ]);
+    }
+
+    /**
+     * NUEVO MÉTODO: Guarda un comentario enviado por el jefe
+     */
+    public function storeComentario(Request $request)
+    {
+        $request->validate([
+            'id_actividad' => 'required|integer',
+            'idU_pasante'  => 'required|integer',
+            'comentario'  => 'required|string|max:1500',
+        ]);
+
+        $jefe = Auth::user()->jefePas;
+        if (!$jefe) {
+            return redirect()->back()->with('error', 'No autorizado.');
+        }
+
+        // Inicia la transacción de la base de datos
+        DB::beginTransaction();
+
+        try {
+            DB::table('com_actividad')->insert([
+                'id_actividad' => $request->id_actividad,
+                'idU_pasante'  => $request->idU_pasante,
+                'idU_jefe'     => $jefe->idU_jefe,
+                'com_jefe'     => $request->comentario,
+                'com_pasante'  => null,
+                'fecha'        => now()->toDateString(), // Alternativa limpia de Laravel
+                'hora'         => now()->toTimeString(), // Alternativa limpia de Laravel
+            ]);
+
+            // Confirma los cambios si todo sale bien
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Comentario enviado exitosamente.');
+
+        } catch (Exception $e) {
+            // Cancela los cambios en la base de datos si algo falla
+            DB::rollBack();
+
+            // Registra el error en el archivo log de Laravel para auditoría
+            Log::error('Error al guardar comentario: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Ocurrió un error al procesar tu solicitud.');
+        }
     }
 
     public function evaluarBitacora(Request $request)

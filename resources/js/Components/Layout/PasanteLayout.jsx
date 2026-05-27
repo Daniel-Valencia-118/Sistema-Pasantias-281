@@ -325,7 +325,7 @@ export default function PasanteLayout({ children, header }) {
             <div className="min-h-screen bg-gray-100 flex font-sans">
                 {/* Sidebar Desktop */}
                 <aside
-                    className={`hidden lg:flex flex-col bg-primary-navy min-h-screen transition-all duration-500 ease-in-out relative ${
+                    className={`hidden lg:flex flex-col bg-primary-navy h-screen sticky top-0 transition-all duration-500 ease-in-out relative ${
                         collapsed ? "w-20" : "w-72"
                     }`}
                 >

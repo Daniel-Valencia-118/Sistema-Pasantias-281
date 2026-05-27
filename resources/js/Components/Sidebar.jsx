@@ -165,7 +165,7 @@ export default function Sidebar({ auth, onClose }) {
         /* CAMBIO CRÍTICO AQUÍ: h-screen y sticky top-0 obligan al Sidebar a medir el alto de la pantalla */
         <aside
             className={`bg-primary-navy h-screen sticky top-0 transition-all duration-300 ${
-                collapsed ? "w-20" : "w-70"
+                collapsed ? "w-20" : "w-72"
             }`}
         >
             <div className="flex flex-col h-full relative">

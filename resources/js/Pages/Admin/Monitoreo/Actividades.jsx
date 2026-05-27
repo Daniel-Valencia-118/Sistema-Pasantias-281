@@ -43,6 +43,18 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
         id_pasantia: '',
     });
 
+    const formatHumanDate = (dateString) => {
+        if (!dateString) return '';
+        // El "T00:00:00" evita desfases de zonas horarias al parsear strings YYYY-MM-DD
+        const date = new Date(`${dateString}T00:00:00`);
+        
+        return new Intl.DateTimeFormat('es-ES', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        }).format(date).replace('.', ''); // Elimina el punto que a veces añade 'short' en español
+    };
+
     const columns = [
         { 
             key: 'nombre_act', 
@@ -69,12 +81,23 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
         { 
             key: 'rango_fechas', 
             label: 'Plazo (Inicio - Fin)',
-            render: (_, row) => (
-                <div className="flex flex-col text-xs">
-                    <span className="text-green-600 font-medium">Ini: {row.fecha_ini_fmt}</span>
-                    <span className="text-red-600 font-medium">Fin: {row.fecha_fin_fmt}</span>
-                </div>
-            )
+            render: (_, row) => {
+                // Suponiendo que tus llaves originales del backend son row.fecha_ini y row.fecha_fin
+                const inicioFormateado = formatHumanDate(row.fecha_ini);
+                const finFormateada = formatHumanDate(row.fecha_fin);
+
+                return (
+                    <div className="flex items-center gap-2 text-xs font-semibold whitespace-nowrap">
+                        <span className="px-2 py-1 rounded bg-green-50 text-green-700 border border-green-200 capitalize">
+                            {inicioFormateado}
+                        </span>
+                        <span className="text-gray-400">➔</span>
+                        <span className="px-2 py-1 rounded bg-red-50 text-red-700 border border-red-200 capitalize">
+                            {finFormateada}
+                        </span>
+                    </div>
+                );
+            }
         },
     ];
 

@@ -26,7 +26,9 @@ import {
     ChevronLeft,
     SquareChartGanttIcon,
     BookOpenText,
+    MessageSquare, // <-- NUEVO ICONO
 } from "lucide-react";
+import ChatActividadModal from "@/Components/ChatActividadModal";
 
 export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
     // Estados para Modales
@@ -43,6 +45,11 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
     const [activePasante, setActivePasante] = useState(null);
     const [activeActividad, setActiveActividad] = useState(null);
 
+    // === NUEVOS ESTADOS PARA EL CHAT ===
+    const [comentariosModal, setComentariosModal] = useState(false);
+    const [activeChatPasante, setActiveChatPasante] = useState(null);
+    const [activeChatActividad, setActiveChatActividad] = useState(null);
+
     console.log(pasantia, pasantesData);
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -50,7 +57,9 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
         idU_pasante: null,
         nota: "",
         observacion: "",
-        estado: "completada",
+        descripcion: "",
+        recomendacion: "",
+        estado: "",
     });
 
     const abrirProgreso = (actividad) => {
@@ -66,6 +75,36 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
         setAutoEvaModal(true);
     };
 
+    // === NUEVO: Hook useForm Exclusivo para el Chat (Evita interferir con el de evaluación) ===
+    const chatForm = useForm({
+        id_actividad: null,
+        idU_pasante: null,
+        comentario: "",
+    });
+
+    // === NUEVA FUNCIÓN: Abrir el Chat ===
+    const abrirChatComentarios = (pasante, actividad) => {
+        setActiveChatPasante(pasante);
+        setActiveChatActividad(actividad);
+        chatForm.setData({
+            id_actividad: actividad.id_actividad,
+            idU_pasante: pasante.idU_pasante,
+            comentario: "",
+        });
+        setComentariosModal(true);
+    };
+
+    // === NUEVA FUNCIÓN: Enviar Comentario ===
+    const handleChatSubmit = (e) => {
+        e.preventDefault();
+        chatForm.post(route("jefe.comentarioActividad"), {
+            preserveScroll: true, // Mantiene el scroll de la tabla intacto al enviar
+            onSuccess: () => {
+                chatForm.reset("comentario"); // Solo limpia la caja de texto
+            },
+        });
+    };
+
     const abrirEvaluacion = (pasante, actividad) => {
         setActivePasante(pasante);
         setActiveActividad(actividad);
@@ -75,7 +114,9 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
             setData({
                 nota: actividad.bitacora.nota ?? "",
                 observacion: actividad.bitacora.observacion ?? "",
-                estado: actividad.bitacora.estado ?? "completada",
+                estado: actividad.bitacora.estado ?? "",
+                descripcion: actividad.bitacora.descripcion ?? "",
+                recomendacion: actividad.bitacora.recomendacion ?? "",
             });
         } else {
             setModalMode("create");
@@ -85,7 +126,9 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                 idU_pasante: pasante.idU_pasante,
                 nota: "",
                 observacion: "",
-                estado: "completada",
+                estado: "",
+                descripcion: "",
+                recomendacion: "",
             });
         }
         setEvaluarModal(true);
@@ -115,12 +158,12 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
 
     const getEstadoBadge = (estado) => {
         const icons = {
-            completada: <CheckCircle size={14} className="text-green-500" />,
-            "completada parcialmente": (
+            COMPLETADA: <CheckCircle size={14} className="text-green-500" />,
+            "COMPLETADA PARCIALMENTE": (
                 <Clock size={14} className="text-orange-500" />
             ),
-            "no realizada": <XCircle size={14} className="text-red-500" />,
-            "sin calificar": <HelpCircle size={14} className="text-gray-500" />,
+            "NO REALIZADA": <XCircle size={14} className="text-red-500" />,
+            "SIN CALIFICAR": <HelpCircle size={14} className="text-gray-500" />,
         };
         return (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 capitalize">
@@ -173,6 +216,14 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                         {pasantia.empresa}
                     </span>
                 </p>
+                {/* Boton para ver actividades */}
+                <button
+                    onClick={() => verActividadGlobal(pasantia.id)}
+                    className="mt-4 inline-flex items-center gap-2 bg-primary-blue hover:bg-primary-blue/90 text-white font-bold text-xs uppercase px-4 py-2.5 rounded-xl transition-all shadow-sm"
+                >
+                    <Eye size={16} />
+                    Ver Actividades
+                </button>
             </div>
 
             {pasantesData.length === 0 ? (
@@ -223,7 +274,7 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-white border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                                            <th className="py-4 px-6 w-2/12">
+                                            <th className="py-4 px-6 w-3/12">
                                                 Actividad Requerida
                                             </th>
                                             <th className="py-4 px-6 w-2/12">
@@ -235,7 +286,7 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                                             <th className="py-4 px-6 w-2/12 text-center">
                                                 Evaluación (Bitácora)
                                             </th>
-                                            <th className="py-4 px-6 w-4/12 text-center">
+                                            <th className="py-4 px-6 w-3/12 text-center">
                                                 Acciones
                                             </th>
                                         </tr>
@@ -315,9 +366,9 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                                                         )}
                                                     </td>
                                                     <td className="py-4 px-6 text-right">
-                                                        <div className="flex items-center justify-end gap-2.5">
+                                                        <div className="flex items-center justify-end gap-4">
                                                             {/* Acción 1 - Ver Actividad */}
-                                                            <button
+                                                            {/* <button
                                                                 onClick={() =>
                                                                     verActividadGlobal(
                                                                         actividad.id_actividad,
@@ -332,6 +383,22 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                                                                 <span>
                                                                     Actividades
                                                                 </span>
+                                                            </button> */}
+                                                            
+                                                            {/* === NUEVA ACCIÓN: CHAT DE COMENTARIOS === */}
+                                                            <button
+                                                                onClick={() => abrirChatComentarios(pasante, actividad)}
+                                                                className="flex items-center justify-center w-9 h-9 bg-teal-50 text-teal-600 hover:bg-teal-600 hover:text-white rounded-xl transition-all transform hover:-translate-y-0.5 shadow-sm relative"
+                                                                title="Chat de Comentarios"
+                                                            >
+                                                                <MessageSquare size={16} />
+                                                                {/* Indicador visual opcional si hay comentarios si el remitente es el pasante */}
+                                                                {/* {actividad.comentarios?.some((c) => c.remitente === "pasante") && (
+                                                                    <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                                                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-teal-500"></span>
+                                                                    </span>
+                                                                )} */}
                                                             </button>
 
                                                             {/* Acción 2: Ver Progreso Histórico */}
@@ -586,6 +653,28 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                         />
                         <InputError message={errors.nota} />
                     </div>
+                    
+                    {/* Campo para mandar el estado */}
+                    <div>
+                        <InputLabel
+                            htmlFor="estado"
+                            value="Estado de Cumplimiento"
+                        />
+                        <SelectInput
+                            id="estado"
+                            value={data.estado}
+                            onChange={(e) => setData("estado", e.target.value)}
+                            disabled={modalMode === "view"}
+                            className="w-full rounded-xl border-slate-200 mt-1 focus:ring-primary-blue focus:border-primary-blue disabled:bg-slate-50"
+                        >
+                            <option value="COMPLETADA">Completada</option>
+                            <option value="COMPLETADA PARCIALMENTE">
+                                Completada parcialmente
+                            </option>
+                            <option value="NO REALIZADA">No realizada</option>
+                        </SelectInput>
+                        <InputError message={errors.estado} />
+                    </div>
 
                     <div>
                         <InputLabel
@@ -606,25 +695,44 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                         <InputError message={errors.observacion} />
                     </div>
 
+                    {/* Campo para mandar la Recomendacion */}
                     <div>
                         <InputLabel
-                            htmlFor="estado"
-                            value="Estado de Cumplimiento"
+                            htmlFor="recomendacion"
+                            value="Recomendaciones para el Pasante"
                         />
-                        <SelectInput
-                            id="estado"
-                            value={data.estado}
-                            onChange={(e) => setData("estado", e.target.value)}
+                        <TextArea
+                            id="recomendacion"
+                            value={data.recomendacion}
+                            onChange={(e) =>
+                                setData("recomendacion", e.target.value)
+                            }
                             disabled={modalMode === "view"}
+                            rows="4"
                             className="w-full rounded-xl border-slate-200 mt-1 focus:ring-primary-blue focus:border-primary-blue disabled:bg-slate-50"
-                        >
-                            <option value="completada">Completada</option>
-                            <option value="completada parcialmente">
-                                Completada parcialmente
-                            </option>
-                            <option value="no realizada">No realizada</option>
-                        </SelectInput>
-                        <InputError message={errors.estado} />
+                            placeholder="Escribe recomendaciones para el pasante..."
+                        />
+                        <InputError message={errors.recomendacion} />
+                    </div>
+
+                    {/* Campo para mandar la descripción */}
+                    <div>
+                        <InputLabel
+                            htmlFor="descripcion"
+                            value="Descripción Detallada de la Evaluación"
+                        />
+                        <TextArea
+                            id="descripcion"
+                            value={data.descripcion}
+                            onChange={(e) =>
+                                setData("descripcion", e.target.value)
+                            }
+                            disabled={modalMode === "view"}
+                            rows="4"
+                            className="w-full rounded-xl border-slate-200 mt-1 focus:ring-primary-blue focus:border-primary-blue disabled:bg-slate-50"
+                            placeholder="Describe detalladamente el desempeño del pasante en esta actividad..."
+                        />
+                        <InputError message={errors.descripcion} />
                     </div>
 
                     <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
@@ -643,6 +751,23 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                     </div>
                 </form>
             </Modal>
+
+            {/* === NUEVO MODAL COMPONENTE MODULAR DEL CHAT === */}
+            <ChatActividadModal
+                show={comentariosModal}
+                onClose={() => setComentariosModal(false)}
+                pasante={activeChatPasante}
+                actividad={
+                    // Sincroniza dinámicamente los comentarios actualizados desde el payload de Inertia
+                    activeChatPasante && activeChatActividad
+                        ? pasantesData
+                              .find((p) => p.idU_pasante === activeChatPasante.idU_pasante)
+                              ?.actividades.find((a) => a.id_actividad === activeChatActividad.id_actividad)
+                        : null
+                }
+                form={chatForm}
+                onSubmit={handleChatSubmit}
+            />
         </DashboardLayout>
     );
 }

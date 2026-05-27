@@ -214,6 +214,7 @@ Route::middleware(['auth', 'role:jefe'])->group(function () {
     Route::get('/jefe/bitacora/crear', [JefeController::class, 'crearBitacora'])->name('jefe.bitacora.crear');
     Route::get('/jefe/bitacora/{id}/editar', [JefeController::class, 'editarBitacora'])->name('jefe.bitacora.editar');
     Route::post('/jefe/bitacora/guardar', [JefeController::class, 'guardarBitacora'])->name('jefe.bitacora.guardar');
+    Route::post('/jefe/bitacoras/comentario', [JefeController::class, 'storeComentario'])->name('jefe.comentarioActividad');
 
     Route::get('/jefe/informes/redactar', [JefeController::class, 'redactarInforme'])->name('informes.redactar');
     Route::get('/jefe/api/informes/verificar-status', [JefeController::class, 'verificarStatusInscripcion']);

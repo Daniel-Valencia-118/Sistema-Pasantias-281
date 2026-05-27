@@ -26,7 +26,7 @@ class ActividadController extends Controller
     {
         return Inertia::render('Admin/Monitoreo/Actividades', [
             'actividades' => Actividad::with('pasantia.empresa')->orderBy('id_actividad', 'desc')->get(),
-            'pasantias' => Pasantia::with('empresa')->where('estado', 'INICIADO')->orWhere('estado', 'ABIERTA')->get(),
+            'pasantias' => Pasantia::with('empresa')->get(),
         ]);
     }
 

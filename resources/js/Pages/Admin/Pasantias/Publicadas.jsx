@@ -49,11 +49,12 @@ export default function Publicadas({ pasantias = [], empresas = [], auth }) {
     });
 
     const columns = [
-        { key: "nombre_pas", label: "Título de la Pasantía" },
-        { key: "empresa_nombre", label: "Empresa" },
+        { key: "nombre_pas", sortable: true, label: "Título de la Pasantía" },
+        { key: "empresa_nombre", sortable: true, label: "Empresa" },
         {
             key: "cupos_info",
             label: "Cupos (Disp/Total)",
+            sortable: true,
             render: (val, row) => {
                 const total = row?.cupos || 0;
                 const disponibles = row?.cupos_disponibles || 0;
@@ -104,11 +105,13 @@ export default function Publicadas({ pasantias = [], empresas = [], auth }) {
         {
             key: "turno",
             label: "Turno",
+            sortable: true,
             render: (val) => <span className="capitalize">{val}</span>,
         },
         {
             key: "estado",
             label: "Estado",
+            sortable: true,
             render: (val) => (
                 <span
                     className={`px-2 py-1 text-xs font-bold rounded-full uppercase ${
@@ -342,13 +345,13 @@ export default function Publicadas({ pasantias = [], empresas = [], auth }) {
                                 required
                             >
                                 <option value="">Seleccione turno...</option>
-                                <option value="mañana">Mañana</option>
-                                <option value="tarde">Tarde</option>
-                                <option value="noche">Noche</option>
-                                <option value="tiempo completo">
+                                <option value="Mañana">Mañana</option>
+                                <option value="Tarde">Tarde</option>
+                                <option value="Noche">Noche</option>
+                                <option value="Tiempo Completo">
                                     Tiempo Completo
                                 </option>
-                                <option value="medio tiempo">
+                                <option value="Medio Tiempo">
                                     Medio Tiempo
                                 </option>
                             </SelectInput>

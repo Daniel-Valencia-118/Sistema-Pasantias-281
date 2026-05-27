@@ -28,6 +28,9 @@ export default function Show({
     const [editandoComentario, setEditandoComentario] = useState(null);
     const [editText, setEditText] = useState("");
 
+    console.log(actividades);
+    
+
     const [modalApuntes, setModalApuntes] = useState({
         isOpen: false,
         actividadId: null,
