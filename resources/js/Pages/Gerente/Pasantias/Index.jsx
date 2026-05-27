@@ -374,6 +374,424 @@ export default function Index({ auth, pasantias }) {
             {/* ══ Tres secciones de pasantías ══ */}
             <div className="space-y-6">
                 {/* ══════════════════════════════════════════════════════════ */}
+                {/* Sección: PASANTÍAS COMENZADAS */}
+                {/* ══════════════════════════════════════════════════════════ */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-5">
+                        <div className="flex items-center justify-between flex-wrap gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-white/10 rounded-xl backdrop-blur-sm">
+                                    <Play size={22} className="text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-white tracking-tight">
+                                        PASANTÍAS INICIADAS
+                                    </h2>
+                                    <p className="text-white/100 text-base mt-0.5 flex items-center gap-1.5">
+                                        <span className="inline-block w-1.5 h-1.5 bg-green-300 rounded-full"></span>
+                                        Pasantías cuya fecha de inicio ya
+                                        empezó, gestiona y controla tus
+                                        pasantias
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="relative">
+                                <Search
+                                    size={18}
+                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por nombre de pasantía..."
+                                    value={searchComenzadas}
+                                    onChange={(e) =>
+                                        setSearchComenzadas(e.target.value)
+                                    }
+                                    className="pl-10 pr-4 py-2 w-72 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/60 focus:bg-white/20 focus:outline-none focus:border-white/40 transition-all text-sm"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gradient-to-r from-primary-navy to-primary-slate">
+                                <tr>
+                                    <th className="px-1 py-3 text-center text-xs font-bold text-white w-8">
+                                        #
+                                    </th>
+                                    <th
+                                        className="px-4 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
+                                        onClick={() => handleSort("nombre")}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            NOMBRE PASANTÍA
+                                            <SortIcon field="nombre" />
+                                        </div>
+                                    </th>
+                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                        MENCIÓN
+                                    </th>
+                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                        FECHAS Y HORARIO
+                                    </th>
+                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                        ACTIVIDADES
+                                    </th>
+                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                        CUPOS DISPONIBLES
+                                    </th>
+                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                        PASANTES INSCRITOS
+                                    </th>
+                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                        JEFE PASANTIA
+                                    </th>
+                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
+                                        ESTADO INSCRIPCIÓN
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {comenzadasFiltradas.map((pasantia, index) => (
+                                    <tr
+                                        key={pasantia.id}
+                                        className="hover:bg-gray-50"
+                                    >
+                                        <td className="px-1 py-3 text-center text-base text-gray-700">
+                                            {index + 1}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-1 h-8 bg-gradient-to-b from-primary-blue to-primary-sky-blue rounded-full"></div>
+                                                    <span className="text-base font-bold text-gray-900 tracking-tight">
+                                                        {pasantia.nombre}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td className="px-1 py-2 text-center">
+                                            <span className="inline-flex px-2 py-1 text-xs font-medium text-primary-blue bg-primary-blue/10 rounded-lg border border-primary-blue/20">
+                                                {pasantia.mencion}
+                                            </span>
+                                        </td>
+
+                                        <td className="px-3 py-3 text-center">
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() =>
+                                                        setModalHorario({
+                                                            isOpen: true,
+                                                            turno: pasantia.turno,
+                                                            cargaHoraria:
+                                                                pasantia.carga_horaria,
+                                                            fechaIni:
+                                                                pasantia.fecha_ini,
+                                                            fechaFin:
+                                                                pasantia.fecha_fin,
+                                                            detalleHorario:
+                                                                pasantia.detalles_horario,
+                                                        })
+                                                    }
+                                                    className="flex flex-col items-center gap-0.5 mx-auto text-primary-blue hover:text-primary-sky-blue transition-colors group cursor-pointer"
+                                                    title="Ver horario y fechas"
+                                                >
+                                                    <Clock
+                                                        size={22}
+                                                        className="text-primary-blue group-hover:text-primary-sky-blue cursor-pointer"
+                                                    />
+                                                    <p className="text-[12px] font-medium text-primary-blue/80 group-hover:text-primary-sky-blue transition-colors cursor-pointer leading-none">
+                                                        Fechas y<br />
+                                                        Horario
+                                                    </p>
+                                                </button>
+                                                {/* Botón Editar: visible siempre, pero deshabilitado visualmente si hay inscritos */}
+                                                <button
+                                                    onClick={() => {
+                                                        if (
+                                                            pasantia.inscritos ===
+                                                            0
+                                                        ) {
+                                                            setModalEditar({
+                                                                isOpen: true,
+                                                                pasantia:
+                                                                    pasantia,
+                                                            });
+                                                        }
+                                                    }}
+                                                    disabled={
+                                                        pasantia.inscritos !== 0
+                                                    }
+                                                    className={`transition-all duration-200 p-1.5 rounded-lg ${
+                                                        pasantia.inscritos === 0
+                                                            ? "text-primary-blue hover:text-primary-sky-blue hover:bg-primary-blue/10 cursor-pointer"
+                                                            : "text-gray-400 bg-gray-50 opacity-50"
+                                                    }`}
+                                                    title={
+                                                        pasantia.inscritos === 0
+                                                            ? "Editar Datos"
+                                                            : "No se puede editar porque ya tiene inscritos"
+                                                    }
+                                                >
+                                                    <Edit size={20} />
+                                                </button>
+                                            </div>
+                                        </td>
+
+                                        <td className="px-4 py-3 text-center">
+                                            <div className="flex flex-col items-center gap-1">
+                                                <button
+                                                    onClick={() =>
+                                                        setModalActividades({
+                                                            isOpen: true,
+                                                            pasantiaId:
+                                                                pasantia.id,
+                                                            pasantiaNombre:
+                                                                pasantia.nombre,
+                                                        })
+                                                    }
+                                                    className="flex flex-col items-center gap-0.5 mx-auto text-primary-blue hover:text-primary-sky-blue transition-colors group"
+                                                    title="Ver actividades de la pasantía"
+                                                >
+                                                    <Calendar
+                                                        size={20}
+                                                        className="text-primary-blue group-hover:text-primary-sky-blue cursor-pointer"
+                                                    />
+                                                </button>
+
+                                                <button
+                                                    onClick={() =>
+                                                        setModalActividades({
+                                                            isOpen: true,
+                                                            pasantiaId:
+                                                                pasantia.id,
+                                                            pasantiaNombre:
+                                                                pasantia.nombre,
+                                                        })
+                                                    }
+                                                    className="px-2 py-1 bg-primary-blue text-white text-[11px] font-semibold rounded-md shadow-sm hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
+                                                    title="Ver actividades"
+                                                >
+                                                    ACTIVIDADES
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() =>
+                                                        handleCuposChange(
+                                                            pasantia.id,
+                                                            pasantia.cupos - 1,
+                                                            pasantia.inscritos,
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        pasantia.cupos <=
+                                                        pasantia.inscritos
+                                                    }
+                                                    className="p-1 rounded-lg bg-red-600 text-red-200 hover:bg-red-400 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                                >
+                                                    <Minus size={15} />
+                                                </button>
+                                                <span className="font-medium">
+                                                    {pasantia.cupos_disponibles}
+                                                </span>
+                                                <button
+                                                    onClick={() =>
+                                                        handleCuposChange(
+                                                            pasantia.id,
+                                                            pasantia.cupos + 1,
+                                                            pasantia.inscritos,
+                                                        )
+                                                    }
+                                                    className="p-1 rounded-lg bg-green-600 text-green-200 hover:bg-green-400 transition-all cursor-pointer"
+                                                >
+                                                    <Plus size={15} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
+                                            <div className="flex flex-col items-center gap-0.5">
+                                                <button
+                                                    onClick={() =>
+                                                        setModalInscritos({
+                                                            isOpen: true,
+                                                            pasantiaId:
+                                                                pasantia.id,
+                                                            pasantiaNombre:
+                                                                pasantia.nombre,
+                                                        })
+                                                    }
+                                                    className="flex items-center justify-center gap-1.5 text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer group"
+                                                    title="Ver inscritos"
+                                                >
+                                                    <Users size={20} />
+                                                    <span className="text-base font-semibold">
+                                                        {pasantia.inscritos}
+                                                    </span>
+                                                </button>
+
+                                                <button
+                                                    onClick={() =>
+                                                        setModalInscritos({
+                                                            isOpen: true,
+                                                            pasantiaId:
+                                                                pasantia.id,
+                                                            pasantiaNombre:
+                                                                pasantia.nombre,
+                                                        })
+                                                    }
+                                                    className="px-2 py-1 bg-primary-blue text-white text-[11px] font-semibold rounded-md shadow-sm hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
+                                                    title="Gestionar pasantes (asignar/desasignar)"
+                                                >
+                                                    GESTIONAR
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
+                                            {pasantia.jefe_asignado ? (
+                                                <div className="flex items-center justify-center gap-0">
+                                                    <button
+                                                        onClick={() =>
+                                                            setModalPerfilJefe({
+                                                                isOpen: true,
+                                                                jefe: pasantia.jefe_asignado,
+                                                            })
+                                                        }
+                                                        className="text-primary-blue hover:text-primary-sky-blue text-sm font-medium cursor-pointer"
+                                                    >
+                                                        {
+                                                            pasantia
+                                                                .jefe_asignado
+                                                                .ap_paterno
+                                                        }
+                                                        ,{" "}
+                                                        {
+                                                            pasantia
+                                                                .jefe_asignado
+                                                                .nombre
+                                                        }
+                                                    </button>
+                                                    <button
+                                                        onClick={() =>
+                                                            setModalDesignarConfirm(
+                                                                {
+                                                                    isOpen: true,
+                                                                    pasantiaId:
+                                                                        pasantia.id,
+                                                                },
+                                                            )
+                                                        }
+                                                        className="text-red-500 hover:text-red-700 transition-all cursor-pointer"
+                                                        title="Desasignar jefe"
+                                                    >
+                                                        <UserX size={19} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-center gap-0">
+                                                    <button
+                                                        onClick={() =>
+                                                            setModalAsignarJefePasantia(
+                                                                {
+                                                                    isOpen: true,
+                                                                    pasantiaId:
+                                                                        pasantia.id,
+                                                                },
+                                                            )
+                                                        }
+                                                        className="flex flex-col items-center gap-1 rounded-lg hover:bg-primary-sky-blue/10 transition-all duration-200 cursor-pointer group"
+                                                        title="Asignar jefe a la pasantía"
+                                                    >
+                                                        <UserPlus
+                                                            size={20}
+                                                            className="text-primary-sky-blue group-hover:scale-110 transition-transform"
+                                                        />
+
+                                                        <div className="px-2 py-1 bg-primary-sky-blue text-white rounded-md shadow-sm hover:bg-primary-blue transition-all duration-200">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[12px] font-semibold">
+                                                                    ASIGNAR
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
+                                            {pasantia.estado === "ABIERTA" ? (
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <div className="text-center">
+                                                        <span className="inline-block items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-[12.5px] font-semibold rounded-full">
+                                                            <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>{" "}
+                                                            abierto
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleAbrirConfirmacionInicio(
+                                                                pasantia.id,
+                                                            )
+                                                        }
+                                                        className="px-4 py-1.5 bg-primary-slate text-white text-xs font-semibold rounded-lg shadow-md hover:bg-primary-navy hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95"
+                                                        title="Cerrar Inscripciones"
+                                                    >
+                                                        CERRAR
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <div className="text-center">
+                                                        <span className="inline-block items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 text-[12.5px] font-semibold rounded-full">
+                                                            <span className="inline-block w-1.5 h-1.5 bg-red-500 rounded-full"></span>{" "}
+                                                            cerrado
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() =>
+                                                            setModalAbrir({
+                                                                isOpen: true,
+                                                                pasantiaId:
+                                                                    pasantia.id,
+                                                            })
+                                                        }
+                                                        className="px-4 py-1.5 bg-[#3C9087] text-white text-xs font-semibold rounded-lg shadow-md hover:bg-[#31756e] hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95"
+                                                        title="Habilitar Inscripciones"
+                                                    >
+                                                        ABRIR
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {comenzadasFiltradas.length === 0 && (
+                        <div className="text-center py-3">
+                            <p className="text-gray-500 font-medium">
+                                Las pasantías se pondrán aquí automáticamente{" "}
+                                <br /> cuando empiece su fecha de inicio
+                            </p>
+                            {searchComenzadas && (
+                                <button
+                                    onClick={() => setSearchComenzadas("")}
+                                    className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-all"
+                                >
+                                    <Search size={14} />
+                                    Limpiar búsqueda
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
+                {/* ══════════════════════════════════════════════════════════ */}
                 {/* Sección: PASANTÍAS ABIERTAS — Inscripciones Abiertas */}
                 {/* ══════════════════════════════════════════════════════════ */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -776,14 +1194,9 @@ export default function Index({ auth, pasantias }) {
 
                     {abiertasFiltradas.length === 0 && (
                         <div className="text-center py-3">
-                            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-3">
-                                <Briefcase
-                                    size={28}
-                                    className="text-gray-400"
-                                />
-                            </div>
                             <p className="text-gray-500 font-medium">
-                                No tienes ninguna pasantía publicada
+                                No tienes ninguna pasantía publicada <br /> ve
+                                al menú "Publicar Pasantía"
                             </p>
                             {searchAbiertas && (
                                 <button
@@ -1208,440 +1621,13 @@ export default function Index({ auth, pasantias }) {
 
                     {iniciadasFiltradas.length === 0 && (
                         <div className="text-center py-3">
-                            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-3">
-                                <Briefcase
-                                    size={28}
-                                    className="text-gray-400"
-                                />
-                            </div>
                             <p className="text-gray-500 font-medium">
-                                No hay pasantías con inscripciones cerradas
+                                Se pondrán aquí automáticamente cuando los{" "}
+                                <br /> cupos disponibles lleguen a 0 o se cierre
                             </p>
                             {searchIniciadas && (
                                 <button
                                     onClick={() => setSearchIniciadas("")}
-                                    className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-all"
-                                >
-                                    <Search size={14} />
-                                    Limpiar búsqueda
-                                </button>
-                            )}
-                        </div>
-                    )}
-                </div>
-                {/* ══════════════════════════════════════════════════════════ */}
-                {/* Sección: PASANTÍAS COMENZADAS */}
-                {/* ══════════════════════════════════════════════════════════ */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-5">
-                        <div className="flex items-center justify-between flex-wrap gap-4">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-white/10 rounded-xl backdrop-blur-sm">
-                                    <Play size={22} className="text-white" />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-bold text-white tracking-tight">
-                                        PASANTÍAS INICIADAS
-                                    </h2>
-                                    <p className="text-white/100 text-base mt-0.5 flex items-center gap-1.5">
-                                        <span className="inline-block w-1.5 h-1.5 bg-green-300 rounded-full"></span>
-                                        Pasantías cuya fecha de inicio ya llegó,
-                                        gestiona y controla tus pasantias
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="relative">
-                                <Search
-                                    size={18}
-                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar por nombre de pasantía..."
-                                    value={searchComenzadas}
-                                    onChange={(e) =>
-                                        setSearchComenzadas(e.target.value)
-                                    }
-                                    className="pl-10 pr-4 py-2 w-72 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/60 focus:bg-white/20 focus:outline-none focus:border-white/40 transition-all text-sm"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gradient-to-r from-primary-navy to-primary-slate">
-                                <tr>
-                                    <th className="px-1 py-3 text-center text-xs font-bold text-white w-8">
-                                        #
-                                    </th>
-                                    <th
-                                        className="px-4 py-3 text-left text-xs font-bold text-white cursor-pointer hover:bg-white/10"
-                                        onClick={() => handleSort("nombre")}
-                                    >
-                                        <div className="flex items-center gap-1">
-                                            NOMBRE PASANTÍA
-                                            <SortIcon field="nombre" />
-                                        </div>
-                                    </th>
-                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                        MENCIÓN
-                                    </th>
-                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                        FECHAS Y HORARIO
-                                    </th>
-                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                        ACTIVIDADES
-                                    </th>
-                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                        CUPOS DISPONIBLES
-                                    </th>
-                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                        PASANTES INSCRITOS
-                                    </th>
-                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                        JEFE PASANTIA
-                                    </th>
-                                    <th className="px-4 py-3 text-center text-xs font-bold text-white">
-                                        ESTADO INSCRIPCIÓN
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {comenzadasFiltradas.map((pasantia, index) => (
-                                    <tr
-                                        key={pasantia.id}
-                                        className="hover:bg-gray-50"
-                                    >
-                                        <td className="px-1 py-3 text-center text-base text-gray-700">
-                                            {index + 1}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-1 h-8 bg-gradient-to-b from-primary-blue to-primary-sky-blue rounded-full"></div>
-                                                    <span className="text-base font-bold text-gray-900 tracking-tight">
-                                                        {pasantia.nombre}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        <td className="px-1 py-2 text-center">
-                                            <span className="inline-flex px-2 py-1 text-xs font-medium text-primary-blue bg-primary-blue/10 rounded-lg border border-primary-blue/20">
-                                                {pasantia.mencion}
-                                            </span>
-                                        </td>
-
-                                        <td className="px-3 py-3 text-center">
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() =>
-                                                        setModalHorario({
-                                                            isOpen: true,
-                                                            turno: pasantia.turno,
-                                                            cargaHoraria:
-                                                                pasantia.carga_horaria,
-                                                            fechaIni:
-                                                                pasantia.fecha_ini,
-                                                            fechaFin:
-                                                                pasantia.fecha_fin,
-                                                            detalleHorario:
-                                                                pasantia.detalles_horario,
-                                                        })
-                                                    }
-                                                    className="flex flex-col items-center gap-0.5 mx-auto text-primary-blue hover:text-primary-sky-blue transition-colors group cursor-pointer"
-                                                    title="Ver horario y fechas"
-                                                >
-                                                    <Clock
-                                                        size={22}
-                                                        className="text-primary-blue group-hover:text-primary-sky-blue cursor-pointer"
-                                                    />
-                                                    <p className="text-[12px] font-medium text-primary-blue/80 group-hover:text-primary-sky-blue transition-colors cursor-pointer leading-none">
-                                                        Fechas y<br />
-                                                        Horario
-                                                    </p>
-                                                </button>
-                                                {/* Botón Editar: visible siempre, pero deshabilitado visualmente si hay inscritos */}
-                                                <button
-                                                    onClick={() => {
-                                                        if (
-                                                            pasantia.inscritos ===
-                                                            0
-                                                        ) {
-                                                            setModalEditar({
-                                                                isOpen: true,
-                                                                pasantia:
-                                                                    pasantia,
-                                                            });
-                                                        }
-                                                    }}
-                                                    disabled={
-                                                        pasantia.inscritos !== 0
-                                                    }
-                                                    className={`transition-all duration-200 p-1.5 rounded-lg ${
-                                                        pasantia.inscritos === 0
-                                                            ? "text-primary-blue hover:text-primary-sky-blue hover:bg-primary-blue/10 cursor-pointer"
-                                                            : "text-gray-400 bg-gray-50 opacity-50"
-                                                    }`}
-                                                    title={
-                                                        pasantia.inscritos === 0
-                                                            ? "Editar Datos"
-                                                            : "No se puede editar porque ya tiene inscritos"
-                                                    }
-                                                >
-                                                    <Edit size={20} />
-                                                </button>
-                                            </div>
-                                        </td>
-
-                                        <td className="px-4 py-3 text-center">
-                                            <div className="flex flex-col items-center gap-1">
-                                                <button
-                                                    onClick={() =>
-                                                        setModalActividades({
-                                                            isOpen: true,
-                                                            pasantiaId:
-                                                                pasantia.id,
-                                                            pasantiaNombre:
-                                                                pasantia.nombre,
-                                                        })
-                                                    }
-                                                    className="flex flex-col items-center gap-0.5 mx-auto text-primary-blue hover:text-primary-sky-blue transition-colors group"
-                                                    title="Ver actividades de la pasantía"
-                                                >
-                                                    <Calendar
-                                                        size={20}
-                                                        className="text-primary-blue group-hover:text-primary-sky-blue cursor-pointer"
-                                                    />
-                                                </button>
-
-                                                <button
-                                                    onClick={() =>
-                                                        setModalActividades({
-                                                            isOpen: true,
-                                                            pasantiaId:
-                                                                pasantia.id,
-                                                            pasantiaNombre:
-                                                                pasantia.nombre,
-                                                        })
-                                                    }
-                                                    className="px-2 py-1 bg-primary-blue text-white text-[11px] font-semibold rounded-md shadow-sm hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
-                                                    title="Ver actividades"
-                                                >
-                                                    ACTIVIDADES
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3 text-center">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <button
-                                                    onClick={() =>
-                                                        handleCuposChange(
-                                                            pasantia.id,
-                                                            pasantia.cupos - 1,
-                                                            pasantia.inscritos,
-                                                        )
-                                                    }
-                                                    disabled={
-                                                        pasantia.cupos <=
-                                                        pasantia.inscritos
-                                                    }
-                                                    className="p-1 rounded-lg bg-red-600 text-red-200 hover:bg-red-400 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                                                >
-                                                    <Minus size={15} />
-                                                </button>
-                                                <span className="font-medium">
-                                                    {pasantia.cupos_disponibles}
-                                                </span>
-                                                <button
-                                                    onClick={() =>
-                                                        handleCuposChange(
-                                                            pasantia.id,
-                                                            pasantia.cupos + 1,
-                                                            pasantia.inscritos,
-                                                        )
-                                                    }
-                                                    className="p-1 rounded-lg bg-green-600 text-green-200 hover:bg-green-400 transition-all cursor-pointer"
-                                                >
-                                                    <Plus size={15} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3 text-center">
-                                            <div className="flex flex-col items-center gap-0.5">
-                                                <button
-                                                    onClick={() =>
-                                                        setModalInscritos({
-                                                            isOpen: true,
-                                                            pasantiaId:
-                                                                pasantia.id,
-                                                            pasantiaNombre:
-                                                                pasantia.nombre,
-                                                        })
-                                                    }
-                                                    className="flex items-center justify-center gap-1.5 text-primary-blue hover:text-primary-sky-blue transition-all cursor-pointer group"
-                                                    title="Ver inscritos"
-                                                >
-                                                    <Users size={20} />
-                                                    <span className="text-base font-semibold">
-                                                        {pasantia.inscritos}
-                                                    </span>
-                                                </button>
-
-                                                <button
-                                                    onClick={() =>
-                                                        setModalInscritos({
-                                                            isOpen: true,
-                                                            pasantiaId:
-                                                                pasantia.id,
-                                                            pasantiaNombre:
-                                                                pasantia.nombre,
-                                                        })
-                                                    }
-                                                    className="px-2 py-1 bg-primary-blue text-white text-[11px] font-semibold rounded-md shadow-sm hover:bg-primary-sky-blue transition-all duration-200 cursor-pointer"
-                                                    title="Gestionar pasantes (asignar/desasignar)"
-                                                >
-                                                    GESTIONAR
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3 text-center">
-                                            {pasantia.jefe_asignado ? (
-                                                <div className="flex items-center justify-center gap-0">
-                                                    <button
-                                                        onClick={() =>
-                                                            setModalPerfilJefe({
-                                                                isOpen: true,
-                                                                jefe: pasantia.jefe_asignado,
-                                                            })
-                                                        }
-                                                        className="text-primary-blue hover:text-primary-sky-blue text-sm font-medium cursor-pointer"
-                                                    >
-                                                        {
-                                                            pasantia
-                                                                .jefe_asignado
-                                                                .ap_paterno
-                                                        }
-                                                        ,{" "}
-                                                        {
-                                                            pasantia
-                                                                .jefe_asignado
-                                                                .nombre
-                                                        }
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            setModalDesignarConfirm(
-                                                                {
-                                                                    isOpen: true,
-                                                                    pasantiaId:
-                                                                        pasantia.id,
-                                                                },
-                                                            )
-                                                        }
-                                                        className="text-red-500 hover:text-red-700 transition-all cursor-pointer"
-                                                        title="Desasignar jefe"
-                                                    >
-                                                        <UserX size={19} />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center justify-center gap-0">
-                                                    <button
-                                                        onClick={() =>
-                                                            setModalAsignarJefePasantia(
-                                                                {
-                                                                    isOpen: true,
-                                                                    pasantiaId:
-                                                                        pasantia.id,
-                                                                },
-                                                            )
-                                                        }
-                                                        className="flex flex-col items-center gap-1 rounded-lg hover:bg-primary-sky-blue/10 transition-all duration-200 cursor-pointer group"
-                                                        title="Asignar jefe a la pasantía"
-                                                    >
-                                                        <UserPlus
-                                                            size={20}
-                                                            className="text-primary-sky-blue group-hover:scale-110 transition-transform"
-                                                        />
-
-                                                        <div className="px-2 py-1 bg-primary-sky-blue text-white rounded-md shadow-sm hover:bg-primary-blue transition-all duration-200">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[12px] font-semibold">
-                                                                    ASIGNAR
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 text-center">
-                                            {pasantia.estado === "ABIERTA" ? (
-                                                <div className="flex flex-col items-center gap-1">
-                                                    <div className="text-center">
-                                                        <span className="inline-block items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-[12.5px] font-semibold rounded-full">
-                                                            <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>{" "}
-                                                            abierto
-                                                        </span>
-                                                    </div>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleAbrirConfirmacionInicio(
-                                                                pasantia.id,
-                                                            )
-                                                        }
-                                                        className="px-4 py-1.5 bg-primary-slate text-white text-xs font-semibold rounded-lg shadow-md hover:bg-primary-navy hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95"
-                                                        title="Cerrar Inscripciones"
-                                                    >
-                                                        CERRAR
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col items-center gap-1">
-                                                    <div className="text-center">
-                                                        <span className="inline-block items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 text-[12.5px] font-semibold rounded-full">
-                                                            <span className="inline-block w-1.5 h-1.5 bg-red-500 rounded-full"></span>{" "}
-                                                            cerrado
-                                                        </span>
-                                                    </div>
-                                                    <button
-                                                        onClick={() =>
-                                                            setModalAbrir({
-                                                                isOpen: true,
-                                                                pasantiaId:
-                                                                    pasantia.id,
-                                                            })
-                                                        }
-                                                        className="px-4 py-1.5 bg-[#3C9087] text-white text-xs font-semibold rounded-lg shadow-md hover:bg-[#31756e] hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95"
-                                                        title="Habilitar Inscripciones"
-                                                    >
-                                                        ABRIR
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {comenzadasFiltradas.length === 0 && (
-                        <div className="text-center py-3">
-                            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-3">
-                                <Briefcase
-                                    size={28}
-                                    className="text-gray-400"
-                                />
-                            </div>
-                            <p className="text-gray-500 font-medium">
-                                No tienes ninguna pasantía iniciada
-                            </p>
-                            {searchComenzadas && (
-                                <button
-                                    onClick={() => setSearchComenzadas("")}
                                     className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-all"
                                 >
                                     <Search size={14} />

@@ -24,6 +24,7 @@ export const menuGerente = [
         hide: true,
         single: true,
     },
+
     {
         name: "Perfil",
         icon: UserCircle,
@@ -33,6 +34,12 @@ export const menuGerente = [
             { name: "Cuenta", href: "/gerente/cuenta", icon: Settings },
             { name: "Cerrar Sesión", action: "logout", icon: LogOut },
         ],
+    },
+    {
+        name: "Estadísticas",
+        icon: BarChart3,
+        href: "/gerente/estadisticas",
+        single: true,
     },
     {
         name: "Mi Empresa",
@@ -83,11 +90,5 @@ export const menuGerente = [
                 icon: ClipboardList,
             },
         ],
-    },
-    {
-        name: "Estadísticas",
-        icon: BarChart3,
-        href: "/gerente/estadisticas",
-        single: true,
     },
 ];
