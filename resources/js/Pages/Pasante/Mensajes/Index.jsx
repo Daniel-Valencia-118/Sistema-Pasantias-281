@@ -45,6 +45,31 @@ const formatearFecha = (fecha, hora) => {
         });
     }
 };
+
+const formatHoraBolivia = (horaStr) => {
+    if (!horaStr) return "";
+    const partes = horaStr.toString().split(":");
+    const h = (partes[0] || "00").padStart(2, "0");
+    const m = (partes[1] || "00").padStart(2, "0");
+    const d = new Date(`2000-01-01T${h}:${m}:00Z`);
+    return d.toLocaleTimeString("es-BO", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "America/La_Paz",
+    });
+};
+
+const formatFechaBolivia = (fechaStr) => {
+    if (!fechaStr) return "";
+    const soloFecha = fechaStr.toString().slice(0, 10);
+    const [anio, mes, dia] = soloFecha.split("-").map(Number);
+    return new Date(anio, mes - 1, dia).toLocaleDateString("es-BO", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+    });
+};
+
 const getAvatarUrl = (contacto) => {
     // Si el contacto tiene avatar_url directamente (desde el backend)
     if (contacto.avatar_url) {

@@ -71,6 +71,30 @@ export default function PasanteLayout({ children }) {
         });
     };
 
+    //FECHAS:
+    const formatHoraBolivia = (horaStr) => {
+        if (!horaStr) return "";
+        const partes = horaStr.toString().split(":");
+        const h = (partes[0] || "00").padStart(2, "0");
+        const m = (partes[1] || "00").padStart(2, "0");
+        const d = new Date(`2000-01-01T${h}:${m}:00Z`);
+        return d.toLocaleTimeString("es-BO", {
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "America/La_Paz",
+        });
+    };
+
+    const formatFechaBolivia = (fechaStr) => {
+        if (!fechaStr) return "";
+        const soloFecha = fechaStr.toString().slice(0, 10);
+        const [anio, mes, dia] = soloFecha.split("-").map(Number);
+        return new Date(anio, mes - 1, dia).toLocaleDateString("es-BO", {
+            day: "2-digit",
+            month: "long",
+        });
+    };
+
     useEffect(() => {
         if (url === "/pasante") {
             setOpenMenus({});
@@ -528,11 +552,13 @@ export default function PasanteLayout({ children }) {
                                                             <p className="text-xs text-gray-600 mt-0.5">
                                                                 {notif.mensaje}
                                                             </p>
-                                                            <p className="text-xs text-gray-400 mt-1">
-                                                                {
-                                                                    notif.fecha_formateada
-                                                                }{" "}
-                                                                {notif.hora}
+                                                            <p className="text-xs text-gray-500 mt-1">
+                                                                {formatHoraBolivia(
+                                                                    notif.hora,
+                                                                )}{" "}
+                                                                {formatFechaBolivia(
+                                                                    notif.fecha,
+                                                                )}
                                                             </p>
                                                         </div>
                                                         {!notif.leido && (
