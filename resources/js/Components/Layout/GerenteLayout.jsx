@@ -455,13 +455,13 @@ export default function GerenteLayout({ children, header}) {
                         </div>
 
                         {/* Título dinámico */}
-                        <div className="hidden sm:block">
+                        {/* <div className="hidden sm:block">
                             {header ? (
                                 <h1 className="text-xl font-bold text-gray-800">{header}</h1>
                             ) : (
                                 <h1 className="text-xl font-bold text-gray-800">Sistema de Gestión</h1>
                             )}
-                        </div>
+                        </div> */}
                     </div>
 
                     <div className="flex-1" />

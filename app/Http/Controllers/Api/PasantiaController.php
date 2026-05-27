@@ -79,7 +79,7 @@ class PasantiaController extends Controller
             'cupos' => 'sometimes|integer|min:1',
             'cupos_disponibles' => 'sometimes|integer|min:0|lte:cupos',
             'carga_horaria' => 'nullable|integer',
-            'turno' => 'nullable|in:mañana,tarde,noche,tiempo completo,medio tiempo',
+            'turno' => 'nullable|in:Mañana,tarde,Noche,Tiempo completo,Medio tiempo',
         ]);        
 
         try {
