@@ -87,12 +87,12 @@ Route::post('/password/verify', function (Request $request) {
 })->middleware('guest')->name('password.verify');
 
 // Mostrar formulario de reset (con token)
-Route::get('/reset-password/{token}', function (string $token) {
-    return Inertia::render('Auth/ResetPassword', [
-        'token' => $token,
-        'email' => request('email')
-    ]);
-})->middleware('guest')->name('password.reset');
+// Route::get('/reset-password/{token}', function (string $token) {
+//     return Inertia::render('Auth/ResetPassword', [
+//         'token' => $token,
+//         'email' => request('email')
+//     ]);
+// })->middleware('guest')->name('password.reset');
 
 // Procesar reset de contraseña
 Route::post('/reset-password', [NewPasswordController::class, 'store'])
@@ -102,6 +102,8 @@ Route::post('/reset-password', [NewPasswordController::class, 'store'])
 Route::get('/api/configuracion-publica', function () {
     return response()->json(Presentacion::getConfiguracion());
 });
+
+//ROL ADMIN
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     // Dashboard Admin y perfil
@@ -185,6 +187,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ]);
 });
 
+//ROL JEFE DE PASANTE
+
 Route::middleware(['auth', 'role:jefe'])->group(function () {
     Route::get('/jefe/perfil', [JefeController::class, 'perfil'])->name('jefe.perfil');
     Route::put('/jefe/perfil', [JefeController::class, 'actualizarPerfil'])->name('jefe.actualizarPerfil');
@@ -241,11 +245,11 @@ Route::middleware(['auth', 'role:jefe'])->group(function () {
 
 
 // Rutas protegidas (ejemplo)
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
-});
+// Route::middleware(['auth:sanctum'])->group(function () {
+//     Route::get('/dashboard', function () {
+//         return Inertia::render('Dashboard');
+//     })->name('dashboard');
+// });
 
 // ROL GERENTE: 
 Route::middleware(['auth', 'role:gerente'])->group(function () {
