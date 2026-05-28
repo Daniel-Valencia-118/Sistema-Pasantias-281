@@ -36,6 +36,7 @@ export default function ChatActividadModal({ show, onClose, actividad, pasante, 
                         </div>
                     ) : (
                         comentarios.map((c) => {
+                            // COM_ACTIVIDAD(id_comactividad, com_pasante, com_jefe, fecha, hora, idU_pasante, idU_jefe, id_actividad)
                             const esJefe = c.remitente === "jefe";
                             return (
                                 <div

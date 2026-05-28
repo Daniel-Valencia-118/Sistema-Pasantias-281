@@ -7,12 +7,11 @@ import InputLabel from "@/Components/InputLabel";
 import InputError from "@/Components/InputError";
 import Checkbox from "@/Components/Checkbox";
 import PrimaryButton from "@/Components/PrimaryButton";
-import SecondaryButton from "@/Components/SecondaryButton";
 import GoogleButton from "@/Components/GoogleButton";
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
-        login: "", // Puede ser username o correo
+        login: "", 
         password: "",
         remember: false,
     });
@@ -41,15 +40,16 @@ export default function Login({ status, canResetPassword }) {
             <Head title="Iniciar Sesión" />
 
             <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10">
-                {/* Logo grande arriba del formulario */}
-                <div className="flex justify-center mb-6">
-                    <ApplicationLogo className="scale-150" />
+                
+                {/* El Logo ahora lee los datos globales por sí solo */}
+                <div className="flex flex-col items-center justify-center mb-6">
+                    <ApplicationLogo className="transform scale-150" showText={false} />
                 </div>
 
-                <h2 className="text-2xl font-bold text-center text-primary-navy mb-2">
+                <h2 className="text-xl font-bold text-center text-primary-navy mb-2">
                     Bienvenido de nuevo
                 </h2>
-                <p className="text-center text-gray-600 mb-8">
+                <p className="text-center text-sm text-gray-500 mb-8">
                     Ingresa tus credenciales para continuar
                 </p>
 
@@ -75,10 +75,7 @@ export default function Login({ status, canResetPassword }) {
                 {/* Formulario */}
                 <form onSubmit={submit} className="space-y-6">
                     <div>
-                        <InputLabel
-                            htmlFor="login"
-                            value="Usuario o Correo electrónico"
-                        />
+                        <InputLabel htmlFor="login" value="Usuario o Correo electrónico" />
                         <TextInput
                             id="login"
                             type="text"
@@ -107,10 +104,7 @@ export default function Login({ status, canResetPassword }) {
                             placeholder="Contraseña"
                             required
                         />
-                        <InputError
-                            message={errors.password}
-                            className="mt-1"
-                        />
+                        <InputError message={errors.password} className="mt-1" />
                     </div>
 
                     <div className="flex items-center justify-between">
@@ -118,13 +112,9 @@ export default function Login({ status, canResetPassword }) {
                             <Checkbox
                                 name="remember"
                                 checked={data.remember}
-                                onChange={(e) =>
-                                    setData("remember", e.target.checked)
-                                }
+                                onChange={(e) => setData("remember", e.target.checked)}
                             />
-                            <span className="ml-2 text-sm text-gray-600">
-                                Recordarme
-                            </span>
+                            <span className="ml-2 text-sm text-gray-600">Recordarme</span>
                         </label>
 
                         {canResetPassword && (
@@ -139,9 +129,7 @@ export default function Login({ status, canResetPassword }) {
 
                     <div className="pt-2">
                         <PrimaryButton className="w-full" disabled={processing}>
-                            {processing
-                                ? "Iniciando sesión..."
-                                : "Iniciar sesión"}
+                            {processing ? "Iniciando sesión..." : "Iniciar sesión"}
                         </PrimaryButton>
                     </div>
                 </form>
@@ -152,9 +140,7 @@ export default function Login({ status, canResetPassword }) {
                         <div className="w-full border-t border-gray-200"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
-                        <span className="bg-white px-4 text-gray-500">
-                            o continúa con
-                        </span>
+                        <span className="bg-white px-4 text-gray-500">o continúa con</span>
                     </div>
                 </div>
 

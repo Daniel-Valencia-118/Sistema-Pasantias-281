@@ -77,6 +77,7 @@ public function dashboard()
             ->get()
             ->map(fn($b) => [
                 'id' => $b->id_bitacora,
+                'id_pasantia' => $b->actividad->pasantia->id_pasantia ?? null, // Aseguramos que exista la relación
                 'pasante_nombre' => $b->pasante_full_name,
                 'pasantia_titulo' => $b->actividad->nombre_act ?? 'Actividad General',
                 'fecha' => $b->fecha, 
@@ -95,7 +96,7 @@ public function dashboard()
             ->get()
             ->map(fn($i) => [
                 'pasante' => $i->pasante,
-                'completitud' => $i->id_informe ? 100 : 40, 
+                'completitud' => $i->id_informe ? 100 : 0, 
                 'fecha_limite' => $i->fecha_insc,
                 'id_pasantia' => $i->id_pasantia,
             ]);
@@ -462,83 +463,83 @@ public function dashboard()
     // =============================================
     // GENERAR INFORME FINAL POR ID DE INSCRIPCIÓN
     // =============================================
-    public function generarInformeFinalPorInscripcion($idInscripcion)
-    {
-        $user = Auth::user();
-        $jefe = $user->jefePas;
+    // public function generarInformeFinalPorInscripcion($idInscripcion)
+    // {
+    //     $user = Auth::user();
+    //     $jefe = $user->jefePas;
         
-        $inscripcion = Inscripcion::with(['pasante.user', 'pasantia.actividades'])
-            ->where('idU_jefe', $jefe->idU_jefe)
-            ->findOrFail($idInscripcion);
+    //     $inscripcion = Inscripcion::with(['pasante.user', 'pasantia.actividades'])
+    //         ->where('idU_jefe', $jefe->idU_jefe)
+    //         ->findOrFail($idInscripcion);
         
-        $pasantia = $inscripcion->pasantia;
-        $actividades = $pasantia->actividades;
+    //     $pasantia = $inscripcion->pasantia;
+    //     $actividades = $pasantia->actividades;
         
-        // CONDICIÓN 1: Por cada actividad debe existir al menos 1 subactividad
-        foreach ($actividades as $actividad) {
-            $subactividades = BitacoraEva::where('idU_pasante', $inscripcion->idU_pasante)
-                ->where('id_actividad', $actividad->id_actividad)
-                ->get();
+    //     // CONDICIÓN 1: Por cada actividad debe existir al menos 1 subactividad
+    //     foreach ($actividades as $actividad) {
+    //         $subactividades = BitacoraEva::where('idU_pasante', $inscripcion->idU_pasante)
+    //             ->where('id_actividad', $actividad->id_actividad)
+    //             ->get();
             
-            if ($subactividades->count() == 0) {
-                return response()->json([
-                    'message' => "La actividad '{$actividad->nombre_act}' no tiene subactividades asignadas"
-                ], 400);
-            }
-        }
+    //         if ($subactividades->count() == 0) {
+    //             return response()->json([
+    //                 'message' => "La actividad '{$actividad->nombre_act}' no tiene subactividades asignadas"
+    //             ], 400);
+    //         }
+    //     }
         
-        // CONDICIÓN 2: No debe haber subactividades pendientes
-        $subactividadesPendientes = BitacoraEva::where('idU_pasante', $inscripcion->idU_pasante)
-            ->where('estado', 'pendiente')
-            ->exists();
+    //     // CONDICIÓN 2: No debe haber subactividades pendientes
+    //     $subactividadesPendientes = BitacoraEva::where('idU_pasante', $inscripcion->idU_pasante)
+    //         ->where('estado', 'pendiente')
+    //         ->exists();
         
-        if ($subactividadesPendientes) {
-            return response()->json([
-                'message' => 'Hay subactividades pendientes de evaluar'
-            ], 400);
-        }
+    //     if ($subactividadesPendientes) {
+    //         return response()->json([
+    //             'message' => 'Hay subactividades pendientes de evaluar'
+    //         ], 400);
+    //     }
         
-        // CONDICIÓN 3: Estado de la pasantía debe ser "finalizado"
-        if ($pasantia->estado != 'finalizado') {
-            return response()->json([
-                'message' => 'La pasantía no ha sido marcada como finalizada'
-            ], 400);
-        }
+    //     // CONDICIÓN 3: Estado de la pasantía debe ser "finalizado"
+    //     if ($pasantia->estado != 'finalizado') {
+    //         return response()->json([
+    //             'message' => 'La pasantía no ha sido marcada como finalizada'
+    //         ], 400);
+    //     }
         
-        // Calcular promedio por actividad
-        $promediosPorActividad = [];
-        foreach ($actividades as $actividad) {
-            $promedio = BitacoraEva::where('idU_pasante', $inscripcion->idU_pasante)
-                ->where('id_actividad', $actividad->id_actividad)
-                ->avg('nota');
+    //     // Calcular promedio por actividad
+    //     $promediosPorActividad = [];
+    //     foreach ($actividades as $actividad) {
+    //         $promedio = BitacoraEva::where('idU_pasante', $inscripcion->idU_pasante)
+    //             ->where('id_actividad', $actividad->id_actividad)
+    //             ->avg('nota');
             
-            $promediosPorActividad[] = [
-                'actividad' => $actividad->nombre_act,
-                'promedio' => round($promedio ?: 0, 2),
-            ];
-        }
+    //         $promediosPorActividad[] = [
+    //             'actividad' => $actividad->nombre_act,
+    //             'promedio' => round($promedio ?: 0, 2),
+    //         ];
+    //     }
         
-        $promedioFinal = collect($promediosPorActividad)->avg('promedio');
+    //     $promedioFinal = collect($promediosPorActividad)->avg('promedio');
         
-        $informe = InformeFin::updateOrCreate(
-            ['id_inscripcion' => $idInscripcion],
-            [
-                'promedio' => round($promedioFinal, 2),
-                'resultado' => null,
-                'fecha' => now()->toDateString(),
-                'idU_jefe' => $jefe->idU_jefe,
-            ]
-        );
+    //     $informe = InformeFin::updateOrCreate(
+    //         ['id_inscripcion' => $idInscripcion],
+    //         [
+    //             'promedio' => round($promedioFinal, 2),
+    //             'resultado' => null,
+    //             'fecha' => now()->toDateString(),
+    //             'idU_jefe' => $jefe->idU_jefe,
+    //         ]
+    //     );
         
-        return response()->json([
-            'message' => 'Informe final generado',
-            'data' => [
-                'informe' => $informe,
-                'detalle_actividades' => $promediosPorActividad,
-                'promedio_final' => round($promedioFinal, 2),
-            ]
-        ]);
-    }
+    //     return response()->json([
+    //         'message' => 'Informe final generado',
+    //         'data' => [
+    //             'informe' => $informe,
+    //             'detalle_actividades' => $promediosPorActividad,
+    //             'promedio_final' => round($promedioFinal, 2),
+    //         ]
+    //     ]);
+    // }
     
 
     // =============================================
@@ -624,6 +625,8 @@ public function dashboard()
                             // Identificamos quién envió el mensaje para renderizar las burbujas
                             'remitente' => !is_null($c->com_jefe) ? 'jefe' : 'pasante',
                             'texto' => $c->com_jefe ?? $c->com_pasante ?? '',
+                            // 'com_pasante' => $c->com_pasante ?? '',
+                            // 'com_jefe' => $c->com_jefe ?? '',
                         ];
                     });
 
@@ -641,7 +644,7 @@ public function dashboard()
 
                 $hoy = date('Y-m-d');
                 $yaEmpezo = $actividad->fecha_ini && $actividad->fecha_ini <= $hoy;
-                $yaVencioPlazo = $actividad->fecha_fin && $actividad->fecha_fin <= $hoy;
+                $yaVencioPlazo = $actividad->fecha_fin && $actividad->fecha_fin < $hoy;
                 $progresoAl100 = (int)$porcentajeProgreso === 100;
                 $puedeEvaluar = $yaEmpezo && ($progresoAl100 || $yaVencioPlazo);
 
@@ -711,6 +714,7 @@ public function dashboard()
         ]);
 
         $jefe = Auth::user()->jefePas;
+
         if (!$jefe) {
             return redirect()->back()->with('error', 'No autorizado.');
         }
@@ -719,15 +723,32 @@ public function dashboard()
         DB::beginTransaction();
 
         try {
-            DB::table('com_actividad')->insert([
-                'id_actividad' => $request->id_actividad,
-                'idU_pasante'  => $request->idU_pasante,
-                'idU_jefe'     => $jefe->idU_jefe,
-                'com_jefe'     => $request->comentario,
-                'com_pasante'  => null,
-                'fecha'        => now()->toDateString(), // Alternativa limpia de Laravel
-                'hora'         => now()->toTimeString(), // Alternativa limpia de Laravel
-            ]);
+            // buscar si ya existe un comentario del pasante para esta actividad
+            // COM_ACTIVIDAD(id_comactividad, com_pasante, com_jefe, fecha, hora, idU_pasante, idU_jefe, id_actividad)
+            // $comentarioExistente = DB::table('com_actividad')
+            //     ->where('id_actividad', $request->id_actividad)
+            //     ->where('idU_pasante', $request->idU_pasante)
+            //     ->first();
+            
+            // // dd($comentarioExistente);
+            // // actulizar com_jefe del comentario existente o crear uno nuevo si no existe
+            // if ($comentarioExistente) {
+            //     DB::table('com_actividad')->where('id_comactividad', $comentarioExistente->id_comactividad)->update([
+            //         'com_jefe' => $request->comentario,
+            //         // 'fecha' => now()->toDateString(),
+            //         // 'hora' => now()->toTimeString(),
+            //     ]);
+            // } else {
+                DB::table('com_actividad')->insert([
+                    'id_actividad' => $request->id_actividad,
+                    'idU_pasante'  => $request->idU_pasante,
+                    'idU_jefe'     => $jefe->idU_jefe,
+                    'com_jefe'     => $request->comentario,
+                    'com_pasante'  => null,
+                    'fecha'        => now()->toDateString(), // Alternativa limpia de Laravel
+                    'hora'         => now()->toTimeString(), // Alternativa limpia de Laravel
+                ]);
+            // }
 
             // Confirma los cambios si todo sale bien
             DB::commit();
@@ -1044,7 +1065,7 @@ public function dashboard()
 
         try {
             // Determinar el resultado cualitativo de la pasantía
-            $resultado = $request->nota_final >= 51 ? 'aprobado' : 'reprobado';
+            $resultado = $request->nota_final >= 51 ? 'APROBADO' : 'REPROBADO';
 
             // Guardar en la tabla INFORME_FIN
             InformeFin::create([
@@ -1073,9 +1094,9 @@ public function dashboard()
         } catch (\Exception $e) {
             // Deshacer los cambios en caso de cualquier error
             DB::rollBack();
-
             // Registrar el error en los logs para auditoría
             // Log::error('Error al generar el informe final: ' . $e->getMessage());
+            // dd($e->getMessage());
 
             return redirect()->back()
                 ->withInput()

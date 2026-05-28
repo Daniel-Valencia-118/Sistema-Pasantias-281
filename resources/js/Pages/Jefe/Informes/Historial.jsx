@@ -65,7 +65,7 @@ export default function Historial({ pasantia, informes = [], auth }) {
             align: 'center',
             render: (value) => (
                 <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-                    value === 'aprobado' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200'
+                    value === 'APROBADO' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200'
                 }`}>
                     {value}
                 </span>
@@ -98,7 +98,7 @@ export default function Historial({ pasantia, informes = [], auth }) {
             </a>
 
             {/* Acción 3: Generar Certificado */}
-            {row.resultado === 'aprobado' && (
+            {row.resultado === 'APROBADO' && (
                 <a 
                     href={route('informes.certificado', row.id)} 
                     target="_blank"
@@ -195,14 +195,14 @@ export default function Historial({ pasantia, informes = [], auth }) {
                         </div>
 
                         {/* Dictamen */}
-                        <div>
+                        {/* <div>
                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mb-1.5">
                                 <BookmarkCheck size={14} /> Observaciones del Dictamen Técnico
                             </span>
                             <div className="p-4 bg-slate-50/50 border border-slate-100 rounded-xl text-slate-600 text-sm leading-relaxed whitespace-pre-line">
                                 {selectedInforme.observaciones || 'No se registraron observaciones complementarias en el acta.'}
                             </div>
-                        </div>
+                        </div> */}
 
                         <div className="flex justify-end pt-2 border-t border-slate-100">
                             <SecondaryButton onClick={() => setVerModal(false)}>Cerrar Expediente</SecondaryButton>

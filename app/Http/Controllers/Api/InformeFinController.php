@@ -25,7 +25,7 @@ class InformeFinController extends Controller
     {
         $validated = $request->validate([
             'promedio' => 'required|numeric|min:0|max:100',
-            'resultado' => 'required|in:aprobado,reprobado',
+            'resultado' => 'required|in:APROBADO,REPROBADO',
             'fecha' => 'sometimes|date',
             'id_inscripcion' => 'required|exists:INSCRIPCION,id_inscripcion|unique:INFORME_FIN,id_inscripcion',
             'idU_jefe' => 'required|exists:JEFE_PAS,idU_jefe',
@@ -46,7 +46,7 @@ class InformeFinController extends Controller
         $informe = InformeFin::findOrFail($id);
         $validated = $request->validate([
             'promedio' => 'sometimes|numeric|min:0|max:100',
-            'resultado' => 'sometimes|in:aprobado,reprobado',
+            'resultado' => 'sometimes|in:APROBADO,REPROBADO',
             'fecha' => 'sometimes|date',
             'id_inscripcion' => 'sometimes|exists:INSCRIPCION,id_inscripcion|unique:INFORME_FIN,id_inscripcion,'.$id.',id_informe',
             'idU_jefe' => 'sometimes|exists:JEFE_PAS,idU_jefe',

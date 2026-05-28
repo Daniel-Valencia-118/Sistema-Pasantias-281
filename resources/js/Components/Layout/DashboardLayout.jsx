@@ -3,6 +3,7 @@ import { Link, router } from '@inertiajs/react';
 import Sidebar from '@/Components/Sidebar';
 import Toast from '@/Components/Toast';
 import NotificationDropdown from '@/Components/NotificationDropdown'; // <-- Importamos el módulo
+import ApplicationLogo from "@/Components/ApplicationLogo";
 import { 
     Menu, Home, User, Settings, LogOut, ChevronLeft 
 } from 'lucide-react';
@@ -60,15 +61,7 @@ export default function DashboardLayout({ children, auth, header }) {
                         </button>
                         
                         <div className="lg:hidden flex items-center gap-2">
-                            <img
-                                src="/images/logo.png"
-                                alt="SGP"
-                                className="h-7 w-auto rounded-full"
-                                onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.style.display = "none";
-                                }}
-                            />
+                           <ApplicationLogo className="transform scale-70" showText={false} />
                         </div>
 
                         {/* Título dinámico */}

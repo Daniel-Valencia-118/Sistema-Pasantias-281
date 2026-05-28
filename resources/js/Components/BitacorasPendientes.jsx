@@ -27,7 +27,7 @@ export default function BitacorasPendientes({ bitacoras, formatDate }) {
                                     <span className="text-xs text-gray-400">{formatDate(item.fecha)}</span>
                                     {/* Bloqueo automático de edición/creación implícito en el flujo del link */}
                                     <Link 
-                                        href={`/jefe/evaluaciones/${item.id}/bitacoras`}
+                                        href={`/jefe/evaluaciones/${item.id_pasantia}/bitacoras`}
                                         className="text-xs font-semibold text-blue-600 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
                                     >
                                         Evaluar <ArrowRight size={12} />

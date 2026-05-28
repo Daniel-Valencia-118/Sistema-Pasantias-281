@@ -209,8 +209,8 @@ export default function InformesFinales({ informes, auth }) {
                                 required
                             >
                                 <option value="">Seleccione una opción</option>
-                                <option value="aprobado">Aprobado</option>
-                                <option value="reprobado">Reprobado</option>
+                                <option value="APROBADO">Aprobado</option>
+                                <option value="REPROBADO">Reprobado</option>
                             </select>
                             <InputError message={errors.resultado} />
                         </div>

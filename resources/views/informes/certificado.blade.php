@@ -208,7 +208,7 @@
                         <div class="signature-line">
                             <strong>Sello Institucional</strong>
                         </div>
-                        <div class="signature-title">Validación del Sistema</div>
+                        <div class="signature-title">Validación de la empresa</div>
                     </td>
                 </tr>
             </table>

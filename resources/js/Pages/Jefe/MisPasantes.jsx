@@ -49,9 +49,9 @@ export default function MisPasantes({ pasantia = {}, listadoPasantes = [], auth 
             sortable: true,
             render: (value) => (
                 <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary-navy/10 flex items-center justify-center text-primary-navy font-bold border border-primary-navy/20">
+                    {/* <div className="h-10 w-10 rounded-full bg-primary-navy/10 flex items-center justify-center text-primary-navy font-bold border border-primary-navy/20">
                         {value ? value.charAt(0).toUpperCase() : <User size={16}/>}
-                    </div>
+                    </div> */}
                     <div className="flex flex-col">
                         <span className="font-bold text-slate-700 leading-none">{value}</span>
                         <span className="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">Pasante Asignado</span>
@@ -178,14 +178,14 @@ export default function MisPasantes({ pasantia = {}, listadoPasantes = [], auth 
                 show={isPerfilOpen}
                 onClose={() => setIsPerfilOpen(false)}
                 title="Información Detallada del Pasante"
-                maxWidth="2xl"
+                maxWidth="4xl"
             >
                 {selectedPasante && (
                     <div className="p-2 space-y-6">
                         <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                            <div className="h-16 w-16 bg-primary-navy text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-md shrink-0">
+                            {/* <div className="h-16 w-16 bg-primary-navy text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-md shrink-0">
                                 {selectedPasante.nombre_completo.charAt(0)}
-                            </div>
+                            </div> */}
                             <div className="text-center sm:text-left">
                                 <h3 className="font-black text-slate-800 text-lg uppercase tracking-tight">{selectedPasante.nombre_completo}</h3>
                                 <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Pasante Universitario</p>
@@ -226,16 +226,16 @@ export default function MisPasantes({ pasantia = {}, listadoPasantes = [], auth 
                 show={isProgresosOpen}
                 onClose={() => setIsProgresosOpen(false)}
                 title={`Progreso de Actividades: ${selectedPasante?.nombre_completo || ''}`}
-                maxWidth="3xl"
+                maxWidth="4xl"
             >
-                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 pl-1 scrollbar-thin scrollbar-thumb-slate-200">
+                <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-2 pl-1 scrollbar-thin scrollbar-thumb-slate-200">
                     {selectedPasante?.actividades_progreso && selectedPasante.actividades_progreso.length > 0 ? (
                         selectedPasante.actividades_progreso.map((act, idx) => (
                             <div key={idx} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
                                 {/* Encabezado de la actividad */}
                                 <div className="bg-slate-50/70 px-4 py-2.5 border-b border-slate-100 flex justify-between items-center gap-4">
-                                    <div className="space-y-0.5">
-                                        <span className="text-[9px] font-bold text-primary-blue uppercase tracking-wider block">Actividad Programada</span>
+                                    <div className="space-y-2">
+                                        <span className="text-[12px] font-bold text-primary-blue uppercase tracking-wider block">Actividad Programada</span>
                                         <h4 className="text-sm font-bold text-slate-800 leading-tight">{act.nombre_actividad}</h4>
                                     </div>
                                     {/* Mostrar Nota si existe evaluación en BITACORA */}
@@ -254,7 +254,7 @@ export default function MisPasantes({ pasantia = {}, listadoPasantes = [], auth 
                                 </div>
 
                                 {/* Cuerpo: Progreso más reciente (PROGRESO_ACT) */}
-                                <div className="p-4 space-y-3">
+                                <div className="p-4 space-y-5">
                                     <div className="bg-slate-50/30 p-2.5 rounded-lg border border-slate-100/80">
                                         <ProgressBar percentage={act.porcentaje} />
                                     </div>

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Models\Presentacion; // Importa tu modelo
 
 class HandleInertiaRequests extends Middleware
 {
@@ -122,6 +123,8 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $userData
             ],
+            'logo_global' => Presentacion::getConfiguracion()->logo_url,
+            'nombre_sistema_global' => Presentacion::getConfiguracion()->nombre_sistema,
             // Los 5 canales completos listos para escuchar en tu Toast.jsx
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, router, usePage } from "@inertiajs/react";
 import { menuConfig } from "@/Config/menuConfig";
+import ApplicationLogo from "@/Components/ApplicationLogo";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 export default function Sidebar({ auth, onClose }) {
@@ -181,11 +182,7 @@ export default function Sidebar({ auth, onClose }) {
                 <div className="flex items-center justify-between p-4 border-b border-gray-700/50 min-h-[72px]">
                     {!collapsed ? (
                         <div className="flex items-center gap-3 overflow-hidden">
-                            <img
-                                src="/images/logo.png"
-                                alt="Logo"
-                                className="h-10 w-auto rounded-full shadow-sm"
-                            />
+                            <ApplicationLogo className="transform scale-70" showText={false} />
                             <div className="flex flex-col leading-tight truncate">
                                 <h3 className="text-white font-bold text-lg tracking-wide">
                                     SGP
@@ -196,11 +193,9 @@ export default function Sidebar({ auth, onClose }) {
                             </div>
                         </div>
                     ) : (
-                        <img
-                            src="/images/logo.png"
-                            alt="Logo"
-                            className="h-8 w-auto mx-auto rounded-full"
-                        />
+                        <div className="flex justify-center">
+                            <ApplicationLogo className="transform scale-70" showText={false} />
+                        </div>
                     )}
 
                     {/* Botón de Colapso */}

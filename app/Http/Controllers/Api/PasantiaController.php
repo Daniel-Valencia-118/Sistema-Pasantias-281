@@ -15,7 +15,9 @@ class PasantiaController extends Controller
     public function index()
     {
         try {
-            $pasantias = Pasantia::with('empresa')->get();
+            $pasantias = Pasantia::with('empresa')->orderBy('fecha_ini', 'asc')->get();
+            // ordenar pasantias por fecha de inicio ascendente
+            
             return Inertia::render('Admin/Pasantias/Publicadas', ['pasantias' => $pasantias]);
         } catch (\Exception $e) {
             return back()->with('error', 'Error al cargar las pasantías: ' . $e->getMessage());
@@ -79,8 +81,10 @@ class PasantiaController extends Controller
             'cupos' => 'sometimes|integer|min:1',
             'cupos_disponibles' => 'sometimes|integer|min:0|lte:cupos',
             'carga_horaria' => 'nullable|integer',
-            'turno' => 'nullable|in:Mañana,tarde,Noche,Tiempo completo,Medio tiempo',
-        ]);        
+            'turno' => 'nullable|in:Mañana,Tarde,Noche,Tiempo completo,Medio tiempo',
+        ]);
+        
+        // dd($validated);
 
         try {
             DB::beginTransaction();

@@ -482,7 +482,7 @@
                         PROMEDIO FINAL OBTENIDO
                     </div>
 
-                    <div class="promedio {{ $aprobado ? 'aprobado' : 'reprobado' }}">
+                    <div class="promedio {{ $aprobado ? 'APROBADO' : 'REPROBADO' }}">
                         {{ $promedio }}/100
                     </div>
 

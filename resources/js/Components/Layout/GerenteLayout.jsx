@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import { menuGerente } from "@/Config/menuGerente";
+import ApplicationLogo from "@/Components/ApplicationLogo";
 import Toast from '@/Components/Toast';
 import axios from "axios";
 import {
@@ -361,15 +362,7 @@ export default function GerenteLayout({ children, header}) {
                     <div className="flex items-center justify-between p-5 border-b border-primary-slate mb-2">
                         {!collapsed && (
                             <div className="flex items-center gap-3">
-                                <img
-                                    src="/images/logo.png"
-                                    alt="Logo"
-                                    className="h-12 w-auto rounded-full"
-                                    onError={(e) => {
-                                        e.target.onerror = null;
-                                        e.target.style.display = "none";
-                                    }}
-                                />
+                                <ApplicationLogo className="transform scale-75" showText={false} />
                                 <div className="flex flex-col items-start leading-tight overflow-hidden whitespace-nowrap">
                                     <h1 className="text-white font-bold text-lg">
                                         SGP
@@ -381,15 +374,7 @@ export default function GerenteLayout({ children, header}) {
                             </div>
                         )}
                         {collapsed && (
-                            <img
-                                src="/images/logo.png"
-                                alt="Logo"
-                                className="h-7 w-auto mx-auto rounded-full"
-                                onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.style.display = "none";
-                                }}
-                            />
+                            <ApplicationLogo className="transform scale-75" showText={false}/>
                         )}
                     </div>
 
@@ -444,15 +429,7 @@ export default function GerenteLayout({ children, header}) {
                         </button>
                         
                         <div className="lg:hidden flex items-center gap-2">
-                            <img
-                                src="/images/logo.png"
-                                alt="SGP"
-                                className="h-7 w-auto rounded-full"
-                                onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.style.display = "none";
-                                }}
-                            />
+                            <ApplicationLogo className="transform scale-60" showText={false}  />
                         </div>
 
                         {/* Título dinámico */}

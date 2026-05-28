@@ -51,7 +51,7 @@
         </tr>
         <tr>
             <td><strong>Resultado:</strong></td>
-            <td style="font-weight: bold; color: {{ $informe['resultado'] == 'aprobado' ? 'green' : 'red' }};">
+            <td style="font-weight: bold; color: {{ $informe['resultado'] == 'APROBADO' ? 'green' : 'red' }};">
                 {{ strtoupper($informe['resultado']) }}
             </td>
         </tr>

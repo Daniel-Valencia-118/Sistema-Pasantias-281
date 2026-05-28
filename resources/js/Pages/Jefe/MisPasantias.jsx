@@ -156,21 +156,22 @@ export default function MisPasantias({ pasantias = [], empresa = null, auth }) {
                 className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition"
                 title="Ver detalles de la pasantía"
             >
-                <Briefcase size={17} />
+                <Eye size={17} />
             </button>
             <button
                 onClick={() => { setSelectedPasantia(row); setModalPasantesOpen(true); }}
                 className="p-2 text-primary-blue hover:bg-primary-blue/10 rounded-lg transition"
                 title="Ver alumnos inscritos"
             >
-                <Eye size={17} />
+                <Users size={17} />
             </button>
             <Link
                 href={`/jefe/actividades/${row.id}`}
-                className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition inline-flex items-center"
+                className="flex items-center gap-1.5 px-4 h-9 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl shadow-sm transition-all transform hover:-translate-y-0.5"
                 title="Ver seguimiento de actividades"
             >
                 <ClipboardList size={17} />
+                <span > Actividades </span>
             </Link>
         </div>
     );
@@ -269,8 +270,8 @@ export default function MisPasantias({ pasantias = [], empresa = null, auth }) {
                         </div>
                         <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 space-y-2 text-xs text-slate-600">
                             <div className="flex justify-between">
-                                <span className="font-medium">Identificador Único:</span>
-                                <span className="font-mono bg-slate-200/60 px-1.5 rounded text-slate-700">ID-{selectedPasantia.id}</span>
+                                {/* <span className="font-medium">Identificador Único:</span> */}
+                                {/* <span className="font-mono bg-slate-200/60 px-1.5 rounded text-slate-700">ID-{selectedPasantia.id}</span> */}
                             </div>
                             <div className="flex justify-between">
                                 <span className="font-medium">Nombre de Convocatoria:</span>
@@ -310,7 +311,7 @@ export default function MisPasantias({ pasantias = [], empresa = null, auth }) {
                                         <li key={p.id} className="flex justify-between items-center p-3 hover:bg-slate-50/60 transition duration-150">
                                             <span className="text-xs font-bold text-slate-700 tracking-tight">{p.nombre}</span>
                                             <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide border ${
-                                                p.estado_inscripcion === 'activo' || p.estado_inscripcion === 'ACEPTADO'
+                                                p.estado_inscripcion === 'inscrito' || p.estado_inscripcion === 'iniciado'
                                                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                                                     : 'bg-amber-50 text-amber-700 border-amber-200'
                                             }`}>

@@ -173,6 +173,18 @@ export const menuConfig = {
                 // { name: 'Nueva Bitácora', href: '/jefe/bitacora/crear', icon: FilePlus },
             ],
         },
+        // {
+        //     name: 'Actividades',
+        //     icon: Activity,
+        //     single: true,
+        //     href: '/jefe/pasantias/tarjetas?origen=actividades', // Contexto: Actividades
+        // },
+        // {
+        //     name: 'Bitácoras',
+        //     icon: FileCheck,
+        //     single: true,
+        //     href: '/jefe/pasantias/tarjetas?origen=bitacoras',   // Contexto: Bitácoras
+        // },
         {
             name: 'Informes Finales',
             icon: FileText,

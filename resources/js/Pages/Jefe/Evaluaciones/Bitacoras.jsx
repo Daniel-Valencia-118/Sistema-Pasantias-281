@@ -102,6 +102,7 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
             preserveScroll: true, // Mantiene el scroll de la tabla intacto al enviar
             onSuccess: () => {
                 chatForm.reset("comentario"); // Solo limpia la caja de texto
+                chatForm.setData({'comentario': ''});
             },
         });
     };
@@ -242,9 +243,9 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                             {/* Barra Superior del Pasante */}
                             <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2.5 bg-primary-navy text-white rounded-xl">
+                                    {/* <div className="p-2.5 bg-primary-navy text-white rounded-xl">
                                         <User size={20} />
-                                    </div>
+                                    </div> */}
                                     <div>
                                         <h2 className="text-lg font-bold text-primary-navy">
                                             {pasante.nombre_completo}

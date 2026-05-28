@@ -23,13 +23,13 @@ class AppServiceProvider extends ServiceProvider
     {
         // Solo fuerza HTTPS si la petición NO viene de localhost directo
         // Evaluamos el dominio exacto que está haciendo la petición actual
-        $host = request()->getHost();
+        // $host = request()->getHost();
 
-        if ($host === '127.0.0.1' || $host === 'localhost') {
-            URL::forceScheme('http'); // Fuerza HTTP sin seguridad para tu entorno local
-        } elseif (str_contains($host, 'loca.lt')) {
-            URL::forceScheme('https'); // Fuerza HTTPS únicamente para el túnel de tu equipo
-        }
+        // if ($host === '127.0.0.1' || $host === 'localhost') {
+        //     URL::forceScheme('http'); // Fuerza HTTP sin seguridad para tu entorno local
+        // } elseif (str_contains($host, 'loca.lt')) {
+        //     URL::forceScheme('https'); // Fuerza HTTPS únicamente para el túnel de tu equipo
+        // }
     //Sanctum::ignoreMigrations(); //
     }
 }

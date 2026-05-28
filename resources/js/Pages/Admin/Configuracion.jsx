@@ -22,6 +22,9 @@ export default function Configuracion({ auth, config }) {
         logo: null,
     });
 
+    console.log(config);
+    
+
     const handleSubmit = (e) => {
         e.preventDefault();
         // Usamos post con el truco del método para simular una actualización completa con archivos

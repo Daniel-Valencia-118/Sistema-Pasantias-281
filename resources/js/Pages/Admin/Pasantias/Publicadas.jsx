@@ -348,10 +348,10 @@ export default function Publicadas({ pasantias = [], empresas = [], auth }) {
                                 <option value="Mañana">Mañana</option>
                                 <option value="Tarde">Tarde</option>
                                 <option value="Noche">Noche</option>
-                                <option value="Tiempo Completo">
+                                <option value="Tiempo completo">
                                     Tiempo Completo
                                 </option>
-                                <option value="Medio Tiempo">
+                                <option value="Medio tiempo">
                                     Medio Tiempo
                                 </option>
                             </SelectInput>

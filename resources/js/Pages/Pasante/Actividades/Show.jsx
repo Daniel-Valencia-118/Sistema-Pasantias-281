@@ -572,12 +572,14 @@ export default function Show({
 
                                         {expandedComments[act.id] && (
                                             <div className="mt-6 space-y-5 max-h-[500px] overflow-y-auto pr-2">
-                                                {act.comentarios.map((com) => (
+                                                {act.comentarios.map((com) => ( 
                                                     <div
                                                         key={com.id}
                                                         className="space-y-4"
                                                     >
                                                         {/* Comentario */}
+                                                        {/* Si com.comentario es null no se muestra */}
+                                                        {com.comentario && (
                                                         <div className="flex gap-2">
                                                             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary-blue to-blue-400 text-white flex items-center justify-center text-sm font-bold shadow-md overflow-hidden">
                                                                 {com.autor_avatar_url ? (
@@ -703,6 +705,7 @@ export default function Show({
                                                                 )}
                                                             </div>
                                                         </div>
+                                                        )}
 
                                                         {/* Respuesta jefe */}
                                                         {com.respuesta_jefe && (

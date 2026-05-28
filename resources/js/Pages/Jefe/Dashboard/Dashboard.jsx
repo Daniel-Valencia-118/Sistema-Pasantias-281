@@ -23,7 +23,7 @@ export default function Dashboard({ auth, stats, rendimiento_pasantes, bitacoras
         });
     };
 
-    console.log(actividades_recientes, bitacoras_pendientes, rendimiento_pasantes);
+    console.log(stats, rendimiento_pasantes, bitacoras_pendientes, actividades_recientes);
     
 
     const cards = [
@@ -43,7 +43,7 @@ export default function Dashboard({ auth, stats, rendimiento_pasantes, bitacoras
         },
         { 
             label: 'Bitácoras en Lista', 
-            value: bitacoras_pendientes?.length || 0, 
+            value: stats.actividades_completadas || 0,
             icon: FileCheck, 
             color: 'text-purple-600', 
             bg: 'bg-purple-50' 
