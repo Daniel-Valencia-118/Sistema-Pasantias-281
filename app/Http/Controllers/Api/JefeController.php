@@ -739,7 +739,7 @@ public function dashboard()
             DB::rollBack();
 
             // Registra el error en el archivo log de Laravel para auditoría
-            Log::error('Error al guardar comentario: ' . $e->getMessage());
+            // Log::error('Error al guardar comentario: ' . $e->getMessage());
 
             return redirect()->back()->with('error', 'Ocurrió un error al procesar tu solicitud.');
         }
@@ -754,23 +754,40 @@ public function dashboard()
             'idU_pasante' => 'required',
             'nota' => 'required|numeric|min:0|max:100',
             'descripcion' => 'required|string',
-            'observacion' => 'nullable|string',
+            'observacion' => 'required|string',
+            'recomendacion' => 'required|string',
             'estado' => 'required|string',
         ]);
 
-        // Crear la bitácora de evaluación (No existía previamente bajo este nuevo flujo estructurado)
-        BitacoraEva::create([
-            'idU_jefe' => $jefe->idU_jefe,
-            'idU_pasante' => $request->idU_pasante,
-            'id_actividad' => $request->id_actividad,
-            'nota' => $request->nota,
-            'observacion' => $request->observacion,
-            'descripcion' => $request->descripcion,
-            'estado' => $request->estado,
-            'fecha' => now(),
-        ]);
+        // Iniciar la transacción
+        DB::beginTransaction();
 
-        return redirect()->back()->with('success', 'Evaluación registrada correctamente.');
+        try {
+            // Crear la bitácora de evaluación
+            BitacoraEva::create([
+                'idU_jefe' => $jefe->idU_jefe,
+                'idU_pasante' => $request->idU_pasante,
+                'id_actividad' => $request->id_actividad,
+                'nota' => $request->nota,
+                'observacion' => $request->observacion,
+                'descripcion' => $request->descripcion,
+                'recomendacion' => $request->recomendacion,
+                'estado' => $request->estado,
+                'fecha' => now(),
+                'hora' => now(),
+            ]);
+
+            // Confirmar los cambios si todo sale bien
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Evaluación registrada correctamente.');
+
+        } catch (Exception $e) {
+            // Deshacer los cambios en caso de error
+            DB::rollBack();
+
+            return redirect()->back()->with('error', 'Hubo un problema al registrar la evaluación: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -1058,7 +1075,7 @@ public function dashboard()
             DB::rollBack();
 
             // Registrar el error en los logs para auditoría
-            Log::error('Error al generar el informe final: ' . $e->getMessage());
+            // Log::error('Error al generar el informe final: ' . $e->getMessage());
 
             return redirect()->back()
                 ->withInput()
@@ -1069,141 +1086,141 @@ public function dashboard()
     /**
      * Muestra formulario para crear bitácora
      */
-    public function crearBitacora()
-    {
-        $jefe = Auth::user()->jefePas;
+    // public function crearBitacora()
+    // {
+    //     $jefe = Auth::user()->jefePas;
 
-        // Pasantías donde el jefe tiene pasantes asignados
-        $pasantias = Pasantia::whereHas('inscripciones', function ($q) use ($jefe) {
-            $q->where('idU_jefe', $jefe->idU_jefe);
-        })->get()->map(fn($p) => [
-            'id' => $p->id_pasantia,
-            'nombre' => $p->nombre_pas,
-        ]);
+    //     // Pasantías donde el jefe tiene pasantes asignados
+    //     $pasantias = Pasantia::whereHas('inscripciones', function ($q) use ($jefe) {
+    //         $q->where('idU_jefe', $jefe->idU_jefe);
+    //     })->get()->map(fn($p) => [
+    //         'id' => $p->id_pasantia,
+    //         'nombre' => $p->nombre_pas,
+    //     ]);
 
-        // Pasantes bajo la supervisión del jefe (inscripciones activas)
-        $pasantes = Pasante::with('user')
-            ->whereHas('inscripciones', function ($q) use ($jefe) {
-                $q->where('idU_jefe', $jefe->idU_jefe);
-            })
-            ->get()
-            ->map(fn($p) => [
-                'id' => $p->idU_pasante,
-                'nombre' => $p->user->nombre . ' ' . $p->user->ap_paterno,
-            ]);
+    //     // Pasantes bajo la supervisión del jefe (inscripciones activas)
+    //     $pasantes = Pasante::with('user')
+    //         ->whereHas('inscripciones', function ($q) use ($jefe) {
+    //             $q->where('idU_jefe', $jefe->idU_jefe);
+    //         })
+    //         ->get()
+    //         ->map(fn($p) => [
+    //             'id' => $p->idU_pasante,
+    //             'nombre' => $p->user->nombre . ' ' . $p->user->ap_paterno,
+    //         ]);
 
-        // Actividades de esas pasantías
-        $actividades = Actividad::whereIn('id_pasantia', $pasantias->pluck('id'))
-            ->get()
-            ->map(fn($a) => [
-                'id' => $a->id_actividad,
-                'nombre' => $a->nombre_act,
-                'pasantia_id' => $a->id_pasantia,
-            ]);
+    //     // Actividades de esas pasantías
+    //     $actividades = Actividad::whereIn('id_pasantia', $pasantias->pluck('id'))
+    //         ->get()
+    //         ->map(fn($a) => [
+    //             'id' => $a->id_actividad,
+    //             'nombre' => $a->nombre_act,
+    //             'pasantia_id' => $a->id_pasantia,
+    //         ]);
 
-        return Inertia::render('Jefe/Bitacora/Form', [
-            'pasantias' => $pasantias,
-            'pasantes' => $pasantes,
-            'actividades' => $actividades,
-            'bitacora' => null, // modo creación
-        ]);
-    }
+    //     return Inertia::render('Jefe/Bitacora/Form', [
+    //         'pasantias' => $pasantias,
+    //         'pasantes' => $pasantes,
+    //         'actividades' => $actividades,
+    //         'bitacora' => null, // modo creación
+    //     ]);
+    // }
 
-    /**
-     * Muestra formulario para editar bitácora
-     */
-    public function editarBitacora($id)
-    {
-        $bitacora = BitacoraEva::with('actividad.pasantia', 'pasante.user')
-            ->findOrFail($id);
+    // /**
+    //  * Muestra formulario para editar bitácora
+    //  */
+    // public function editarBitacora($id)
+    // {
+    //     $bitacora = BitacoraEva::with('actividad.pasantia', 'pasante.user')
+    //         ->findOrFail($id);
 
-        $jefe = Auth::user()->jefePas;
+    //     $jefe = Auth::user()->jefePas;
 
-        $pasantias = Pasantia::whereHas('inscripciones', function ($q) use ($jefe) {
-            $q->where('idU_jefe', $jefe->idU_jefe);
-        })->get()->map(fn($p) => [
-            'id' => $p->id_pasantia,
-            'nombre' => $p->nombre_pas,
-        ]);
+    //     $pasantias = Pasantia::whereHas('inscripciones', function ($q) use ($jefe) {
+    //         $q->where('idU_jefe', $jefe->idU_jefe);
+    //     })->get()->map(fn($p) => [
+    //         'id' => $p->id_pasantia,
+    //         'nombre' => $p->nombre_pas,
+    //     ]);
 
-        $pasantes = Pasante::with('user')
-            ->whereHas('inscripciones', function ($q) use ($jefe) {
-                $q->where('idU_jefe', $jefe->idU_jefe);
-            })
-            ->get()
-            ->map(fn($p) => [
-                'id' => $p->idU_pasante,
-                'nombre' => $p->user->nombre . ' ' . $p->user->ap_paterno,
-            ]);
+    //     $pasantes = Pasante::with('user')
+    //         ->whereHas('inscripciones', function ($q) use ($jefe) {
+    //             $q->where('idU_jefe', $jefe->idU_jefe);
+    //         })
+    //         ->get()
+    //         ->map(fn($p) => [
+    //             'id' => $p->idU_pasante,
+    //             'nombre' => $p->user->nombre . ' ' . $p->user->ap_paterno,
+    //         ]);
 
-        $actividades = Actividad::whereIn('id_pasantia', $pasantias->pluck('id'))
-            ->get()
-            ->map(fn($a) => [
-                'id' => $a->id_actividad,
-                'nombre' => $a->nombre_act,
-                'pasantia_id' => $a->id_pasantia,
-            ]);
+    //     $actividades = Actividad::whereIn('id_pasantia', $pasantias->pluck('id'))
+    //         ->get()
+    //         ->map(fn($a) => [
+    //             'id' => $a->id_actividad,
+    //             'nombre' => $a->nombre_act,
+    //             'pasantia_id' => $a->id_pasantia,
+    //         ]);
 
-        $bitacoraData = [
-            'id' => $bitacora->id_bitacora,
-            'descripcion' => $bitacora->descripcion,
-            'estado' => $bitacora->estado,
-            'nota' => $bitacora->nota,
-            'observacion' => $bitacora->observacion,
-            'recomendacion' => $bitacora->recomendacion,
-            'id_pasante' => $bitacora->idU_pasante,
-            'id_actividad' => $bitacora->id_actividad,
-            'id_pasantia' => $bitacora->actividad->id_pasantia,
-        ];
+    //     $bitacoraData = [
+    //         'id' => $bitacora->id_bitacora,
+    //         'descripcion' => $bitacora->descripcion,
+    //         'estado' => $bitacora->estado,
+    //         'nota' => $bitacora->nota,
+    //         'observacion' => $bitacora->observacion,
+    //         'recomendacion' => $bitacora->recomendacion,
+    //         'id_pasante' => $bitacora->idU_pasante,
+    //         'id_actividad' => $bitacora->id_actividad,
+    //         'id_pasantia' => $bitacora->actividad->id_pasantia,
+    //     ];
 
-        return Inertia::render('Jefe/Bitacora/Form', [
-            'pasantias' => $pasantias,
-            'pasantes' => $pasantes,
-            'actividades' => $actividades,
-            'bitacora' => $bitacoraData,
-        ]);
-    }
+    //     return Inertia::render('Jefe/Bitacora/Form', [
+    //         'pasantias' => $pasantias,
+    //         'pasantes' => $pasantes,
+    //         'actividades' => $actividades,
+    //         'bitacora' => $bitacoraData,
+    //     ]);
+    // }
 
-    /**
-     * Guarda bitácora (crea o actualiza)
-     */
-    public function guardarBitacora(Request $request)
-    {
-        $request->validate([
-            'id_bitacora' => 'nullable|exists:bitacora_eva,id_bitacora',
-            'descripcion' => 'required|string',
-            'estado' => 'required|in:no realizada,completada,completada parcialmente,sin calificar',
-            'nota' => 'nullable|integer|min:0|max:100',
-            'observacion' => 'nullable|string',
-            'recomendacion' => 'nullable|string',
-            'id_pasante' => 'required|exists:pasante,idU_pasante',
-            'id_actividad' => 'required|exists:actividad,id_actividad',
-        ]);
+    // /**
+    //  * Guarda bitácora (crea o actualiza)
+    //  */
+    // public function guardarBitacora(Request $request)
+    // {
+    //     $request->validate([
+    //         'id_bitacora' => 'nullable|exists:bitacora_eva,id_bitacora',
+    //         'descripcion' => 'required|string',
+    //         'estado' => 'required|in:no realizada,completada,completada parcialmente,sin calificar',
+    //         'nota' => 'nullable|integer|min:0|max:100',
+    //         'observacion' => 'nullable|string',
+    //         'recomendacion' => 'nullable|string',
+    //         'id_pasante' => 'required|exists:pasante,idU_pasante',
+    //         'id_actividad' => 'required|exists:actividad,id_actividad',
+    //     ]);
 
-        $jefe = Auth::user()->jefePas;
+    //     $jefe = Auth::user()->jefePas;
 
-        if ($request->filled('id_bitacora')) {
-            // Editar
-            $bitacora = BitacoraEva::findOrFail($request->id_bitacora);
-            $bitacora->update($request->only('descripcion', 'estado', 'nota', 'observacion', 'recomendacion'));
-        } else {
-            // Crear
-            BitacoraEva::create([
-                'descripcion' => $request->descripcion,
-                'estado' => $request->estado,
-                'nota' => $request->nota,
-                'observacion' => $request->observacion,
-                'recomendacion' => $request->recomendacion,
-                'fecha' => now(),
-                'hora' => now(),
-                'idU_pasante' => $request->id_pasante,
-                'id_actividad' => $request->id_actividad,
-                'idU_jefe' => $jefe->idU_jefe,
-            ]);
-        }
+    //     if ($request->filled('id_bitacora')) {
+    //         // Editar
+    //         $bitacora = BitacoraEva::findOrFail($request->id_bitacora);
+    //         $bitacora->update($request->only('descripcion', 'estado', 'nota', 'observacion', 'recomendacion'));
+    //     } else {
+    //         // Crear
+    //         BitacoraEva::create([
+    //             'descripcion' => $request->descripcion,
+    //             'estado' => $request->estado,
+    //             'nota' => $request->nota,
+    //             'observacion' => $request->observacion,
+    //             'recomendacion' => $request->recomendacion,
+    //             'fecha' => now(),
+    //             'hora' => now(),
+    //             'idU_pasante' => $request->id_pasante,
+    //             'id_actividad' => $request->id_actividad,
+    //             'idU_jefe' => $jefe->idU_jefe,
+    //         ]);
+    //     }
 
-        return redirect()->route('jefe.bitacoras')->with('success', 'Bitácora guardada correctamente.');
-    }
+    //     return redirect()->route('jefe.bitacoras')->with('success', 'Bitácora guardada correctamente.');
+    // }
 
     public function verInforme($id)
     {

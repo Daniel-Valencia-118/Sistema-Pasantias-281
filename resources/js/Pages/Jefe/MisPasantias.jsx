@@ -178,10 +178,10 @@ export default function MisPasantias({ pasantias = [], empresa = null, auth }) {
     return (
         <DashboardLayout auth={auth}>
             <Head title="Mis Pasantías" />
-            <Breadcrumbs items={[
+            {/* <Breadcrumbs items={[
                 { label: 'Inicio', href: route('jefe.dashboard') },
                 { label: 'Mis Pasantías' },
-            ]} />
+            ]} /> */}
 
             {/* Encabezado Principal con Botón de Modal Empresa */}
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-xl border border-slate-100 shadow-sm">

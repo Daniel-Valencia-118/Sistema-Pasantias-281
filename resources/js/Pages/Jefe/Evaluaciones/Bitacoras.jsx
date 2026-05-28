@@ -60,7 +60,7 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
         observacion: "",
         descripcion: "",
         recomendacion: "",
-        estado: "",
+        estado: "COMPLETADA",
     });
 
     const abrirProgreso = (actividad) => {
@@ -115,7 +115,7 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
             setData({
                 nota: actividad.bitacora.nota ?? "",
                 observacion: actividad.bitacora.observacion ?? "",
-                estado: actividad.bitacora.estado ?? "",
+                estado: actividad.bitacora.estado ?? "COMPLETADA",
                 descripcion: actividad.bitacora.descripcion ?? "",
                 recomendacion: actividad.bitacora.recomendacion ?? "",
             });
@@ -127,7 +127,7 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                 idU_pasante: pasante.idU_pasante,
                 nota: "",
                 observacion: "",
-                estado: "",
+                estado: "COMPLETADA",
                 descripcion: "",
                 recomendacion: "",
             });
@@ -177,7 +177,7 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
         <DashboardLayout auth={auth}>
             <Head title={`Bitácoras - ${pasantia.nombre}`} />
 
-            <Breadcrumbs
+            {/* <Breadcrumbs
                 items={[
                     { label: "Inicio", url: route("jefe.dashboard") },
                     {
@@ -188,12 +188,12 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                     },
                     { label: "Seguimiento de Bitácoras" },
                 ]}
-            />
+            /> */}
 
             {/* Botón volver */}
             <div className="mb-2">
                 <button
-                    onClick={() => router.visit("/jefe/pasantias/tarjetas")}
+                    onClick={() => router.visit("/jefe/pasantias/tarjetas?origen=bitacoras")}
                     className="group flex items-center gap-2 text-gray-600 hover:text-primary-blue transition"
                 >
                     <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-gray-200 shadow-sm group-hover:border-primary-blue transition">
@@ -657,9 +657,7 @@ export default function Bitacoras({ pasantia, pasantesData = [], auth }) {
                             className="w-full rounded-xl border-slate-200 mt-1 focus:ring-primary-blue focus:border-primary-blue disabled:bg-slate-50"
                         >
                             <option value="COMPLETADA">Completada</option>
-                            <option value="COMPLETADA PARCIALMENTE">
-                                Completada parcialmente
-                            </option>
+                            <option value="COMPLETADA PARCIALMENTE">Completada parcialmente</option>
                             <option value="NO REALIZADA">No realizada</option>
                         </SelectInput>
                         <InputError message={errors.estado} />

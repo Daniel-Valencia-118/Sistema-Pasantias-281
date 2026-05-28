@@ -105,7 +105,7 @@ export default function Perfil({ auth, usuario, admi }) {
     return (
         <DashboardLayout auth={auth} header="Gestión de Perfil">
             <Head title="Mi Perfil" />
-            <Breadcrumbs items={breadcrumbs} />
+            {/* <Breadcrumbs items={breadcrumbs} /> */}
 
             <div className="max-w-5xl mx-auto mt-6 pb-12 space-y-6">
                 {/* --- HEADER DE PERFIL --- */}

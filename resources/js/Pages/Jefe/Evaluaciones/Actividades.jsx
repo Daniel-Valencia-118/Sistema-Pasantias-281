@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Head, useForm } from "@inertiajs/react";
+import { Head, useForm, router } from "@inertiajs/react";
 import DashboardLayout from "@/Components/Layout/DashboardLayout";
 import Breadcrumbs from "@/Components/Breadcrumbs";
 import DataTable from "@/Components/DataTable";
@@ -20,6 +20,7 @@ import {
     Calendar,
     Clock,
     UserCheck,
+    ChevronLeft,
 } from "lucide-react";
 
 export default function Actividades({
@@ -180,7 +181,7 @@ export default function Actividades({
         <DashboardLayout auth={auth}>
             <Head title={`Actividades - ${pasantia.nombre}`} />
 
-            <Breadcrumbs
+            {/* <Breadcrumbs
                 items={[
                     { label: "Inicio", url: route("jefe.dashboard") },
                     {
@@ -191,7 +192,22 @@ export default function Actividades({
                     },
                     { label: "Actividades" },
                 ]}
-            />
+            /> */}
+
+            <div className="mb-2">
+                <button
+                    onClick={() => router.visit("/jefe/pasantias/tarjetas?origen=actividades")}
+                    className="group flex items-center gap-2 text-gray-600 hover:text-primary-blue transition"
+                >
+                    <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-gray-200 shadow-sm group-hover:border-primary-blue transition">
+                        <ChevronLeft size={18} />
+                    </div>
+
+                    <span className="font-medium">
+                        Volver a Pasantias
+                    </span>
+                </button>
+            </div>
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>

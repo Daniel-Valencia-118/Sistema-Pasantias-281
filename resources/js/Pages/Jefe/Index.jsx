@@ -26,10 +26,10 @@ export default function Index({ auth, tarjetas = [], origen, ui }) {
             <Head title={ui.titulo} />
 
             {/* Breadcrumbs dinámicos adaptados al flujo actual */}
-            <Breadcrumbs items={[
+            {/* <Breadcrumbs items={[
                 { label: 'Inicio', href: route('jefe.dashboard') },
                 { label: ui.titulo },
-            ]} />
+            ]} /> */}
 
             <div className="mb-2">
                 {/* PasantiaGenericGrid renderizará internamente el diseño de las tarjetas, 

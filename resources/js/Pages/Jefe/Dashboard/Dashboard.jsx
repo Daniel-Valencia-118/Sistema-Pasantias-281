@@ -65,7 +65,7 @@ export default function Dashboard({ auth, stats, rendimiento_pasantes, bitacoras
                 {/* Cabecera del Rol */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <Breadcrumbs items={[{ label: 'Inicio' }, { label: 'Dashboard' }]} />
+                        {/* <Breadcrumbs items={[{ label: 'Inicio' }, { label: 'Dashboard' }]} /> */}
                         <h1 className="text-2xl font-bold text-slate-800 mt-2">
                             Panel del Jefe de Pasantía
                         </h1>
@@ -73,14 +73,14 @@ export default function Dashboard({ auth, stats, rendimiento_pasantes, bitacoras
                             Bienvenido, {auth.user.nombre}. Tienes <span className="font-semibold text-amber-600">{stats.actividades_pendientes}</span> actividades pendientes de cierre.
                         </p>
                     </div>
-                    <div>
-                        <Link 
+                    {/* <div> */}
+                        {/* <Link 
                             href="/jefe/bitacora/crear" 
                             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors text-sm font-medium shadow-sm"
                         >
                             <FileCheck size={18} /> Nueva Evaluación
-                        </Link>
-                    </div>
+                        </Link> */}
+                    {/* </div> */}
                 </div>
 
                 {/* 1. Componente Modular: KPIs */}

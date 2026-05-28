@@ -148,7 +148,7 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
                         <div className="flex gap-1">
                             <button onClick={() => openView(row)} className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg"><Eye size={18} /></button>
                             <button onClick={() => openEdit(row)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit size={18} /></button>
-                            {/* <button onClick={() => { setSelectedBit(row); setConfirmDelete(true); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button> */}
+                            <button onClick={() => { setSelectedBit(row); setConfirmDelete(true); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
                         </div>
                     )}
                 />
@@ -257,8 +257,8 @@ export default function Bitacoras({ bitacoras = [], pasantes = [], actividades =
                     </div>
 
                     <div className="grid grid-cols-2 gap-6">
-                        <InfoItem icon={<Calendar size={16}/>} label="Fecha y Hora" value={`${selectedBit?.fecha ? new Date(selectedBit.fecha).toLocaleDateString() : ''} - ${selectedBit?.hora || '--'}`} />
-                        <InfoItem icon={<FileText size={16}/>} label="Actividad" value={selectedBit?.actividad?.nombre_act} />
+                        <InfoItem icon={"Calendar"} label="Fecha y Hora" value={`${selectedBit?.fecha ? new Date(selectedBit.fecha).toLocaleDateString() : ''} - ${selectedBit?.hora || '--'}`} />
+                        <InfoItem icon={"FileText"} label="Actividad" value={selectedBit?.actividad?.nombre_act} />
                     </div>
 
                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">

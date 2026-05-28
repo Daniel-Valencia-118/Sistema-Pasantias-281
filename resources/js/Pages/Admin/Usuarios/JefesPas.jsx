@@ -151,7 +151,7 @@ export default function JefesPas({ jefes, empresas, auth }) {
     return (
         <DashboardLayout auth={auth}>
             <Head title="Jefes de Pasantías" />
-            <Breadcrumbs items={breadcrumbs} />
+            {/* <Breadcrumbs items={breadcrumbs} /> */}
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-bold text-primary-navy">Gestión de Jefes de Pasantía</h1>

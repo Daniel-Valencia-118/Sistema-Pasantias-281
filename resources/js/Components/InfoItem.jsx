@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  User, Shield, Mail, CreditCard, 
+  User, Shield, Mail, CreditCard, Calendar, FileText,
   Phone, Building2, Briefcase, Network, HelpCircle, Link as LinkIcon,
   ClipboardListIcon, SquareChartGanttIcon, CalendarIcon, CheckCircleIcon, XCircleIcon
 } from 'lucide-react';

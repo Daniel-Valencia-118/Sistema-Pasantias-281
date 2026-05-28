@@ -119,7 +119,7 @@ const handleReject = (e) => {
     return (
         <DashboardLayout auth={auth}>
             <Head title="Solicitudes de Registro" />
-            <Breadcrumbs items={breadcrumbs} />
+            {/* <Breadcrumbs items={breadcrumbs} /> */}
 
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-primary-navy">Solicitudes de Registro</h1>

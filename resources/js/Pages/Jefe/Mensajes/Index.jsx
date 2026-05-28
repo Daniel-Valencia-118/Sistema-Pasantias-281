@@ -81,11 +81,11 @@ export default function Index({ contactosIniciales = [], auth }) {
     return (
         <DashboardLayout auth={auth}>
             <Head title="Panel de Mensajería" />
-            <Breadcrumbs items={[
+            {/* <Breadcrumbs items={[
                 { label: 'Inicio', url: route('jefe.dashboard') },
                 { label: 'Comunicación' },
                 { label: 'Chat Pasantes' },
-            ]} />
+            ]} /> */}
 
             <div className="mb-4">
                 <h1 className="text-3xl font-black text-primary-navy uppercase">Chat de Mensajería</h1>

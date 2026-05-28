@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import { menuPasante } from "@/Config/menuPasante";
+import Toast from '@/Components/Toast';
 import {
     ChevronLeft,
     ChevronRight,
@@ -685,6 +686,8 @@ export default function PasanteLayout({ children, header }) {
                         <div className="max-w-7xl mx-auto">{children}</div>
                     </main>
                 </div>
+
+                <Toast />
             </div>
 
             {/* Sidebar Móvil overlay */}

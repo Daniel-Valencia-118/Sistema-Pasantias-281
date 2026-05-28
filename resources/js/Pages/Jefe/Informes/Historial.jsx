@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import DashboardLayout from '@/Components/Layout/DashboardLayout';
 import Breadcrumbs from '@/Components/Breadcrumbs';
 import DataTable from '@/Components/DataTable';
@@ -7,7 +7,7 @@ import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import InfoItem from '@/Components/InfoItem';
 import axios from 'axios';
-import { FileText, Download, Award, Calendar, BookmarkCheck } from 'lucide-react';
+import { FileText, Download, Award, Calendar, BookmarkCheck, ChevronLeft } from 'lucide-react';
 import BadgeFecha from '@/Components/BadgeFecha';
 
 export default function Historial({ pasantia, informes = [], auth }) {
@@ -116,11 +116,26 @@ export default function Historial({ pasantia, informes = [], auth }) {
         <DashboardLayout auth={auth}>
             <Head title={`Historial - ${pasantia.nombre}`} />
             
-            <Breadcrumbs items={[
+            {/* <Breadcrumbs items={[
                 { label: 'Inicio', url: route('jefe.dashboard') },
                 { label: 'Historial de Informes', url: route('jefe.pasantias.tarjetas', { origen: 'historial' }) },
                 { label: pasantia.nombre },
-            ]} />
+            ]} /> */}
+
+            <div className="mb-2">
+                <button
+                    onClick={() => router.visit("/jefe/pasantias/tarjetas?origen=historial")}
+                    className="group flex items-center gap-2 text-gray-600 hover:text-primary-blue transition"
+                >
+                    <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-gray-200 shadow-sm group-hover:border-primary-blue transition">
+                        <ChevronLeft size={18} />
+                    </div>
+
+                    <span className="font-medium">
+                        Volver a Pasantias
+                    </span>
+                </button>
+            </div>
 
             <div className="mb-6 p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
                 <span className="text-xs font-bold tracking-wider text-primary-blue uppercase bg-primary-blue/10 px-3 py-1 rounded-full">Filtro de Archivos</span>

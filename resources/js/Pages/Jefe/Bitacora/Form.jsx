@@ -70,7 +70,7 @@ export default function Form({ pasantias = [], pasantes = [], actividades = [], 
     return (
         <DashboardLayout auth={auth}>
             <Head title={isEditing ? 'Editar Bitácora' : 'Nueva Bitácora'} />
-            <Breadcrumbs items={breadcrumbs} />
+            {/* <Breadcrumbs items={breadcrumbs} /> */}
 
             <div className="max-w-4xl mx-auto">
                 <div className="flex items-center justify-between mb-6">

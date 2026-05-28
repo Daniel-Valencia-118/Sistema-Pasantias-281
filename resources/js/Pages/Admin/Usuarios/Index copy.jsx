@@ -170,7 +170,7 @@ export default function Index({ usuarios, auth}) {
     return (
         <DashboardLayout auth={auth}>
             <Head title="Todos los Usuarios" />
-            <Breadcrumbs items={breadcrumbs} />
+            {/* <Breadcrumbs items={breadcrumbs} /> */}
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl font-bold text-primary-navy">Todos los Usuarios</h1>

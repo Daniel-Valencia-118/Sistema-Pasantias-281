@@ -170,7 +170,7 @@ export const menuConfig = {
             submenus: [
                 { name: 'Actividades', href: '/jefe/pasantias/tarjetas?origen=actividades', icon: Activity }, // Contexto: Actividades
                 { name: 'Bitácoras', href: '/jefe/pasantias/tarjetas?origen=bitacoras', icon: FileCheck },   // Contexto: Bitácoras
-                { name: 'Nueva Bitácora', href: '/jefe/bitacora/crear', icon: FilePlus },
+                // { name: 'Nueva Bitácora', href: '/jefe/bitacora/crear', icon: FilePlus },
             ],
         },
         {

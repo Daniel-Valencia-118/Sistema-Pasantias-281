@@ -113,7 +113,7 @@ export default function InformesFinales({ informes, auth }) {
     return (
         <DashboardLayout auth={auth}>
             <Head title="Informes Finales" />
-            <Breadcrumbs items={breadcrumbs} />
+            {/* <Breadcrumbs items={breadcrumbs} /> */}
 
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
@@ -144,9 +144,9 @@ export default function InformesFinales({ informes, auth }) {
                         >
                             <Edit3 size={16} />
                         </button>
-                        {/* <button onClick={() => handleDelete(row.id_informe)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <button onClick={() => handleDelete(row.id_informe)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                             <Trash2 size={16} />
-                        </button> */}
+                        </button>
                     </div>
                 )}
             />

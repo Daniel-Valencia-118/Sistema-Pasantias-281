@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import { menuGerente } from "@/Config/menuGerente";
+import Toast from '@/Components/Toast';
 import axios from "axios";
 import {
     ChevronLeft,
@@ -683,6 +684,7 @@ export default function GerenteLayout({ children, header}) {
                         <div className="max-w-7xl mx-auto">{children}</div>
                     </main>
                 </div>
+                <Toast />
             </div>
 
             {/* Sidebar Móvil overlay */}

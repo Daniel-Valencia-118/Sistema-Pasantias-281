@@ -109,7 +109,7 @@ export default function Perfil({ usuario, jefe, auth }) {
     return (
         <DashboardLayout auth={auth}>
             <Head title="Mi Perfil" />
-            <Breadcrumbs items={breadcrumbs} />
+            {/* <Breadcrumbs items={breadcrumbs} /> */}
 
             <div className="max-w-4xl mx-auto mt-4">
                 {/* Mensaje de éxito */}

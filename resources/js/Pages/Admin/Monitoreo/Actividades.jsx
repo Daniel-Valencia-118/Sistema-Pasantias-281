@@ -181,7 +181,7 @@ export default function Actividades({ actividades = [], pasantias = [], auth }) 
     return (
         <DashboardLayout auth={auth}>
             <Head title="Registro de Actividades" />
-            <Breadcrumbs items={breadcrumbs} />
+            {/* <Breadcrumbs items={breadcrumbs} /> */}
             
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div>

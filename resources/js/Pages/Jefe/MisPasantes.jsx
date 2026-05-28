@@ -120,12 +120,12 @@ export default function MisPasantes({ pasantia = {}, listadoPasantes = [], auth 
     return (
         <DashboardLayout auth={auth}>
             <Head title={`Pasantes - ${pasantia.nombre_pasantia}`} />
-            <Breadcrumbs items={breadcrumbs} />
+            {/* <Breadcrumbs items={breadcrumbs} /> */}
 
             {/* Botón volver */}
             <div className="mb-2">
                 <button
-                    onClick={() => router.visit("/jefe/pasantias/tarjetas")}
+                    onClick={() => router.visit("/jefe/pasantias/tarjetas?origen=pasantes")}
                     className="group flex items-center gap-2 text-gray-600 hover:text-primary-blue transition"
                 >
                     <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-gray-200 shadow-sm group-hover:border-primary-blue transition">

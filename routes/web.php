@@ -167,6 +167,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/admin/informes', [InformeFinalController::class, 'index'])->name('admin.informes.index');
     Route::put('/admin/informes/{id_informe}', [InformeFinalController::class, 'update'])->name('admin.informes.update');
+    Route::delete('/admin/informes/{id_informe}', [InformeFinalController::class, 'destroy'])->name('admin.informes.destroy');
 
     // Comunicación
     Route::resource('/admin/mensajes', MensajeController::class)->names([
@@ -211,9 +212,9 @@ Route::middleware(['auth', 'role:jefe'])->group(function () {
     // Ruta de asignación existente
     // Route::post('/actividades/asignar', [ActividadController::class, 'asignarActividad'])->name('asignarActividad');
 
-    Route::get('/jefe/bitacora/crear', [JefeController::class, 'crearBitacora'])->name('jefe.bitacora.crear');
-    Route::get('/jefe/bitacora/{id}/editar', [JefeController::class, 'editarBitacora'])->name('jefe.bitacora.editar');
-    Route::post('/jefe/bitacora/guardar', [JefeController::class, 'guardarBitacora'])->name('jefe.bitacora.guardar');
+    // Route::get('/jefe/bitacora/crear', [JefeController::class, 'crearBitacora'])->name('jefe.bitacora.crear');
+    // Route::get('/jefe/bitacora/{id}/editar', [JefeController::class, 'editarBitacora'])->name('jefe.bitacora.editar');
+    // Route::post('/jefe/bitacora/guardar', [JefeController::class, 'guardarBitacora'])->name('jefe.bitacora.guardar');
     Route::post('/jefe/bitacoras/comentario', [JefeController::class, 'storeComentario'])->name('jefe.comentarioActividad');
 
     Route::get('/jefe/informes/redactar', [JefeController::class, 'redactarInforme'])->name('informes.redactar');

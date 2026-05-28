@@ -120,11 +120,11 @@ export default function Redactar({
         <DashboardLayout auth={auth}>
             <Head title="Redactar Informe Final" />
             
-            <Breadcrumbs items={[
+            {/* <Breadcrumbs items={[
                 { label: 'Inicio', url: route('jefe.dashboard')},
                 { label: 'Informes Finales' },
                 { label: 'Redactar' },
-            ]} />
+            ]} /> */}
 
             <div className="max-w-3xl mx-auto">
                 <div className="mb-6">

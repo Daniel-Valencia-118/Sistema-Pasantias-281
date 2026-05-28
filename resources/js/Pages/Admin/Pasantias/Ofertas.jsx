@@ -41,7 +41,7 @@ export default function CrearOferta({ empresas = [], auth }) {
     return (
         <DashboardLayout auth={auth}>
             <Head title="Registrar Oferta de Pasantía" />
-            <Breadcrumbs items={breadcrumbs} />
+            {/* <Breadcrumbs items={breadcrumbs} /> */}
 
             <div className="max-w-4xl mx-auto">
                 {/* Cabecera de la página */}
