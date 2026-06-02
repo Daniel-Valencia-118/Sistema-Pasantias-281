@@ -15,6 +15,7 @@ use App\Models\JefePas;
 use App\Models\Notificacion;
 use App\Models\Empresa;
 use App\Models\User;
+use App\Models\Presentacion; // Modelo para obtener datos del sistema (logo, nombre, slogan)
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -1281,11 +1282,14 @@ public function dashboard()
     
     public function generarCertificado($id)
     {
-        // 1. Obtener los datos con sus relaciones
         $informe = InformeFin::with(['inscripcion.pasante.user', 'inscripcion.pasantia.empresa', 'jefe.user'])
                     ->findOrFail($id);
 
-        // 2. Preparar los datos para la vista
+        $presentacion = Presentacion::first();
+        $logo = $presentacion ? $presentacion->url_logo : null;
+        $nombre_sistema = $presentacion ? $presentacion->nombre_sistema : 'Sistema de Pasantías';
+        $slogan = $presentacion ? $presentacion->descripcion_corta : 'Formando profesionales para el futuro';
+
         $data = [
             'pasante'    => $informe->inscripcion->pasante->user->nombre . ' ' . $informe->inscripcion->pasante->user->ap_paterno . ' ' . $informe->inscripcion->pasante->user->ap_materno,
             'cedula'     => $informe->inscripcion->pasante->user->ci ?? 'S/N',
@@ -1296,15 +1300,18 @@ public function dashboard()
             'fecha'      => now(),
             'jefe'       => $informe->jefe->user->nombre,
             'resultado'  => $informe->resultado,
+            'logo'       => $logo,
+            'nombre_sistema' => $nombre_sistema,
+            'slogan'     => $slogan,
         ];
 
-        // 3. Cargar la vista Blade y generar el PDF
+        // Cargar la vista Blade y generar el PDF
         // 'landscape' para que el certificado sea horizontal
         $pdf = Pdf::loadView('informes.certificado', $data)->setPaper('letter', 'landscape');
 
         $pdf->setOption(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
 
-        // 4. abrir el archivo en otra pestaña del navegador (stream) en lugar de descargarlo
+        // abrir el archivo en otra pestaña del navegador (stream) en lugar de descargarlo
         return $pdf->stream("certificado_{$informe->id_informe}.pdf", ["Attachment" => false]);
     }
 }

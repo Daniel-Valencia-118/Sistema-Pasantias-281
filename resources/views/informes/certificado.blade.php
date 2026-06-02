@@ -203,6 +203,14 @@
                         </div>
                         <div class="signature-title">Firma de la Autoridad / Supervisor</div>
                     </td>
+                    <!-- Logo del sistema -->
+                    <td class="signature-cell">
+                        @if($logo)
+                            <img class="logo" src="{{ storage_path('app/public/' . $logo) }}" style="max-width: 100px; max-height: 60px;">
+                            <div class="signature-title">{{ $nombre_sistema }}</div>
+                            <!-- <div class="signature-title" style="font-size: 10px; color: #475569;">{{ $slogan }}</div> -->
+                        @endif
+                    </td>
                     <td class="signature-cell">
                         <div style="height: 50px;"></div> <!-- Espacio simulado para el sello -->
                         <div class="signature-line">

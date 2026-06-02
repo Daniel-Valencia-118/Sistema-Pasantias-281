@@ -21,6 +21,9 @@ export default function Index({ auth, tarjetas = [], origen, ui }) {
         router.get(urlDestino);
     };
 
+    console.log(tarjetas);
+    
+
     return (
         <DashboardLayout auth={auth}>
             <Head title={ui.titulo} />

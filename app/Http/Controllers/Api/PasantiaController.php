@@ -153,7 +153,10 @@ class PasantiaController extends Controller
                 return [
                     'id' => $pasantia->id_pasantia, 
                     'nombre' => $pasantia->nombre_pas,
-                    'codigo' => $pasantia->codigo_pas ?? $pasantia->codigo ?? 'PAS-GEN',
+                    // Codigo segun iniciales de nombre de pasantia, si no existe, usar un valor por defecto 'PAS-GEN'
+                    'codigo' => strtoupper(substr($pasantia->nombre_pas, 0, 3)) . '-' . strtoupper(substr($pasantia->mencion, 0, 3)),
+                    'mencion' => 'default',
+                    // 'mencion' => $pasantia->mencion,
                     'anio' => $pasantia->fecha_ini ? date('Y', strtotime($pasantia->fecha_ini)) : date('Y'),
                     'fecha_ini' => $pasantia->fecha_ini,
                     'fecha_fin' => $pasantia->fecha_fin,

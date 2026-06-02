@@ -28,7 +28,7 @@ export default function ApplicationLogo({ className = "", showText = false, show
 
 
     
-    console.log(finalLogoUrl, finalNombreSistema, iniciales);
+    // console.log(finalLogoUrl, finalNombreSistema, iniciales);
 
     return (
         <Link

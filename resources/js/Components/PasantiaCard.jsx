@@ -22,6 +22,22 @@ export default function PasantiaCard({ tarjeta, onClick }) {
         const opciones = { day: "numeric", month: "long" };
         return `${ini.toLocaleDateString("es-ES", opciones)} - ${fin.toLocaleDateString("es-ES", opciones)}`;
     };
+    
+    // 1. Diccionario de estilos mapeado por el slug del Backend (Fuera del componente para evitar re-renderizados)
+    const MENCION_STYLES = {
+        "Desarrollo de Software e Innovación Tecnológica": "from-emerald-900 to-teal-600",
+        "Inteligencia Artificial y Ciencias de Datos":     "from-indigo-900 to-purple-600",
+        "Ciencias de la Computación":                      "from-slate-900 to-indigo-600",
+        "Ingeniería de Sistemas":                          "from-blue-950 to-blue-600",
+        "Redes y TIC":                                     "from-amber-700 to-yellow-600", // Evita el negro/marrón sucio
+        "Seguridad de la Información":                     "from-zinc-950 to-rose-700",
+        "Informática Industrial":                          "from-cyan-950 to-emerald-600",
+        default:                                           "from-primary-navy to-primary-blue"
+    };
+
+
+
+    const rangoColores = MENCION_STYLES[tarjeta.mencion] || MENCION_STYLES.default;
 
     return (
         <div
@@ -29,11 +45,11 @@ export default function PasantiaCard({ tarjeta, onClick }) {
             className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 overflow-hidden group"
         >
             {/* Cabecera de la tarjeta */}
-            <div className="bg-gradient-to-r from-primary-navy to-primary-blue px-5 py-4">
+            <div className={`bg-linear-to-r ${rangoColores} px-5 py-4`}>
                 <h3 className="text-white font-bold text-lg truncate">
                     {tarjeta.nombre}
                 </h3>
-                <p className="text-primary-sky-blue text-sm">
+                <p className="text-white/70 font-bold text-sm">
                     {tarjeta.anio}
                 </p>
             </div>
