@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
-use App\Models\Pasantia;
 use App\Models\User;
 use App\Models\Gerente;
 use App\Models\Inscripcion;
 use App\Models\JefePas;
 use App\Models\Comentario;
+use App\Models\Pasantia;
+use App\Models\Actividad;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -74,5 +75,97 @@ class GerenteController extends Controller
         $gerente->update(['nro_secun' => $request->nro_secun]);
         
         return response()->json(['message' => 'Perfil actualizado correctamente']);
+    }
+
+    public function empresa()
+    {
+        $user = Auth::user();
+        $gerente = $user->gerente;
+        $empresa = $gerente->empresa;
+        
+        if (!$empresa) {
+            return response()->json(['message' => 'No se encontró información de la empresa'], 404);
+        }
+        
+        return response()->json([
+            'id_empresa' => $empresa->id_empresa,
+            'nombre' => $empresa->nombre,
+            'nit' => $empresa->nit,
+            'direccion' => $empresa->direccion,
+            'telefono' => $empresa->telefono,
+            'email' => $empresa->email,
+        ]);
+    }
+
+    public function actualizarEmpresa(Request $request)
+    {
+        $user = Auth::user();
+        $gerente = $user->gerente;
+        $empresa = $gerente->empresa;
+        
+        if (!$empresa) {
+            return response()->json(['message' => 'No se encontró información de la empresa'], 404);
+        }
+        
+        $request->validate([
+            'nombre' => 'required|string|max:100',
+            'direccion' => 'nullable|string|max:200',
+            'telefono' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:100',
+        ]);
+        
+        $empresa->update($request->only(['nombre', 'direccion', 'telefono', 'email']));
+        
+        return response()->json(['message' => 'Empresa actualizada correctamente']);
+    }
+
+    public function crearPasantia(Request $request)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $request->validate([
+            'nombre_pas' => 'required|string|max:255',
+            'mencion' => 'required|string',
+            'cupos' => 'required|integer|min:1|max:20',
+            'turno' => 'required|string',
+            'carga_horaria' => 'nullable|integer|min:0',
+            'detalles_horario' => 'nullable|string',
+            'fecha_ini' => 'required|date',
+            'fecha_fin' => 'required|date|after:fecha_ini',
+            'actividades' => 'required|array|min:1',
+            'actividades.*.nombre_act' => 'required|string|max:255',
+            'actividades.*.tipo' => 'required|string|in:OPERATIVA,TECNICA',
+            'actividades.*.descripcion' => 'nullable|string',
+            'actividades.*.fecha_ini' => 'required|date',
+            'actividades.*.fecha_fin' => 'required|date|after_or_equal:actividades.*.fecha_ini',
+        ]);
+        
+        $pasantia = Pasantia::create([
+            'nombre_pas' => $request->nombre_pas,
+            'estado' => 'ABIERTA',
+            'mencion' => $request->mencion,
+            'fecha_ini' => $request->fecha_ini,
+            'fecha_fin' => $request->fecha_fin,
+            'cupos' => $request->cupos,
+            'cupos_disponibles' => $request->cupos,
+            'carga_horaria' => $request->carga_horaria ?? 0,
+            'detalles_horario' => $request->detalles_horario,
+            'turno' => $request->turno,
+            'id_empresa' => $empresa->id_empresa,
+        ]);
+        
+        foreach ($request->actividades as $actividad) {
+            Actividad::create([
+                'nombre_act' => $actividad['nombre_act'],
+                'tipo' => $actividad['tipo'],
+                'fecha_ini' => $actividad['fecha_ini'],
+                'fecha_fin' => $actividad['fecha_fin'],
+                'descripcion' => $actividad['descripcion'] ?? 'sin descripción',
+                'id_pasantia' => $pasantia->id_pasantia,
+            ]);
+        }
+        
+        return response()->json(['message' => 'Pasantía publicada exitosamente'], 201);
     }
 }

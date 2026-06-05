@@ -16,18 +16,34 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/mobile/logout', [AuthController::class, 'logout']);
     Route::get('/mobile/user', [AuthController::class, 'user']); // ← AGREGAR ESTA LÍNEA
     
-    // Rutas para Gerente
+    // Rutas para >> ROL GERENTE <<
     Route::middleware(['role:gerente'])->prefix('/mobile/gerente')->group(function () {
+        
+        //------- whitout id:
         Route::get('/estadisticas', [GerenteController::class, 'estadisticas']);
+        
         Route::get('/perfil', [GerenteController::class, 'perfil']);
         Route::put('/perfil', [GerenteController::class, 'actualizarPerfil']);
+        
+        Route::get('/empresa', [GerenteController::class, 'empresa']);
+        Route::put('/empresa', [GerenteController::class, 'actualizarEmpresa']);
+        
+        Route::post('/pasantias', [GerenteController::class, 'crearPasantia']);
+
+        //------ with id:
+
     });
     
-    // Rutas para Pasante
+    // Rutas para >> ROL PASANTE <<
     Route::middleware(['role:pasante'])->prefix('/mobile/pasante')->group(function () {
+
+        //------- whitout id:
         Route::get('/info', [PasanteController::class, 'getInfo']);
+        
         Route::get('/perfil', [PasanteController::class, 'perfil']);
         Route::put('/perfil', [PasanteController::class, 'actualizarPerfil']);
+
+        //------ with id:
     });
 });
 
