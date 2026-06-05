@@ -2,19 +2,33 @@
 //routes/api.php
 use App\Http\Controllers\Api\Mobile\AuthController;
 use App\Http\Controllers\Api\Mobile\GerenteController;
+use App\Http\Controllers\Api\Mobile\PasanteController;
 
 Route::get('/mobile/test', function () {
     return response()->json(['message' => '✅ Conexión exitosa con el backend! Yooy el pro']);
 });
 
 Route::post('/mobile/login', [AuthController::class, 'login']);
-Route::post('/mobile/logout', [AuthController::class, 'logout'])
-    ->middleware('auth:sanctum');
 
-Route::middleware(['auth:sanctum', 'role:gerente'])->prefix('/mobile/gerente')->group(function () {
-    Route::get('/estadisticas', [GerenteController::class, 'estadisticas']);
-    Route::get('/perfil', [GerenteController::class, 'perfil']);
-    Route::put('/perfil', [GerenteController::class, 'actualizarPerfil']);
+// Grupo para rutas protegidas (requieren autenticación)
+Route::middleware(['auth:sanctum'])->group(function () {
+    
+    Route::post('/mobile/logout', [AuthController::class, 'logout']);
+    Route::get('/mobile/user', [AuthController::class, 'user']); // ← AGREGAR ESTA LÍNEA
+    
+    // Rutas para Gerente
+    Route::middleware(['role:gerente'])->prefix('/mobile/gerente')->group(function () {
+        Route::get('/estadisticas', [GerenteController::class, 'estadisticas']);
+        Route::get('/perfil', [GerenteController::class, 'perfil']);
+        Route::put('/perfil', [GerenteController::class, 'actualizarPerfil']);
+    });
+    
+    // Rutas para Pasante
+    Route::middleware(['role:pasante'])->prefix('/mobile/pasante')->group(function () {
+        Route::get('/info', [PasanteController::class, 'getInfo']);
+        Route::get('/perfil', [PasanteController::class, 'perfil']);
+        Route::put('/perfil', [PasanteController::class, 'actualizarPerfil']);
+    });
 });
 
 //Antiguo 

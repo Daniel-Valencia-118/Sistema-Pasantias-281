@@ -62,6 +62,22 @@ class AuthController extends Controller
             'token' => $token,
         ]);
     }
+    public function user(Request $request)
+    {
+        $user = $request->user();
+        $rol = $this->getUserRole($user);
+        
+        return response()->json([
+            'id' => $user->idUser,
+            'nombre_user' => $user->nombre_user,
+            'nombre' => $user->nombre,
+            'ap_paterno' => $user->ap_paterno,
+            'ap_materno' => $user->ap_materno,
+            'correo' => $user->correo,
+            'rol' => $rol,
+            'avatar_url' => $user->avatar_url,
+        ]);
+    }
 
     public function logout(Request $request)
     {
