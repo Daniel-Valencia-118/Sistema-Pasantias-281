@@ -33,6 +33,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/pasantias/jefes-disponibles', [GerenteController::class, 'jefesDisponibles']);
         Route::get('/pasantias', [GerenteController::class, 'listarPasantias']);
 
+        Route::get('/jefes', [GerenteController::class, 'listarJefes']);
+        Route::get('/jefes/solicitudes', [GerenteController::class, 'listarSolicitudesJefes']);
+
         //------ with id:
         Route::patch('/pasantias/{id}/cupos', [GerenteController::class, 'actualizarCupos']);
         Route::patch('/pasantias/{id}/abrir', [GerenteController::class, 'abrirPasantia']);
@@ -48,6 +51,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         Route::patch('/pasantias/{idPasantia}/asignar-jefe/{idPasante}', [GerenteController::class, 'asignarJefePasante']);
         Route::patch('/pasantias/{idPasantia}/designar-jefe/{idPasante}', [GerenteController::class, 'designarJefePasante']);
+
+        Route::patch('/jefes/{id}/toggle-estado', [GerenteController::class, 'toggleEstadoJefe']);
+        Route::get('/jefes/{id}/pasantes', [GerenteController::class, 'getPasantesAsignados']);
+        Route::patch('/jefes/solicitudes/{id}/aprobar', [GerenteController::class, 'aprobarSolicitudJefe']);
+        Route::patch('/jefes/solicitudes/{id}/rechazar', [GerenteController::class, 'rechazarSolicitudJefe']);
 
     });
     

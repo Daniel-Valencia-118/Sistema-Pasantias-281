@@ -608,4 +608,180 @@ class GerenteController extends Controller
         
         return response()->json(['message' => 'Jefe desasignado correctamente']);
     }
+
+    // =============================================
+    // LISTAR JEFES APROBADOS
+    // =============================================
+    public function listarJefes()
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $jefes = JefePas::with('user')
+            ->where('id_empresa', $empresa->id_empresa)
+            ->whereHas('user', function($q) {
+                $q->where('estado_aprobacion', 'aprobado');
+            })
+            ->get()
+            ->map(function($jefe) {
+                // Contar pasantes asignados
+                $pasantesAsignados = Inscripcion::where('idU_jefe', $jefe->idU_jefe)
+                    ->whereHas('pasantia', function($q) use ($jefe) {
+                        $q->where('id_empresa', $jefe->id_empresa);
+                    })
+                    ->count();
+                
+                return [
+                    'id' => $jefe->idU_jefe,
+                    'nombre' => $jefe->user->nombre,
+                    'ap_paterno' => $jefe->user->ap_paterno,
+                    'ap_materno' => $jefe->user->ap_materno,
+                    'ci' => $jefe->user->ci,
+                    'numero_cel' => $jefe->user->numero_cel,
+                    'correo' => $jefe->user->correo,
+                    'cargo' => $jefe->cargo,
+                    'area' => $jefe->area,
+                    'estado_cuenta' => $jefe->user->estado_cuenta,
+                    'fecha_registro' => $jefe->user->fecha_registro ? $jefe->user->fecha_registro->format('Y-m-d') : null,
+                    'pasantes_asignados' => $pasantesAsignados,
+                ];
+            })
+            // Ordenar la colección por ap_paterno (A a Z)
+            ->sortBy('ap_paterno')
+            ->values(); // Reindexar array
+        
+        return response()->json($jefes);
+    }
+
+    // =============================================
+    // ACTIVAR/DESACTIVAR JEFE
+    // =============================================
+    public function toggleEstadoJefe($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $jefe = JefePas::where('id_empresa', $empresa->id_empresa)
+            ->where('idU_jefe', $id)
+            ->firstOrFail();
+        
+        $nuevoEstado = !$jefe->user->estado_cuenta;
+        $jefe->user->update(['estado_cuenta' => $nuevoEstado]);
+        
+        return response()->json([
+            'message' => $nuevoEstado ? 'Jefe activado' : 'Jefe desactivado',
+            'estado' => $nuevoEstado
+        ]);
+    }
+
+    // =============================================
+    // OBTENER PASANTES ASIGNADOS A UN JEFE
+    // =============================================
+    public function getPasantesAsignados($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $jefe = JefePas::where('id_empresa', $empresa->id_empresa)
+            ->where('idU_jefe', $id)
+            ->firstOrFail();
+        
+        $pasantes = Inscripcion::with(['pasante.user', 'pasantia'])
+            ->where('idU_jefe', $jefe->idU_jefe)
+            ->whereHas('pasantia', function($q) use ($empresa) {
+                $q->where('id_empresa', $empresa->id_empresa);
+            })
+            ->get()
+            ->map(function($inscripcion) {
+                return [
+                    'id' => $inscripcion->pasante->idU_pasante,
+                    'nombre' => $inscripcion->pasante->user->nombre,
+                    'ap_paterno' => $inscripcion->pasante->user->ap_paterno,
+                    'ap_materno' => $inscripcion->pasante->user->ap_materno,
+                    'ci' => $inscripcion->pasante->user->ci,
+                    'pasantia_nombre' => $inscripcion->pasantia->nombre_pas,
+                    'estado_inscripcion' => $inscripcion->estado,
+                ];
+            });
+        
+        return response()->json($pasantes);
+    }
+
+    // =============================================
+    // LISTAR SOLICITUDES DE JEFES
+    // =============================================
+    public function listarSolicitudesJefes()
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $solicitudes = User::where('estado_aprobacion', '!=', 'aprobado')
+            ->whereHas('jefePas', function($q) use ($empresa) {
+                $q->where('id_empresa', $empresa->id_empresa);
+            })
+            ->with('jefePas')
+            ->get()
+            ->map(function($user) {
+                return [
+                    'id' => $user->idUser,
+                    'nombre' => $user->nombre,
+                    'ap_paterno' => $user->ap_paterno,
+                    'ap_materno' => $user->ap_materno,
+                    'ci' => $user->ci,
+                    'numero_cel' => $user->numero_cel,
+                    'correo' => $user->correo,
+                    'cargo' => $user->jefePas->cargo,
+                    'area' => $user->jefePas->area,
+                    'estado_aprobacion' => $user->estado_aprobacion,
+                    'fecha_registro' => $user->fecha_registro ? $user->fecha_registro->format('Y-m-d') : null,
+                ];
+            })
+            // Ordenar por fecha de registro descendente (más recientes primero)
+            ->sortByDesc('fecha_registro')
+            ->values();
+        
+        return response()->json($solicitudes);
+    }
+    // =============================================
+    // APROBAR SOLICITUD DE JEFE
+    // =============================================
+    public function aprobarSolicitudJefe($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $solicitante = User::where('estado_aprobacion', 'pendiente')
+            ->whereHas('jefePas', function($q) use ($empresa) {
+                $q->where('id_empresa', $empresa->id_empresa);
+            })
+            ->findOrFail($id);
+        
+        $solicitante->update([
+            'estado_cuenta' => true,
+            'estado_aprobacion' => 'aprobado',
+        ]);
+        
+        return response()->json(['message' => 'Solicitud aprobada correctamente']);
+    }
+
+    // =============================================
+    // RECHAZAR SOLICITUD DE JEFE
+    // =============================================
+    public function rechazarSolicitudJefe($id)
+    {
+        $user = Auth::user();
+        $empresa = $user->gerente->empresa;
+        
+        $solicitante = User::where('estado_aprobacion', 'pendiente')
+            ->whereHas('jefePas', function($q) use ($empresa) {
+                $q->where('id_empresa', $empresa->id_empresa);
+            })
+            ->findOrFail($id);
+        
+        $solicitante->update([
+            'estado_aprobacion' => 'rechazado',
+        ]);
+        
+        return response()->json(['message' => 'Solicitud rechazada']);
+    }
 }
