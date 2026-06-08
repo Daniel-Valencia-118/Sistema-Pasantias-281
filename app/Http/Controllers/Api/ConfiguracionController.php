@@ -16,8 +16,12 @@ class ConfiguracionController extends Controller
     public function edit()
     {
         $config = Presentacion::getConfiguracion();
-        return Inertia::render('Admin/Configuracion', [
-            'config' => $config
+        return response()->json([
+            'nombre_sistema'    => $config->nombre_sistema,
+            'descripcion_corta' => $config->descripcion_corta,
+            'mision'            => $config->mision,
+            'vision'            => $config->vision,
+            'logo_url'          => $config->logo_url, 
         ]);
     }
 
@@ -47,7 +51,7 @@ class ConfiguracionController extends Controller
 
         $config->update($validated);
 
-        return redirect()->back()->with('success', 'Configuración del sistema actualizada correctamente.');
+        return response()->json(['message' => 'Configuración del sistema actualizada correctamente.']);
     }
 
     /**
