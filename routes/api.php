@@ -2,6 +2,7 @@
 //routes/api.php
 use App\Http\Controllers\Api\Mobile\AuthController;
 use App\Http\Controllers\Api\Mobile\GerenteController;
+use App\Http\Controllers\Api\Mobile\PasanteController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\EmpresaController;
 use App\Http\Controllers\Api\JefeController;
@@ -22,13 +23,67 @@ Route::get('/mobile/test', function () {
 });
 
 Route::post('/mobile/login', [AuthController::class, 'login']);
-Route::post('/mobile/logout', [AuthController::class, 'logout'])
-    ->middleware('auth:sanctum');
 
-Route::middleware(['auth:sanctum', 'role:gerente'])->prefix('/mobile/gerente')->group(function () {
-    Route::get('/estadisticas', [GerenteController::class, 'estadisticas']);
-    Route::get('/perfil', [GerenteController::class, 'perfil']);
-    Route::put('/perfil', [GerenteController::class, 'actualizarPerfil']);
+// Grupo para rutas protegidas (requieren autenticación)
+Route::middleware(['auth:sanctum'])->group(function () {
+    
+    Route::post('/mobile/logout', [AuthController::class, 'logout']);
+    Route::get('/mobile/user', [AuthController::class, 'user']); // ← AGREGAR ESTA LÍNEA
+    
+    // Rutas para >> ROL GERENTE <<
+    Route::middleware(['role:gerente'])->prefix('/mobile/gerente')->group(function () {
+        
+        //------- whitout id:
+        Route::get('/estadisticas', [GerenteController::class, 'estadisticas']);
+        
+        Route::get('/perfil', [GerenteController::class, 'perfil']);
+        Route::put('/perfil', [GerenteController::class, 'actualizarPerfil']);
+        
+        Route::get('/empresa', [GerenteController::class, 'empresa']);
+        Route::put('/empresa', [GerenteController::class, 'actualizarEmpresa']);
+        
+        Route::post('/pasantias', [GerenteController::class, 'crearPasantia']);
+        
+        Route::get('/pasantias/jefes-disponibles', [GerenteController::class, 'jefesDisponibles']);
+        Route::get('/pasantias', [GerenteController::class, 'listarPasantias']);
+
+        Route::get('/jefes', [GerenteController::class, 'listarJefes']);
+        Route::get('/jefes/solicitudes', [GerenteController::class, 'listarSolicitudesJefes']);
+
+        //------ with id:
+        Route::patch('/pasantias/{id}/cupos', [GerenteController::class, 'actualizarCupos']);
+        Route::patch('/pasantias/{id}/abrir', [GerenteController::class, 'abrirPasantia']);
+        Route::get('/pasantias/{id}/inscritos', [GerenteController::class, 'obtenerInscritos']);
+        Route::patch('/pasantias/{id}/iniciar', [GerenteController::class, 'iniciarPasantia']);
+        Route::get('/pasantias/{id}/actividades', [GerenteController::class, 'obtenerActividades']);
+        Route::patch('/pasantias/{id}/asignar-jefe-pasantia', [GerenteController::class, 'asignarJefePasantia']);
+        Route::patch('/pasantias/{id}/designar-jefe-pasantia', [GerenteController::class, 'designarJefePasantia']);
+
+        Route::delete('/pasantias/actividades/{id}', [GerenteController::class, 'eliminarActividad']);  
+        Route::post('/pasantias/{id}/actividades', [GerenteController::class, 'crearActividad']);
+        Route::put('/pasantias/actividades/{id}', [GerenteController::class, 'actualizarActividad']);
+
+        Route::patch('/pasantias/{idPasantia}/asignar-jefe/{idPasante}', [GerenteController::class, 'asignarJefePasante']);
+        Route::patch('/pasantias/{idPasantia}/designar-jefe/{idPasante}', [GerenteController::class, 'designarJefePasante']);
+
+        Route::patch('/jefes/{id}/toggle-estado', [GerenteController::class, 'toggleEstadoJefe']);
+        Route::get('/jefes/{id}/pasantes', [GerenteController::class, 'getPasantesAsignados']);
+        Route::patch('/jefes/solicitudes/{id}/aprobar', [GerenteController::class, 'aprobarSolicitudJefe']);
+        Route::patch('/jefes/solicitudes/{id}/rechazar', [GerenteController::class, 'rechazarSolicitudJefe']);
+
+    });
+    
+    // Rutas para >> ROL PASANTE <<
+    Route::middleware(['role:pasante'])->prefix('/mobile/pasante')->group(function () {
+
+        //------- whitout id:
+        Route::get('/info', [PasanteController::class, 'getInfo']);
+        
+        Route::get('/perfil', [PasanteController::class, 'perfil']);
+        Route::put('/perfil', [PasanteController::class, 'actualizarPerfil']);
+
+        //------ with id:
+    });
 });
 
 
