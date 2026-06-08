@@ -29,8 +29,25 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('/empresa', [GerenteController::class, 'actualizarEmpresa']);
         
         Route::post('/pasantias', [GerenteController::class, 'crearPasantia']);
+        
+        Route::get('/pasantias/jefes-disponibles', [GerenteController::class, 'jefesDisponibles']);
+        Route::get('/pasantias', [GerenteController::class, 'listarPasantias']);
 
         //------ with id:
+        Route::patch('/pasantias/{id}/cupos', [GerenteController::class, 'actualizarCupos']);
+        Route::patch('/pasantias/{id}/abrir', [GerenteController::class, 'abrirPasantia']);
+        Route::get('/pasantias/{id}/inscritos', [GerenteController::class, 'obtenerInscritos']);
+        Route::patch('/pasantias/{id}/iniciar', [GerenteController::class, 'iniciarPasantia']);
+        Route::get('/pasantias/{id}/actividades', [GerenteController::class, 'obtenerActividades']);
+        Route::patch('/pasantias/{id}/asignar-jefe-pasantia', [GerenteController::class, 'asignarJefePasantia']);
+        Route::patch('/pasantias/{id}/designar-jefe-pasantia', [GerenteController::class, 'designarJefePasantia']);
+
+        Route::delete('/pasantias/actividades/{id}', [GerenteController::class, 'eliminarActividad']);  
+        Route::post('/pasantias/{id}/actividades', [GerenteController::class, 'crearActividad']);
+        Route::put('/pasantias/actividades/{id}', [GerenteController::class, 'actualizarActividad']);
+
+        Route::patch('/pasantias/{idPasantia}/asignar-jefe/{idPasante}', [GerenteController::class, 'asignarJefePasante']);
+        Route::patch('/pasantias/{idPasantia}/designar-jefe/{idPasante}', [GerenteController::class, 'designarJefePasante']);
 
     });
     
