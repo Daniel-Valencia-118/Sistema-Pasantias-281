@@ -60,11 +60,12 @@ class DashboardController extends Controller
             ->take(6)
             ->get();
 
-        return Inertia::render('Admin/Dashboard', [
+        // retornar json
+        return response()->json([
             'stats' => $stats,
             'distribucion_roles' => $distribucion_roles,
             'ultimos_comentarios' => $ultimos_comentarios,
-            'usuarios_recientes' => $usuarios_recientes,
+            // 'usuarios_recientes' => $usuarios_recientes,
         ]);
     }
 

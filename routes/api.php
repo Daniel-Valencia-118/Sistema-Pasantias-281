@@ -3,6 +3,20 @@
 use App\Http\Controllers\Api\Mobile\AuthController;
 use App\Http\Controllers\Api\Mobile\GerenteController;
 use App\Http\Controllers\Api\Mobile\PasanteController;
+use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\EmpresaController;
+use App\Http\Controllers\Api\JefeController;
+use App\Http\Controllers\Api\PasantiaController;
+use App\Http\Controllers\Api\ActividadController;
+use App\Http\Controllers\Api\BitacoraEvaController;
+use App\Http\Controllers\Api\InformeFinController;
+use App\Http\Controllers\Api\InformeFinalController;
+use App\Http\Controllers\Api\MensajeJefeController;
+use App\Http\Controllers\Api\ComentarioController;
+use App\Http\Controllers\Api\MensajeController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Api\ConfiguracionController;
+use App\Http\Controllers\Auth\RegisterController;
 
 Route::get('/mobile/test', function () {
     return response()->json(['message' => '✅ Conexión exitosa con el backend! Yooy el pro']);
@@ -88,6 +102,58 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 });
 
+
+
+
+
+
+Route::middleware(['', ''])->prefix('/admin')->group(function () {
+
+    Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
+    
+    Route::get('/perfil', [AdminController::class, 'perfil'])->name('admin.perfil');
+    Route::put('/perfil', [AdminController::class, 'updatePerfil'])->name('admin.perfil.update');
+
+    Route::get('/configuracion', [ConfiguracionController::class, 'edit'])->name('admin.configuracion.edit');
+    // Usamos POST en lugar de PUT porque la carga de archivos multipart/form-data suele dar problemas con PUT en Laravel
+    Route::post('/configuracion', [ConfiguracionController::class, 'update'])->name('admin.configuracion.update');
+
+    // Listar, crear y actualizar Usuarios 
+    Route::get('/usuarios', [AdminController::class, 'listarTodosUsuarios'])->name('admin.usuarios.index');
+    // Route::post('/usuarios', [AdminController::class, 'crearUsuario'])->name('admin.usuarios.store');
+    // Route::put('/usuarios/{id}', [AdminController::class, 'updateUser'])->name('admin.usuarios.update');
+    // Route::delete('/usuarios/{id}', [AdminController::class, 'eliminarUsuario'])->name('admin.usuarios.destroy');
+    Route::patch('/usuarios/{id}/estado', [AdminController::class, 'toggleEstado'])->name('admin.usuarios.estado');
+        
+    Route::get('/solicitudes', [AdminController::class, 'listarSolicitudes'])->name('admin.solicitudes.index');
+    Route::patch('/users/{user}/procesar-aprobacion', [AdminController::class, 'procesarAprobacion'])->name('admin.usuarios.solicitudes');
+
+    Route::get('/administradores', [AdminController::class, 'listarAdministradores'])->name('admin.administradores.index');
+    Route::post('/administradores', [AdminController::class, 'storeAdmin'])->name('admin.administradores.store');
+
+    Route::get('/gerentes', [AdminController::class, 'listarGerentes'])->name('admin.gerentes.index');
+    Route::put('/gerentes/{id}', [AdminController::class, 'updateGerente'])->name('admin.usuarios.gerente.update');
+
+    Route::get('/jefes', [AdminController::class, 'listarJefes'])->name('admin.jefes.index');
+    Route::put('/jefes/{id}', [AdminController::class, 'updateJefe'])->name('admin.usuarios.jefe.update');
+
+    Route::get('/tutores', [AdminController::class, 'listarTutores'])->name('admin.tutores.index');
+    Route::put('/tutores/{id}', [AdminController::class, 'updateTutor'])->name('admin.usuarios.tutor.update');
+
+    Route::get('/pasantes', [AdminController::class, 'listarPasantes'])->name('admin.pasantes.index');
+    Route::put('/pasantes/{id}', [AdminController::class, 'updatePasante'])->name('admin.usuarios.pasante.update');
+
+    // Empresas
+    Route::get('/empresas', [EmpresaController::class, 'index'])->name('admin.empresas');
+    Route::put('/empresas/{id}', [EmpresaController::class, 'update'])->name('admin.empresas.update');
+
+    // Pasantías
+    Route::get('/pasantias', [PasantiaController::class, 'index'])->name('admin.pasantias.index');
+});
+
+
+
+
 //Antiguo 
 // routes/api.php
 
@@ -133,7 +199,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 //     Route::middleware('role:admin')->prefix('admin')->group(function () {
 //         // mision, vision, logo, nombre sistema, descripción corta
-//         Route::put('/admin/presentacion', [PresentacionController::class, 'update']);
+//         Route::put('/presentacion', [PresentacionController::class, 'update']);
 //         // Solicitudes
 //         Route::get('/solicitudes', [AdminController::class, 'listarSolicitudes']);
 //         Route::post('/solicitudes/{id}/aprobar', [AdminController::class, 'aprobarSolicitud']);
@@ -161,10 +227,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 //         Route::patch('/tutores/{id}/estado', [AdminController::class, 'cambiarEstadoTutor']);
         
 //         // Administradores
-//         Route::get('/administradores', [AdminController::class, 'listarAdministradores']);
-//         Route::get('/administradores/{id}', [AdminController::class, 'verAdministrador']); 
-//         Route::post('/administradores', [AdminController::class, 'crearAdministrador']);
-//         Route::patch('/administradores/{id}/estado', [AdminController::class, 'cambiarEstadoAdministrador']);
+//         Route::get('istradores', [AdminController::class, 'listarAdministradores']);
+//         Route::get('istradores/{id}', [AdminController::class, 'verAdministrador']); 
+//         Route::post('istradores', [AdminController::class, 'crearAdministrador']);
+//         Route::patch('istradores/{id}/estado', [AdminController::class, 'cambiarEstadoAdministrador']);
         
 //         // Asignaciones
 //         Route::post('/asignar-pasante-tutor', [AdminController::class, 'asignarPasanteATutor']);

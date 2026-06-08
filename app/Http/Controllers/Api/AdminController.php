@@ -29,18 +29,16 @@ class AdminController extends Controller
     {
         $user = auth()->user()->load('administrador'); // Cargamos la relación definida como 'admi' o 'administrador'
         
-        return Inertia::render('Admin/Perfil', [
-            'usuario' => [
-                'idUser' => $user->idUser,
-                'nombre' => $user->nombre,
-                'ap_paterno' => $user->ap_paterno,
-                'ap_materno' => $user->ap_materno,
-                'nombre_user' => $user->nombre_user,
-                'correo' => $user->correo,
-                'numero_cel' => $user->numero_cel,
-                'ci' => $user->ci,
-                'correo_secundario' => $user->administrador->correo_secundario ?? '',
-            ]
+        return response()->json([
+            'nombre' => $user->nombre,
+            'ap_paterno' => $user->ap_paterno,
+            'ap_materno' => $user->ap_materno,
+            'ci' => $user->ci,
+            'numero_cel' => $user->numero_cel,
+            'correo' => $user->correo,
+            'fecha_nac' => $user->fecha_nac ? $user->fecha_nac->format('Y-m-d') : null,
+            'nombre_user' => $user->nombre_user,
+            'correo_secundario' => $user->administrador ? $user->administrador->correo_secundario : null,
         ]);
     }
 
@@ -83,11 +81,11 @@ public function updatePerfil(Request $request)
         DB::commit();
        
         // El Toast detectará esto automáticamente
-        return back()->with('success', '¡Perfil de Administrador actualizado con éxito!');
+        return response()->json(['message' => '¡Perfil de Administrador actualizado con éxito!']);
 
     } catch (\Exception $e) {
         DB::rollback();
-        return back()->with('error', 'Hubo un problema al actualizar el perfil.');
+        return response()->json(['errors' => ['general' => ['Hubo un problema al actualizar el perfil.']]], 422);
     }
 }
 
@@ -114,7 +112,7 @@ public function updatePerfil(Request $request)
 
         User::create($validated);
 
-        return back()->with('success', 'Usuario registrado correctamente.');
+        return response()->json(['message' => 'Usuario registrado correctamente.']);
     }
 
     // Store para administradores con try y rollback
@@ -144,10 +142,10 @@ public function updatePerfil(Request $request)
                 Administrador::create(['idU_admi' => $user->idUser, 'correo_secundario' => $validated['correo_secundario']]);
     
                 DB::commit();
-                return back()->with('success', 'Administrador registrado correctamente.');
+                return response()->json(['message' => 'Administrador registrado correctamente.']);
             } catch (\Exception $e) {
                 DB::rollBack();
-                return back()->with('error', 'Error al registrar el administrador: ' . $e->getMessage());
+                return response()->json(['errors' => ['general' => ['Error al registrar el administrador: ' . $e->getMessage()]]], 422);
             }
         }   
         
@@ -195,7 +193,7 @@ public function updatePerfil(Request $request)
         $user->estado_cuenta = !$user->estado_cuenta;
         $user->save();
 
-        return back()->with('success', 'El estado del usuario se ha modificado.');
+        return response()->json(['success' => 'Estado de cuenta actualizado correctamente.']);
     }
 
     /**
@@ -245,7 +243,9 @@ public function updatePerfil(Request $request)
                     'rol' => $this->getUserRole($user),
                 ];
             });
-        return Inertia::render('Admin/Usuarios/Solicitudes', ['usuarios' => $solicitudes]);
+
+        return response()->json(['solicitudes' => $solicitudes]);
+        // return Inertia::render('Admin/Usuarios/Solicitudes', ['usuarios' => $solicitudes]);
     }
     // crear usuario
     public function crearUsuario(Request $request)
@@ -1219,8 +1219,8 @@ public function updatePerfil(Request $request)
                 ];
             });
         
-        // return response()->json(['data' => $usuarios]);
-        return Inertia::render('Admin/Usuarios/Index', ['usuarios' => $usuarios]);
+        return response()->json(['usuarios' => $usuarios]);
+        // return Inertia::render('Admin/Usuarios/Index', ['usuarios' => $usuarios]);
     }
     
     private function getUserRole($user)
