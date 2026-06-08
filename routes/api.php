@@ -62,13 +62,29 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Rutas para >> ROL PASANTE <<
     Route::middleware(['role:pasante'])->prefix('/mobile/pasante')->group(function () {
 
+
+    
         //------- whitout id:
         Route::get('/info', [PasanteController::class, 'getInfo']);
         
         Route::get('/perfil', [PasanteController::class, 'perfil']);
         Route::put('/perfil', [PasanteController::class, 'actualizarPerfil']);
 
+        Route::get('/pasantias-disponibles', [PasanteController::class, 'pasantiasDisponibles']);
+
+        Route::get('/inscripciones/activas', [PasanteController::class, 'pasantiasInscritas']);
+        Route::post('/progreso', [PasanteController::class, 'storeProgreso']);
+        Route::post('/auto-eva', [PasanteController::class, 'storeAutoEva']);
+
         //------ with id:
+        Route::post('/inscribirse/{id}', [PasanteController::class, 'inscribirse']);
+        Route::get('/empresa/{id}/calificaciones', [PasanteController::class, 'calificacionesEmpresa']);
+        
+        Route::get('/evaluacion-detalle/{idActividad}', [PasanteController::class, 'getEvaluacionDetalle']);
+        Route::get('/actividades/{idPasantia}', [PasanteController::class, 'actividadesPasantia']);
+        Route::get('/companeros/{idPasantia}', [PasanteController::class, 'getCompaneros']);
+
+
     });
 });
 
