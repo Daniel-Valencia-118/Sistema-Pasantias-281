@@ -5,7 +5,7 @@ use App\Http\Controllers\Api\Mobile\GerenteController;
 use App\Http\Controllers\Api\Mobile\PasanteController;
 
 Route::get('/mobile/test', function () {
-    return response()->json(['message' => '✅ Conexión exitosa con el backend! Yooy el pro']);
+    return response()->json(['message' => 'Conexión exitosa con el backend! Yooy el pro']);
 });
 
 Route::post('/mobile/login', [AuthController::class, 'login']);
@@ -13,12 +13,18 @@ Route::post('/mobile/login', [AuthController::class, 'login']);
 // Grupo para rutas protegidas (requieren autenticación)
 Route::middleware(['auth:sanctum'])->group(function () {
     
-    Route::post('/mobile/logout', [AuthController::class, 'logout']);
-    Route::get('/mobile/user', [AuthController::class, 'user']); // ← AGREGAR ESTA LÍNEA
-    
-    // Rutas para >> ROL GERENTE <<
-    Route::middleware(['role:gerente'])->prefix('/mobile/gerente')->group(function () {
+        Route::post('/mobile/logout', [AuthController::class, 'logout']);
+        Route::get('/mobile/user', [AuthController::class, 'user']); // ← AGREGAR ESTA LÍNEA
+        // =============================================
+        // NOTIFICACIONES (para todos los roles autenticados)
+        // =============================================
+        Route::get('/mobile/notificaciones', [App\Http\Controllers\Api\NotificacionController::class, 'index']);
+        Route::patch('/mobile/notificaciones/{id}/leer', [App\Http\Controllers\Api\NotificacionController::class, 'marcarLeida']);
+        Route::patch('/mobile/notificaciones/marcar-todas', [App\Http\Controllers\Api\NotificacionController::class, 'marcarTodasLeidas']);
         
+            // Rutas para >> ROL GERENTE <<
+        Route::middleware(['role:gerente'])->prefix('/mobile/gerente')->group(function () {
+            
         //------- whitout id:
         Route::get('/estadisticas', [GerenteController::class, 'estadisticas']);
         
@@ -97,7 +103,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/mensajes/{tipo}/{id}', [PasanteController::class, 'getMensajes']);
 
     });
+ 
 });
+
+
 
 //Antiguo 
 // routes/api.php

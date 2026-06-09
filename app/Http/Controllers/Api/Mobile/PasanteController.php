@@ -372,12 +372,20 @@ class PasanteController extends Controller
                 $pasantia->save();
                 $cambioEstado = true;
             }
+
+
+            // Notificación de cupos completados
+            if ($totalInscritos == $pasantia->cupos && $gerente) {
+                $this->crearNotificacion(
+                    $gerente->idU_gerente,
+                    'gerente',
+                    '¡Cupos completados!',
+                    "La pasantía \"{$pasantia->nombre_pas}\" ha completado todos sus cupos ({$totalInscritos}/{$pasantia->cupos}).",
+                    'cupos_completados',
+                    '/mobile/gerente/pasantias'
+                );
+            }
             
-            DB::commit();
-            
-            // =============================================
-            // NOTIFICACIÓN: Nuevo inscrito para el GERENTE
-            // =============================================
             $gerente = $pasantia->empresa->gerente;
             if ($gerente) {
                 $this->crearNotificacion(
@@ -386,30 +394,48 @@ class PasanteController extends Controller
                     'Nuevo pasante inscrito',
                     "El Pasante {$pasante->user->nombre} {$pasante->user->ap_paterno} se ha inscrito en la pasantía \"{$pasantia->nombre_pas}\".",
                     'inscripcion',
-                    '/gerente/pasantias/'
+                    '/mobile/gerente/pasantias'
                 );
             }
             
-            // =============================================
-            // NOTIFICACIÓN: Cupos completados (si aplica)
-            // =============================================
-            if ($totalInscritos == $pasantia->cupos && $gerente) {
-                $this->crearNotificacion(
-                    $gerente->idU_gerente,
-                    'gerente',
-                    '¡Cupos completados!',
-                    "La pasantía \"{$pasantia->nombre_pas}\" ha completado todos sus cupos ({$totalInscritos}/{$pasantia->cupos}).",
-                    'cupos_completados',
-                    '/gerente/pasantias/'
-                );
-            }
+            DB::commit();
+
             
-            return response()->json([
-                'success' => true,
-                'message' => '¡Te has inscrito correctamente a la pasantía!',
-                'inscripcion' => $inscripcion,
-                'cupos_completados' => $cambioEstado
-            ]);
+            // // =============================================
+            // // NOTIFICACIÓN: Nuevo inscrito para el GERENTE
+            // // =============================================
+            // $gerente = $pasantia->empresa->gerente;
+            // if ($gerente) {
+            //     $this->crearNotificacion(
+            //         $gerente->idU_gerente,
+            //         'gerente',
+            //         'Nuevo pasante inscrito',
+            //         "El Pasante {$pasante->user->nombre} {$pasante->user->ap_paterno} se ha inscrito en la pasantía \"{$pasantia->nombre_pas}\".",
+            //         'inscripcion',
+            //         '/gerente/pasantias/'
+            //     );
+            // }
+            
+            // // =============================================
+            // // NOTIFICACIÓN: Cupos completados (si aplica)
+            // // =============================================
+            // if ($totalInscritos == $pasantia->cupos && $gerente) {
+            //     $this->crearNotificacion(
+            //         $gerente->idU_gerente,
+            //         'gerente',
+            //         '¡Cupos completados!',
+            //         "La pasantía \"{$pasantia->nombre_pas}\" ha completado todos sus cupos ({$totalInscritos}/{$pasantia->cupos}).",
+            //         'cupos_completados',
+            //         '/gerente/pasantias/'
+            //     );
+            // }
+            
+            // return response()->json([
+            //     'success' => true,
+            //     'message' => '¡Te has inscrito correctamente a la pasantía!',
+            //     'inscripcion' => $inscripcion,
+            //     'cupos_completados' => $cambioEstado
+            // ]);
             
         } catch (\Exception $e) {
             DB::rollBack();

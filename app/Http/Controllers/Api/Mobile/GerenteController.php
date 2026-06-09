@@ -10,6 +10,7 @@ use App\Models\JefePas;
 use App\Models\Comentario;
 use App\Models\Pasantia;
 use App\Models\Actividad;
+use App\Traits\Notificable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\DB;
 
 class GerenteController extends Controller
 {
+    use Notificable;
+
     public function estadisticas()
     {
         $user = Auth::user();
@@ -559,6 +562,10 @@ class GerenteController extends Controller
         
         $pasantia = $actividad->pasantia;
         
+        // GUARDAR FECHAS ANTERIORES ANTES DE ACTUALIZAR
+        $fechaIniAnterior = $actividad->fecha_ini;
+        $fechaFinAnterior = $actividad->fecha_fin;
+        
         $request->validate([
             'nombre_act' => 'sometimes|string|max:255',
             'tipo' => 'sometimes|string|in:OPERATIVA,TECNICA',
@@ -569,9 +576,43 @@ class GerenteController extends Controller
         
         $actividad->update($request->only(['nombre_act', 'tipo', 'descripcion', 'fecha_ini', 'fecha_fin']));
         
+        // OBTENER FECHAS NUEVAS DESPUÉS DE ACTUALIZAR
+        $fechaIniNueva = $actividad->fecha_ini;
+        $fechaFinNueva = $actividad->fecha_fin;
+        
+        // =============================================
+        // NOTIFICACIÓN: Si cambió la fecha de inicio o fin
+        // =============================================
+        if ($fechaIniAnterior != $fechaIniNueva || $fechaFinAnterior != $fechaFinNueva) {
+            // Obtener todos los pasantes inscritos en esta pasantía
+            $pasantesIds = Inscripcion::where('id_pasantia', $pasantia->id_pasantia)
+                ->whereIn('estado', ['inscrito', 'iniciado'])
+                ->pluck('idU_pasante')
+                ->toArray();
+            
+            $mensaje = '';
+            if ($fechaIniAnterior != $fechaIniNueva && $fechaFinAnterior != $fechaFinNueva) {
+                $mensaje = "La actividad \"{$actividad->nombre_act}\" cambió su fecha de inicio al " . date('d/m/Y', strtotime($fechaIniNueva)) . " y fecha de fin al " . date('d/m/Y', strtotime($fechaFinNueva));
+            } elseif ($fechaIniAnterior != $fechaIniNueva) {
+                $mensaje = "La actividad \"{$actividad->nombre_act}\" cambió su fecha de inicio al " . date('d/m/Y', strtotime($fechaIniNueva));
+            } elseif ($fechaFinAnterior != $fechaFinNueva) {
+                $mensaje = "La actividad \"{$actividad->nombre_act}\" cambió su fecha de fin al " . date('d/m/Y', strtotime($fechaFinNueva));
+            }
+            
+            if ($mensaje && count($pasantesIds) > 0) {
+                $this->crearNotificacionesMultiples(
+                    $pasantesIds,
+                    'pasante',
+                    'Actividad modificada',
+                    $mensaje,
+                    'actividad_fecha_cambio',
+                    "/mobile/pasante/actividades/{$pasantia->id_pasantia}"
+                );
+            }
+        }
+        
         return response()->json(['message' => 'Actividad actualizada correctamente']);
     }
-
     // =============================================
     // ELIMINAR ACTIVIDAD
     // =============================================
