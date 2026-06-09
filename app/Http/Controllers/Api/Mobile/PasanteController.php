@@ -8,6 +8,9 @@ use App\Models\Pasante;
 use App\Models\Pasantia;
 use App\Models\Empresa;
 use App\Models\Inscripcion;
+use App\Models\BitacoraEva;
+use App\Models\ProgresoAct;
+use App\Models\AutoEva;
 use App\Traits\Notificable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -417,6 +420,328 @@ class PasanteController extends Controller
             'empresa_nombre' => $empresa->nombre,
             'pasantias' => $pasantias,
         ]);
+    }
+
+    // =============================================
+    // PASANTÍAS INSCRITAS (ACTIVAS)
+    // =============================================
+    public function pasantiasInscritas()
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        $inscripciones = Inscripcion::with(['pasantia.empresa.gerente.user', 'pasantia.actividades', 'jefe.user'])
+            ->where('idU_pasante', $pasante->idU_pasante)
+            ->whereIn('estado', ['inscrito', 'iniciado'])
+            ->get()
+            ->map(function($inscripcion) {
+                $pasantia = $inscripcion->pasantia;
+                
+                //nombre gerente
+                $gerenteNombre = '';
+                if ($pasantia->empresa && $pasantia->empresa->gerente && $pasantia->empresa->gerente->user) {
+                    $gerente = $pasantia->empresa->gerente->user;
+                    $gerenteNombre = $gerente->nombre . ' ' . $gerente->ap_paterno . ' ' . ($gerente->ap_materno ?? '');
+                }
+                return [
+                    'id_inscripcion' => $inscripcion->id_inscripcion,
+                    'estado_inscripcion' => $inscripcion->estado,
+                    'pasantia' => [
+                        'id' => $pasantia->id_pasantia,
+                        'nombre' => $pasantia->nombre_pas,
+                        'mencion' => $pasantia->mencion,
+                        'turno' => $pasantia->turno,
+                        'carga_horaria' => $pasantia->carga_horaria,
+                        'detalles_horario' => $pasantia->detalles_horario,
+                        'fecha_ini' => $pasantia->fecha_ini,
+                        'fecha_fin' => $pasantia->fecha_fin,
+                        'actividades_count' => $pasantia->actividades->count(),
+                    ],
+                    'empresa' => [
+                        'id' => $pasantia->empresa->id_empresa,
+                        'nombre' => $pasantia->empresa->nombre,
+                        'nit' => $pasantia->empresa->nit,
+                        'direccion' => $pasantia->empresa->direccion,
+                        'telefono' => $pasantia->empresa->telefono,
+                        'email' => $pasantia->empresa->email,
+                        'gerente_nombre' => $gerenteNombre,
+                    ],
+                    'jefe' => $inscripcion->jefe ? [
+                        'id' => $inscripcion->jefe->idU_jefe,
+                        'nombre' => $inscripcion->jefe->user->nombre,
+                        'ap_paterno' => $inscripcion->jefe->user->ap_paterno,
+                        'ap_materno' => $inscripcion->jefe->user->ap_materno,
+                    ] : null,
+                ];
+            });
+        
+        return response()->json($inscripciones);
+    }
+
+    // =============================================
+    // ACTIVIDADES DE UNA PASANTÍA
+    // =============================================
+    public function actividadesPasantia($idPasantia)
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        // Verificar inscripción
+        $inscripcion = Inscripcion::where('idU_pasante', $pasante->idU_pasante)
+            ->where('id_pasantia', $idPasantia)
+            ->whereIn('estado', ['inscrito', 'iniciado'])
+            ->firstOrFail();
+        
+        $pasantia = $inscripcion->pasantia;
+        $jefe = $inscripcion->jefe;
+        
+        // Obtener actividades ordenadas
+        $actividades = $pasantia->actividades()
+            ->orderBy('fecha_ini', 'asc')
+            ->orderBy('fecha_fin', 'asc')
+            ->get()
+            ->map(function($actividad) use ($pasante, $inscripcion) {
+                // Evaluación del jefe
+                $evaluacion = BitacoraEva::where('idU_pasante', $pasante->idU_pasante)
+                    ->where('id_actividad', $actividad->id_actividad)
+                    ->first();
+                
+                // Progresos del pasante
+                $progresos = ProgresoAct::where('idU_pasante', $pasante->idU_pasante)
+                    ->where('id_actividad', $actividad->id_actividad)
+                    ->orderBy('fecha', 'asc')
+                    ->orderBy('hora', 'asc')
+                    ->get();
+                
+                // Autoevaluación
+                $autoevaluacion = AutoEva::where('idU_pasante', $pasante->idU_pasante)
+                    ->where('id_actividad', $actividad->id_actividad)
+                    ->first();
+                
+                // Determinar estado de la actividad según fechas
+                $hoy = now()->toDateString();
+                $estadoActividad = 'en_curso';
+                if ($actividad->fecha_ini > $hoy) {
+                    $estadoActividad = 'no_iniciada';
+                } elseif ($actividad->fecha_fin < $hoy) {
+                    $estadoActividad = 'finalizada';
+                }
+                
+                // Determinar si puede editar
+                $puedeEditar = $inscripcion->estado !== 'finalizado' && 
+                            $estadoActividad === 'en_curso' && 
+                            (!$evaluacion || !in_array($evaluacion->estado, ['COMPLETADA', 'COMPLETADA PARCIALMENTE', 'NO REALIZADA']));
+            
+                return [
+                    'id' => $actividad->id_actividad,
+                    'nombre' => $actividad->nombre_act,
+                    'descripcion' => $actividad->descripcion,
+                    'fecha_ini' => $actividad->fecha_ini,
+                    'fecha_fin' => $actividad->fecha_fin,
+                    'tipo' => $actividad->tipo,
+                    'estado_actividad' => $estadoActividad,
+                    'puede_editar' => $puedeEditar,
+                    'evaluacion' => $evaluacion ? [
+                        'id' => $evaluacion->id_bitacora,
+                        'estado' => $evaluacion->estado,
+                        'nota' => $evaluacion->nota,
+                        'descripcion' => $evaluacion->descripcion,
+                        'observacion' => $evaluacion->observacion,
+                        'recomendacion' => $evaluacion->recomendacion,
+                        'fecha' => $evaluacion->fecha,
+                        'hora' => $evaluacion->hora,
+                        'jefe_nombre' => $evaluacion->jefe && $evaluacion->jefe->user 
+                            ? $evaluacion->jefe->user->nombre . ' ' . $evaluacion->jefe->user->ap_paterno 
+                            : null,
+                    ] : null,
+                    'progresos' => $progresos,
+                    'autoevaluacion' => $autoevaluacion,
+                ];
+            });
+        
+        return response()->json([
+            'pasantia' => [
+                'id' => $pasantia->id_pasantia,
+                'nombre' => $pasantia->nombre_pas,
+                'fecha_ini' => $pasantia->fecha_ini,
+                'fecha_fin' => $pasantia->fecha_fin,
+                'estado_inscripcion' => $inscripcion->estado,
+            ],
+            'empresa' => [
+                'id' => $pasantia->empresa->id_empresa,
+                'nombre' => $pasantia->empresa->nombre,
+            ],
+            'jefe' => $jefe ? [
+                'nombre' => $jefe->user->nombre,
+                'ap_paterno' => $jefe->user->ap_paterno,
+                'ap_materno' => $jefe->user->ap_materno,
+            ] : null,
+            'actividades' => $actividades,
+        ]);
+    }
+
+    // =============================================
+    // GUARDAR PROGRESO (APUNTE)
+    // =============================================
+    public function storeProgreso(Request $request)
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        $request->validate([
+            'id_actividad' => 'required|exists:actividad,id_actividad',
+            'descripcion' => 'nullable|string',
+            'porcentaje' => 'required|integer|min:0|max:100',
+        ]);
+        
+        $progreso = ProgresoAct::create([
+            'descripcion' => $request->descripcion,
+            'porcentaje' => $request->porcentaje,
+            'fecha' => now()->toDateString(),
+            'hora' => now()->toTimeString(),
+            'idU_pasante' => $pasante->idU_pasante,
+            'id_actividad' => $request->id_actividad,
+        ]);
+        
+        return response()->json(['success' => true, 'progreso' => $progreso]);
+    }
+
+    // =============================================
+    // GUARDAR AUTOEVALUACIÓN
+    // =============================================
+    public function storeAutoEva(Request $request)
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        $request->validate([
+            'id_actividad' => 'required|exists:actividad,id_actividad',
+            'comentario' => 'required|string',
+            'nota' => 'required|integer|min:0|max:100',
+        ]);
+        
+        $autoeva = AutoEva::where('idU_pasante', $pasante->idU_pasante)
+            ->where('id_actividad', $request->id_actividad)
+            ->first();
+        
+        if ($autoeva) {
+            // Solo actualizar comentario
+            $autoeva->comentario = $request->comentario;
+            $autoeva->save();
+        } else {
+            $autoeva = AutoEva::create([
+                'comentario' => $request->comentario,
+                'nota' => $request->nota,
+                'fecha' => now()->toDateString(),
+                'idU_pasante' => $pasante->idU_pasante,
+                'id_actividad' => $request->id_actividad,
+            ]);
+        }
+        
+        return response()->json(['success' => true, 'autoeva' => $autoeva]);
+    }
+
+    // =============================================
+    // DETALLE DE EVALUACIÓN DEL JEFE
+    // =============================================
+    public function getEvaluacionDetalle($idActividad)
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        $evaluacion = BitacoraEva::with('jefe.user')
+            ->where('idU_pasante', $pasante->idU_pasante)
+            ->where('id_actividad', $idActividad)
+            ->first();
+        
+        if (!$evaluacion) {
+            return response()->json(['success' => false, 'message' => 'No hay evaluación'], 404);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'evaluacion' => [
+                'estado' => $evaluacion->estado,
+                'nota' => $evaluacion->nota,
+                'descripcion' => $evaluacion->descripcion,
+                'observacion' => $evaluacion->observacion,
+                'recomendacion' => $evaluacion->recomendacion,
+                'fecha' => $evaluacion->fecha ? \Carbon\Carbon::parse($evaluacion->fecha)->format('Y-m-d') : null,
+                'hora'  => $evaluacion->hora ? \Carbon\Carbon::parse($evaluacion->hora)->format('H:i:s') : null,
+                'jefe_nombre' => $evaluacion->jefe && $evaluacion->jefe->user 
+                    ? $evaluacion->jefe->user->nombre . ' ' . $evaluacion->jefe->user->ap_paterno 
+                    : null,
+            ]
+        ]);
+    }
+
+    // =============================================
+    // COMPAÑEROS DE UNA PASANTÍA
+    // =============================================
+    public function getCompaneros($idPasantia)
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        // Verificar inscripción
+        Inscripcion::where('idU_pasante', $pasante->idU_pasante)
+            ->where('id_pasantia', $idPasantia)
+            ->firstOrFail();
+        
+        $inscripciones = Inscripcion::with(['pasante.user', 'jefe.user'])
+            ->where('id_pasantia', $idPasantia)
+            ->whereIn('estado', ['inscrito', 'iniciado', 'finalizado'])
+            ->get();
+        
+        $companeros = $inscripciones->map(function($insc) use ($pasante) {
+            $esYo = ($insc->pasante->idU_pasante === $pasante->idU_pasante);
+            
+            $jefeNombre = $insc->jefe && $insc->jefe->user
+                ? $insc->jefe->user->ap_paterno . ' ' . ($insc->jefe->user->ap_materno ?? '') . ' ' . $insc->jefe->user->nombre
+                : 'No Asignado';
+            
+            return [
+                'id' => $insc->pasante->idU_pasante,
+                'ap_paterno' => $insc->pasante->user->ap_paterno,
+                'ap_materno' => $insc->pasante->user->ap_materno ?? '',
+                'nombre' => $insc->pasante->user->nombre,
+                'es_yo' => $esYo,
+                'jefe_nombre' => $jefeNombre,
+            ];
+        })->sortBy('ap_paterno')->values();
+        
+        $pasantia = Pasantia::findOrFail($idPasantia);
+        
+        return response()->json([
+            'pasantia_nombre' => $pasantia->nombre_pas,
+            'companeros' => $companeros,
+        ]);
+    }
+
+    // =============================================
+    // OBTENER PROGRESOS DE UNA ACTIVIDAD
+    // =============================================
+    public function getProgresos($idActividad)
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        $progresos = ProgresoAct::where('idU_pasante', $pasante->idU_pasante)
+            ->where('id_actividad', $idActividad)
+            ->orderBy('fecha', 'asc')
+            ->orderBy('hora', 'asc')
+            ->get()
+            ->map(function($progreso) {
+                return [
+                    'id_progresoact' => $progreso->id_progresoact,
+                    'descripcion' => $progreso->descripcion,
+                    'porcentaje' => $progreso->porcentaje,
+                    'fecha' => $progreso->fecha ? \Carbon\Carbon::parse($progreso->fecha)->format('Y-m-d') : null,
+                    'hora' => $progreso->hora ? \Carbon\Carbon::parse($progreso->hora)->format('H:i:s') : null,
+                ];
+            });
+        
+        return response()->json($progresos);
     }
 
 }
