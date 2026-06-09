@@ -79,6 +79,43 @@ class GerenteController extends Controller
         return response()->json(['message' => 'Perfil actualizado correctamente']);
     }
 
+    public function actualizarCuenta(Request $request)
+    {
+        $user = Auth::user();
+        
+        $request->validate([
+            'nombre_user' => 'required|string|max:255|unique:usuario,nombre_user,' . $user->idUser . ',idUser',
+            'correo' => 'required|email|max:255|unique:usuario,correo,' . $user->idUser . ',idUser',
+        ]);
+        
+        $user->update([
+            'nombre_user' => $request->nombre_user,
+            'correo' => $request->correo,
+        ]);
+        
+        return response()->json(['message' => 'Cuenta actualizada correctamente']);
+    }
+
+    public function cambiarPassword(Request $request)
+    {
+        $user = Auth::user();
+        
+        $request->validate([
+            'current_password' => 'required|string|min:6',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+        
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'La contraseña actual es incorrecta'], 422);
+        }
+        
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+        
+        return response()->json(['message' => 'Contraseña actualizada correctamente']);
+    }
+
     public function empresa()
     {
         $user = Auth::user();

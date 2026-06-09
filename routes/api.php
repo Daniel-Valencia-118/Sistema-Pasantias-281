@@ -24,7 +24,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         
         Route::get('/perfil', [GerenteController::class, 'perfil']);
         Route::put('/perfil', [GerenteController::class, 'actualizarPerfil']);
-        
+         
+        Route::put('/cuenta', [GerenteController::class, 'actualizarCuenta']);
+        Route::put('/password', [GerenteController::class, 'cambiarPassword']);
+
         Route::get('/empresa', [GerenteController::class, 'empresa']);
         Route::put('/empresa', [GerenteController::class, 'actualizarEmpresa']);
         
@@ -68,12 +71,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/perfil', [PasanteController::class, 'perfil']);
         Route::put('/perfil', [PasanteController::class, 'actualizarPerfil']);
 
+        Route::put('/cuenta', [PasanteController::class, 'actualizarCuenta']);
+        Route::put('/password', [PasanteController::class, 'cambiarPassword']);
+
         Route::get('/pasantias-disponibles', [PasanteController::class, 'pasantiasDisponibles']);
 
         Route::get('/inscripciones/activas', [PasanteController::class, 'pasantiasInscritas']);
         Route::post('/progreso', [PasanteController::class, 'storeProgreso']);
         Route::post('/auto-eva', [PasanteController::class, 'storeAutoEva']);
+        
+        Route::get('/calendario/actividades', [PasanteController::class, 'calendarioActividades']);
 
+        Route::get('/mensajes/contactos', [PasanteController::class, 'getContactos']);
+        Route::post('/mensajes', [PasanteController::class, 'enviarMensaje']);
+        
         //------ with id:
         Route::post('/inscribirse/{id}', [PasanteController::class, 'inscribirse']);
         Route::get('/empresa/{id}/calificaciones', [PasanteController::class, 'calificacionesEmpresa']);
@@ -82,6 +93,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/companeros/{idPasantia}', [PasanteController::class, 'getCompaneros']);
         Route::get('/progresos/{idActividad}', [PasanteController::class, 'getProgresos']);
         Route::get('/evaluacion-detalle/{idActividad}', [PasanteController::class, 'getEvaluacionDetalle']);
+        
+        Route::get('/mensajes/{tipo}/{id}', [PasanteController::class, 'getMensajes']);
 
     });
 });

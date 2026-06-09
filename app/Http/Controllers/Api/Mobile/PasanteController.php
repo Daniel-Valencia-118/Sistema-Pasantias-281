@@ -11,6 +11,9 @@ use App\Models\Inscripcion;
 use App\Models\BitacoraEva;
 use App\Models\ProgresoAct;
 use App\Models\AutoEva;
+use App\Models\JefePas;
+use App\Models\Mensaje;
+use App\Models\MensajePas;
 use App\Traits\Notificable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -88,6 +91,43 @@ class PasanteController extends Controller
             'semestre' => $pasante->semestre,
             'mencion' => $pasante->mencion,
         ]);
+    }
+
+    public function actualizarCuenta(Request $request)
+    {
+        $user = Auth::user();
+        
+        $request->validate([
+            'nombre_user' => 'required|string|max:255|unique:usuario,nombre_user,' . $user->idUser . ',idUser',
+            'correo' => 'required|email|max:255|unique:usuario,correo,' . $user->idUser . ',idUser',
+        ]);
+        
+        $user->update([
+            'nombre_user' => $request->nombre_user,
+            'correo' => $request->correo,
+        ]);
+        
+        return response()->json(['message' => 'Cuenta actualizada correctamente']);
+    }
+
+    public function cambiarPassword(Request $request)
+    {
+        $user = Auth::user();
+        
+        $request->validate([
+            'current_password' => 'required|string|min:6',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+        
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'La contraseña actual es incorrecta'], 422);
+        }
+        
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+        
+        return response()->json(['message' => 'Contraseña actualizada correctamente']);
     }
 
     // =============================================
@@ -742,6 +782,327 @@ class PasanteController extends Controller
             });
         
         return response()->json($progresos);
+    }
+
+    // =============================================
+    // CALENDARIO DE ACTIVIDADES
+    // =============================================
+    public function calendarioActividades()
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        // Obtener inscripciones activas (inscrito o iniciado)
+        $inscripciones = Inscripcion::with(['pasantia.actividades'])
+            ->where('idU_pasante', $pasante->idU_pasante)
+            ->whereIn('estado', ['inscrito', 'iniciado'])
+            ->get();
+        
+        $hoy = now()->toDateString();
+        $actividadesPorIniciar = [];
+        $actividadesEnCurso = [];
+        $actividadesFinalizadas = [];
+        
+        foreach ($inscripciones as $inscripcion) {
+            $pasantia = $inscripcion->pasantia;
+            
+            foreach ($pasantia->actividades as $actividad) {
+                $actividadData = [
+                    'id' => $actividad->id_actividad,
+                    'nombre' => $actividad->nombre_act,
+                    'descripcion' => $actividad->descripcion,
+                    'fecha_ini' => $actividad->fecha_ini,
+                    'fecha_fin' => $actividad->fecha_fin,
+                    'tipo' => $actividad->tipo,
+                    'pasantia_id' => $pasantia->id_pasantia,
+                    'pasantia_nombre' => $pasantia->nombre_pas,
+                ];
+                
+                if ($actividad->fecha_ini > $hoy) {
+                    $actividadesPorIniciar[] = $actividadData;
+                } elseif ($actividad->fecha_fin < $hoy) {
+                    $actividadesFinalizadas[] = $actividadData;
+                } else {
+                    $actividadesEnCurso[] = $actividadData;
+                }
+            }
+        }
+        
+        // Ordenar por fecha_ini ASC dentro de cada categoría
+        $ordenarPorFecha = function($a, $b) {
+            return $a['fecha_ini'] <=> $b['fecha_ini'];
+        };
+        
+        usort($actividadesPorIniciar, $ordenarPorFecha);
+        usort($actividadesEnCurso, $ordenarPorFecha);
+        usort($actividadesFinalizadas, $ordenarPorFecha);
+        
+        return response()->json([
+            'por_iniciar' => $actividadesPorIniciar,
+            'en_curso' => $actividadesEnCurso,
+            'finalizadas' => $actividadesFinalizadas,
+        ]);
+    }    
+
+
+
+    // =============================================
+    // OBTENER CONTACTOS (JEFES Y COMPAÑEROS)
+    // =============================================
+    public function getContactos()
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        // Obtener inscripciones activas
+        $inscripciones = Inscripcion::with(['pasantia.empresa', 'jefe.user'])
+            ->where('idU_pasante', $pasante->idU_pasante)
+            ->whereIn('estado', ['inscrito', 'iniciado'])
+            ->get();
+        
+        $contactos = [];
+        
+        // 1. Agregar jefes de las pasantías activas
+        foreach ($inscripciones as $inscripcion) {
+            if ($inscripcion->jefe && $inscripcion->jefe->user) {
+                $jefe = $inscripcion->jefe;
+                $contactoId = 'jefe_' . $jefe->idU_jefe;
+                
+                if (!isset($contactos[$contactoId])) {
+                    // Obtener último mensaje
+                    $ultimoMensaje = Mensaje::where('idU_pasante', $pasante->idU_pasante)
+                        ->where('idU_jefe', $jefe->idU_jefe)
+                        ->orderBy('fecha', 'desc')
+                        ->orderBy('hora', 'desc')
+                        ->first();
+                    
+                    $contactos[$contactoId] = [
+                        'tipo' => 'jefe',
+                        'id_contacto' => $jefe->idU_jefe,
+                        'nombre' => $jefe->user->nombre,
+                        'ap_paterno' => $jefe->user->ap_paterno,
+                        'ap_materno' => $jefe->user->ap_materno ?? '',
+                        'nombre_user' => $jefe->user->nombre_user,
+                        'avatar_url' => $jefe->user->avatar_url,
+                        'empresa_nombre' => $inscripcion->pasantia->empresa->nombre,
+                        'pasantia_nombre' => $inscripcion->pasantia->nombre_pas,
+                        'ultimo_mensaje' => $ultimoMensaje ? preg_replace('/^(\[J\]|\[P\])/', '', $ultimoMensaje->descripcion) : null,
+                        'ultimo_mensaje_fecha' => $ultimoMensaje ? $ultimoMensaje->fecha : null,
+                        'ultimo_mensaje_hora' => $ultimoMensaje ? $ultimoMensaje->hora : null,
+                        'ultimo_mensaje_enviado_por_mi' => $ultimoMensaje ? str_starts_with($ultimoMensaje->descripcion, '[P]') : null,
+                    ];
+                }
+            }
+        }
+        
+        // 2. Agregar compañeros pasantes
+        foreach ($inscripciones as $inscripcion) {
+            $otrosPasantes = Inscripcion::with('pasante.user')
+                ->where('id_pasantia', $inscripcion->id_pasantia)
+                ->where('idU_pasante', '!=', $pasante->idU_pasante)
+                ->whereIn('estado', ['inscrito', 'iniciado'])
+                ->get();
+            
+            foreach ($otrosPasantes as $otro) {
+                $companero = $otro->pasante;
+                $contactoId = 'pasante_' . $companero->idU_pasante;
+                
+                if (!isset($contactos[$contactoId])) {
+                    // Obtener último mensaje
+                    $ultimoMensaje = MensajePas::where(function($q) use ($pasante, $companero) {
+                        $q->where('idU_pasanteA', $pasante->idU_pasante)
+                        ->where('idU_pasanteB', $companero->idU_pasante);
+                    })->orWhere(function($q) use ($pasante, $companero) {
+                        $q->where('idU_pasanteA', $companero->idU_pasante)
+                        ->where('idU_pasanteB', $pasante->idU_pasante);
+                    })->orderBy('fecha', 'desc')
+                    ->orderBy('hora', 'desc')
+                    ->first();
+                    
+                    $contactos[$contactoId] = [
+                        'tipo' => 'pasante',
+                        'id_contacto' => $companero->idU_pasante,
+                        'nombre' => $companero->user->nombre,
+                        'ap_paterno' => $companero->user->ap_paterno,
+                        'ap_materno' => $companero->user->ap_materno ?? '',
+                        'nombre_user' => $companero->user->nombre_user,
+                        'avatar_url' => $companero->user->avatar_url,
+                        'empresa_nombre' => $inscripcion->pasantia->empresa->nombre,
+                        'pasantia_nombre' => $inscripcion->pasantia->nombre_pas,
+                        'ultimo_mensaje' => $ultimoMensaje ? $ultimoMensaje->descripcion : null,
+                        'ultimo_mensaje_fecha' => $ultimoMensaje ? $ultimoMensaje->fecha : null,
+                        'ultimo_mensaje_hora' => $ultimoMensaje ? $ultimoMensaje->hora : null,
+                        'ultimo_mensaje_enviado_por_mi' => $ultimoMensaje ? $ultimoMensaje->idU_pasanteA === $pasante->idU_pasante : null,
+                    ];
+                }
+            }
+        }
+        
+        // Ordenar por último mensaje (más reciente primero)
+        usort($contactos, function($a, $b) {
+            $fechaA = $a['ultimo_mensaje_fecha'] ?? '0000-00-00';
+            $horaA = $a['ultimo_mensaje_hora'] ?? '00:00:00';
+            $fechaB = $b['ultimo_mensaje_fecha'] ?? '0000-00-00';
+            $horaB = $b['ultimo_mensaje_hora'] ?? '00:00:00';
+            return ($fechaB . $horaB) <=> ($fechaA . $horaA);
+        });
+        
+        return response()->json(array_values($contactos));
+    }
+
+    // =============================================
+    // OBTENER MENSAJES CON UN CONTACTO
+    // =============================================
+    public function getMensajes($tipo, $id)
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        $mensajes = [];
+        $contactoInfo = [];
+        
+        if ($tipo === 'jefe') {
+            $mensajes = Mensaje::where('idU_pasante', $pasante->idU_pasante)
+                ->where('idU_jefe', $id)
+                ->orderBy('fecha', 'asc')
+                ->orderBy('hora', 'asc')
+                ->get()
+                ->map(function($msg) {
+                    $esMio = str_starts_with($msg->descripcion, '[P]');
+                    $descripcionLimpia = preg_replace('/^(\[J\]|\[P\])/', '', $msg->descripcion);
+                    return [
+                        'id' => $msg->id_mensaje,
+                        'descripcion' => $descripcionLimpia,
+                        'fecha' => $msg->fecha,
+                        'hora' => $msg->hora,
+                        'es_mio' => $esMio,
+                    ];
+                });
+            
+            $jefe = JefePas::with('user')->find($id);
+            if ($jefe) {
+                $contactoInfo = [
+                    'nombre' => $jefe->user->nombre,
+                    'ap_paterno' => $jefe->user->ap_paterno,
+                    'ap_materno' => $jefe->user->ap_materno ?? '',
+                    'avatar_url' => $jefe->user->avatar_url,
+                    'tipo' => 'jefe',
+                ];
+            }
+        } else {
+            $mensajes = MensajePas::where(function($q) use ($pasante, $id) {
+                    $q->where('idU_pasanteA', $pasante->idU_pasante)
+                    ->where('idU_pasanteB', $id);
+                })->orWhere(function($q) use ($pasante, $id) {
+                    $q->where('idU_pasanteA', $id)
+                    ->where('idU_pasanteB', $pasante->idU_pasante);
+                })->orderBy('fecha', 'asc')
+                ->orderBy('hora', 'asc')
+                ->get()
+                ->map(function($msg) use ($pasante) {
+                    return [
+                        'id' => $msg->id_mensajepas,
+                        'descripcion' => $msg->descripcion,
+                        'fecha' => $msg->fecha,
+                        'hora' => $msg->hora,
+                        'es_mio' => $msg->idU_pasanteA === $pasante->idU_pasante,
+                    ];
+                });
+            
+            $companero = Pasante::with('user')->find($id);
+            if ($companero) {
+                $contactoInfo = [
+                    'nombre' => $companero->user->nombre,
+                    'ap_paterno' => $companero->user->ap_paterno,
+                    'ap_materno' => $companero->user->ap_materno ?? '',
+                    'avatar_url' => $companero->user->avatar_url,
+                    'tipo' => 'pasante',
+                ];
+            }
+        }
+        
+        return response()->json([
+            'mensajes' => $mensajes,
+            'contacto' => $contactoInfo,
+        ]);
+    }
+
+    // =============================================
+    // ENVIAR MENSAJE
+    // =============================================
+    public function enviarMensaje(Request $request)
+    {
+        $user = Auth::user();
+        $pasante = $user->pasante;
+        
+        $request->validate([
+            'tipo' => 'required|in:jefe,pasante',
+            'id_contacto' => 'required|integer',
+            'mensaje' => 'required|string|max:1000',
+        ]);
+        
+        if ($request->tipo === 'jefe') {
+            $jefe = JefePas::findOrFail($request->id_contacto);
+            
+            $mensaje = Mensaje::create([
+                'descripcion' => '[P]' . $request->mensaje,
+                'fecha' => now()->toDateString(),
+                'hora' => now()->toTimeString(),
+                'idU_pasante' => $pasante->idU_pasante,
+                'idU_jefe' => $request->id_contacto,
+            ]);
+            
+            // Notificación al jefe
+            $this->crearNotificacion(
+                $jefe->user->idUser,
+                'jefe',
+                'Nuevo mensaje de pasante',
+                "El pasante {$pasante->user->nombre} {$pasante->user->ap_paterno} te ha enviado un mensaje.",
+                'mensaje',
+                '/pasante/mensajes'
+            );
+            
+            $mensajeRetorno = [
+                'id' => $mensaje->id_mensaje,
+                'descripcion' => $request->mensaje,
+                'fecha' => $mensaje->fecha,
+                'hora' => $mensaje->hora,
+                'es_mio' => true,
+            ];
+        } else {
+            $companero = Pasante::findOrFail($request->id_contacto);
+            
+            $mensaje = MensajePas::create([
+                'descripcion' => $request->mensaje,
+                'fecha' => now()->toDateString(),
+                'hora' => now()->toTimeString(),
+                'idU_pasanteA' => $pasante->idU_pasante,
+                'idU_pasanteB' => $request->id_contacto,
+            ]);
+            
+            // Notificación al compañero
+            $this->crearNotificacion(
+                $companero->user->idUser,
+                'pasante',
+                'Nuevo mensaje',
+                "El pasante {$pasante->user->nombre} {$pasante->user->ap_paterno} te ha enviado un mensaje.",
+                'mensaje',
+                '/pasante/mensajes'
+            );
+            
+            $mensajeRetorno = [
+                'id' => $mensaje->id_mensajepas,
+                'descripcion' => $request->mensaje,
+                'fecha' => $mensaje->fecha,
+                'hora' => $mensaje->hora,
+                'es_mio' => true,
+            ];
+        }
+        
+        return response()->json([
+            'success' => true,
+            'mensaje' => $mensajeRetorno,
+        ]);
     }
 
 }
