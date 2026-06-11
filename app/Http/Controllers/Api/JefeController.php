@@ -24,10 +24,12 @@ use Pdf;
 
 class JefeController extends Controller
 {
-public function dashboard()
+    public function dashboard()
     {
         $user = Auth::user();
         $idJefe = $user->idUser; 
+        // $idJefe con idUser = 26
+        // $idJefe = User::where('idUser', 14)->value('idUser'); // Reemplaza 26 con el ID real del jefe que deseas consultar
 
         // 1. ESTADÍSTICAS (KPIs) - Vinculado a tus reglas de negocio
         $stats = [
@@ -103,7 +105,7 @@ public function dashboard()
 
 
 
-        return Inertia::render('Jefe/Dashboard/Dashboard', [
+        return response()->json([
             'stats' => $stats,
             'rendimiento_pasantes' => $rendimiento_pasantes,
             'bitacoras_pendientes' => $bitacoras_pendientes,
@@ -116,7 +118,7 @@ public function dashboard()
         $user = Auth::user();
         $jefe = $user->jefePas()->with('empresa')->first();
 
-        return Inertia::render('Jefe/Perfil', [
+        return response()->json([
             'usuario' => [
                 'id' => $user->idUser,
                 'nombre_user' => $user->nombre_user,
@@ -165,14 +167,102 @@ public function dashboard()
             $jefe->update($request->only(['cargo', 'area']));
         }
 
-        return back()->with('success', 'Perfil actualizado correctamente.');
+        return response()->json(['message' => 'Perfil actualizado correctamente.']);
     }
 
-    public function misPasantes($id_pasantia)
-    {
-        // 1. Obtener los datos del Jefe de Pasantía autenticado
+    // Funcion que enviar todas las pasantias del jefe y sus todos los datos de lospasantes inscritos
+    public function pasantes() {
         $user = Auth::user();
         $jefe = $user->jefePas; // idU_jefe
+        // $jefe = JefePas::with('empresa')->where('idU_jefe', 14)->firstOrFail(); // Reemplaza 14 con el ID real del jefe que deseas consultar
+    
+        $empresa = $jefe->empresa ?? null;
+
+        // 2. Obtener las pasantías asignadas
+        $pasantias = Pasantia::whereHas('inscripciones', function ($q) use ($jefe) {
+            $q->where('idU_jefe', $jefe->idU_jefe);
+        })
+        ->with(['inscripciones.pasante.user', 'empresa'])
+        ->get()
+        ->map(function ($pasantia) use (&$empresa, $jefe) {
+            
+            // Fallback: Si el jefe no tiene empresa directa, la extraemos de su primera pasantía
+            if (!$empresa && $pasantia->empresa) {
+                $empresa = $pasantia->empresa;
+            }
+
+            return [
+                'id_pasantia' => $pasantia->id_pasantia,
+                'nombre' => $pasantia->nombre_pas,
+                'estado' => $pasantia->estado,
+                'mencion' => $pasantia->mencion ?? 'General / No especificada',
+                'fecha_ini' => $pasantia->fecha_ini,
+                'fecha_fin' => $pasantia->fecha_fin,
+                'total_inscritos' => $pasantia->inscripciones->count(),
+                // filtrar inscripciones con idU_jefe igual al jefe autenticado
+                'inscritos' => $pasantia->inscripciones
+                ->where('idU_jefe', $jefe->idU_jefe)
+                ->values()
+                ->map(function($inscripcion) {
+                    return [
+                        'id_inscripcion' => $inscripcion->id_inscripcion,
+                        'idU_pasante' => $inscripcion->idU_pasante,
+                        'estado' => $inscripcion->estado,
+                        'nombre_completo' => $inscripcion->pasante->user->nombre . ' ' . $inscripcion->pasante->user->ap_paterno . ' ' . $inscripcion->pasante->user->ap_materno,
+                        'ru' => $inscripcion->pasante->ru,
+                        'ci' => $inscripcion->pasante->user->ci,
+                        'matricula' => $inscripcion->pasante->matricula,
+                        'email' => $inscripcion->pasante->user->correo,
+                        'telefono' => $inscripcion->pasante->user->numero_cel ?? 'No registrado',
+                        'mencion' => $inscripcion->pasante->mencion ?? 'No registrado',
+                        'matricula' => $inscripcion->pasante->matricula ?? 'No registrado',
+                        'semestre' => $inscripcion->pasante->semestre ?? 'No registrado',
+                    ];
+                }),
+            ];
+        });
+
+        // 3. Retornar datos estructurados a Inertia
+        return response()->json([
+            'pasantias' => $pasantias,
+        ]);
+    }
+
+   public function seguimientoPasantes() {
+        $user = Auth::user();
+        $jefe = $user->jefePas; // idU_jefe
+        // $jefe = JefePas::with('empresa')->where('idU_jefe', 14)->firstOrFail(); // Reemplaza 14 con el ID real del jefe que deseas consultar
+    
+        $empresa = $jefe->empresa ?? null;
+
+        // 2. Obtener las pasantías asignadas
+        $pasantias = Pasantia::whereHas('inscripciones', function ($q) use ($jefe) {
+            $q->where('idU_jefe', $jefe->idU_jefe);
+        })
+        ->with(['inscripciones.pasante.user', 'empresa'])
+        ->get()
+        ->map(function ($pasantia) use (&$empresa, $jefe) {
+            
+            // Fallback: Si el jefe no tiene empresa directa, la extraemos de su primera pasantía
+            if (!$empresa && $pasantia->empresa) {
+                $empresa = $pasantia->empresa;
+            }
+            
+            return $this->misPasantes($pasantia->id_pasantia, $jefe);
+        });
+
+        // 3. Retornar datos estructurados a Inertia
+        return response()->json([
+            'pasantias' => $pasantias,
+        ]);
+    }   
+
+    // Funcion que envia todos los pasantes asignados a un jefe en una pasantía específica, junto con su progreso más reciente por actividad y datos de bitácora (evaluaciones oficiales del jefe)
+    public function misPasantes($id_pasantia, $jefe)
+    {
+        // 1. Obtener los datos del Jefe de Pasantía autenticado
+        // $user = Auth::user();
+        // $jefe = $user->jefePas; // idU_jefe
 
         // 2. Validar y obtener los datos de la Pasantía actual
         $pasantia = Pasantia::findOrFail($id_pasantia);
@@ -224,7 +314,7 @@ public function dashboard()
 
             // Retornamos la estructura optimizada para la tabla y modales
             return [
-                'id' => $inscripcion->id_inscripcion,
+                'id_inscripcion' => $inscripcion->id_inscripcion,
                 'idU_pasante' => $inscripcion->idU_pasante,
                 'estado' => $inscripcion->estado,
                 'nombre_completo' => $inscripcion->pasante->user->nombre . ' ' . $inscripcion->pasante->user->ap_paterno . ' ' . $inscripcion->pasante->user->ap_materno,
@@ -236,25 +326,25 @@ public function dashboard()
                 'mencion' => $inscripcion->pasante->mencion ?? 'No registrado',
                 'matricula' => $inscripcion->pasante->matricula ?? 'No registrado',
                 'semestre' => $inscripcion->pasante->semestre ?? 'No registrado',
-                'actividades_progreso' => $actividadesProgreso // Inyección de datos estructurales para Modal 2
+                // 'actividades_progreso' => $actividadesProgreso // Inyección de datos estructurales para Modal 2
             ];
         })->values()->all();
 
         // 5. Renderizado único enviando los datos limpios de la pasantía actual
-        return Inertia::render('Jefe/MisPasantes', [
-            'pasantia' => [
-                'id_pasantia' => $pasantia->id_pasantia,
-                'nombre_pasantia' => $pasantia->nombre_pas,
-                'codigo' => $pasantia->codigo_pas ?? $pasantia->codigo ?? 'PAS-GEN',
-            ],
+        return [
+            'id_pasantia' => $pasantia->id_pasantia,
+            'nombre_pasantia' => $pasantia->nombre_pas,
+            'codigo' => $pasantia->codigo_pas ?? $pasantia->codigo ?? 'PAS-GEN',
             'listadoPasantes' => $listadoPasantes,
-        ]);
+        ];
     }
 
     public function misPasantias()
     {
         // 1. Obtener el jefe autenticado con su respectiva empresa
         $jefe = Auth::user()->jefePas; 
+        // 1. Obtener el jefe con id = 14 para pruebas
+        // $jefe = JefePas::with('empresa')->where('idU_jefe', 26)->firstOrFail(); // Reemplaza 14 con el ID real del jefe que deseas consultar
         
         // Cargamos la empresa (asumiendo la relación 'empresa' en el modelo JefePas)
         // Si la relación está en la pasantía, la rescataremos dinámicamente abajo
@@ -274,7 +364,7 @@ public function dashboard()
             }
 
             return [
-                'id' => $pasantia->id_pasantia,
+                'id_pasantia' => $pasantia->id_pasantia,
                 'nombre' => $pasantia->nombre_pas,
                 'estado' => $pasantia->estado,
                 'mencion' => $pasantia->mencion ?? 'General / No especificada',
@@ -285,28 +375,31 @@ public function dashboard()
                 'carga_horaria' => $pasantia->carga_horaria ?? 'No asignada',
                 'turno' => $pasantia->turno ?? 'Flexible',
                 'total_inscritos' => $pasantia->inscripciones->count(),
-                'pasantes_inscritos' => $pasantia->inscripciones->map(function ($inscripcion) {
+                'actividades' => $pasantia->actividades->map(function($actividad) {
                     return [
-                        'id' => $inscripcion->pasante->idU_pasante,
-                        'nombre' => $inscripcion->pasante->user->nombre . ' ' . $inscripcion->pasante->user->ap_paterno . ' ' . ($inscripcion->pasante->user->ap_materno ?? ''),
-                        'estado_inscripcion' => $inscripcion->estado,
+                        'id_actividad' => $actividad->id_actividad,
+                        'nombre_act' => $actividad->nombre_act,
+                        'tipo' => $actividad->tipo,
+                        'descripcion' => $actividad->descripcion,
+                        'fecha_ini' => $actividad->fecha_ini,
+                        'fecha_fin' => $actividad->fecha_fin,
                     ];
                 }),
             ];
         });
 
         // 3. Retornar datos estructurados a Inertia
-        return Inertia::render('Jefe/MisPasantias', [
+        return response()->json([
             'pasantias' => $pasantias,
-            'empresa' => $empresa ? [
-                'id' => $empresa->id_empresa ?? $empresa->id,
-                'nombre' => $empresa->nombre ?? 'No registrado',
-                'nit' => $empresa->nit ?? 'S/N',
-                'direccion' => $empresa->direccion ?? 'No especificada',
-                'telefono' => $empresa->telefono ?? 'S/N',
-                'email' => $empresa->email ?? 'S/N',
-                'rubro' => $empresa->rubro ?? 'General',
-            ] : null,
+            // 'empresa' => $empresa ? [
+            //     'id' => $empresa->id_empresa ?? $empresa->id,
+            //     'nombre' => $empresa->nombre ?? 'No registrado',
+            //     'nit' => $empresa->nit ?? 'S/N',
+            //     'direccion' => $empresa->direccion ?? 'No especificada',
+            //     'telefono' => $empresa->telefono ?? 'S/N',
+            //     'email' => $empresa->email ?? 'S/N',
+            //     'rubro' => $empresa->rubro ?? 'General',
+            // ] : null,
         ]);
     }
     
@@ -567,9 +660,11 @@ public function dashboard()
     /**
      * Muestra las bitácoras de las actividades de las pasantias del pasante
      */
-    public function showPasantiaBitacoras($id_pasantia)
+    public function showPasantiaBitacoras($id_pasantia, $idU_pasante)
     {
         $jefe = Auth::user()->jefePas;
+        // $jefe = JefePas::with('empresa')->where('idU_jefe', 14)->firstOrFail(); // Reemplaza 14 con el ID real del jefe que deseas consultar
+
         if (!$jefe) {
             return redirect()->back()->with('error', 'Perfil de jefe no válido.');
         }
@@ -577,6 +672,7 @@ public function dashboard()
         $inscripciones = Inscripcion::with(['pasante.user'])
             ->where('id_pasantia', $id_pasantia)
             ->where('idU_jefe', $jefe->idU_jefe)
+            ->where('idU_pasante', $idU_pasante)
             ->get();
 
         $actividadesBase = Actividad::where('id_pasantia', $id_pasantia)
@@ -692,13 +788,13 @@ public function dashboard()
         // Ordenar pasantes por nombre completo
         $pasantesData = $pasantesData->sortBy('nombre_completo')->values();
 
-        return Inertia::render('Jefe/Evaluaciones/Bitacoras', [
+        return response()->json([
             'pasantia' => [
                 'id' => $pasantia->id_pasantia,
                 'nombre' => $pasantia->nombre_pas,
                 'empresa' => $pasantia->empresa ? $pasantia->empresa->nombre : 'Particular',
             ],
-            'pasantesData' => $pasantesData,
+            'pasanteData' => $pasantesData,
         ]);
     }
 
@@ -714,6 +810,7 @@ public function dashboard()
         ]);
 
         $jefe = Auth::user()->jefePas;
+        // $jefe = JefePas::with('empresa')->where('idU_jefe', 14)->firstOrFail(); // Reemplaza 14 con el ID real del jefe que deseas consultar
 
         if (!$jefe) {
             return redirect()->back()->with('error', 'No autorizado.');
@@ -753,7 +850,7 @@ public function dashboard()
             // Confirma los cambios si todo sale bien
             DB::commit();
 
-            return redirect()->back()->with('success', 'Comentario enviado exitosamente.');
+            return response()->json(['success' => 'Comentario enviado exitosamente.'], 200);
 
         } catch (Exception $e) {
             // Cancela los cambios en la base de datos si algo falla
@@ -762,7 +859,7 @@ public function dashboard()
             // Registra el error en el archivo log de Laravel para auditoría
             // Log::error('Error al guardar comentario: ' . $e->getMessage());
 
-            return redirect()->back()->with('error', 'Ocurrió un error al procesar tu solicitud.');
+            return response()->json(['error' => 'Hubo un problema al enviar el comentario. Intente nuevamente.'], 500);
         }
     }
 
@@ -801,13 +898,13 @@ public function dashboard()
             // Confirmar los cambios si todo sale bien
             DB::commit();
 
-            return redirect()->back()->with('success', 'Evaluación registrada correctamente.');
+            return response()->json(['success' => 'Evaluación registrada exitosamente.'], 200);
 
         } catch (Exception $e) {
             // Deshacer los cambios en caso de error
             DB::rollBack();
 
-            return redirect()->back()->with('error', 'Hubo un problema al registrar la evaluación: ' . $e->getMessage());
+            return response()->json(['error' => 'Hubo un problema al registrar la evaluación: ' . $e->getMessage()], 500);
         }
     }
 

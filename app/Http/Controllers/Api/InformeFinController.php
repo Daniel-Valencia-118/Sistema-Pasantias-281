@@ -69,6 +69,7 @@ class InformeFinController extends Controller
     public function indexHistorialPasantias()
     {
         $jefe = Auth::user()->jefePas;
+        // $jefe = JefePas::with('user')->find(26);
 
         // Obtener pasantías que tienen alumnos inscritos bajo la supervisión de este jefe
         $pasantias = Pasantia::whereIn('id_pasantia', function ($query) use ($jefe) {
@@ -76,31 +77,33 @@ class InformeFinController extends Controller
                   ->from('inscripcion')
                   ->where('idU_jefe', $jefe->idU_jefe);
         })->get()->map(function($p) use ($jefe) {
-            
-            // Contamos cuántos informes ya fueron generados para esta pasantía específica
-            $totalInformes = InformeFin::where('idU_jefe', $jefe->idU_jefe)
-                ->whereHas('inscripcion', function($q) use ($p) {
-                    $q->where('id_pasantia', $p->id_pasantia);
-                })->count();
+        
+            return $this->informesHistorial($p->id_pasantia, $jefe);
 
-            return [
-                'id' => $p->id_pasantia,
-                'nombre' => $p->nombre_pas,
-                'total_informes' => $totalInformes,
-            ];
+            // Contamos cuántos informes ya fueron generados para esta pasantía específica
+            // $totalInformes = InformeFin::where('idU_jefe', $jefe->idU_jefe)
+            //     ->whereHas('inscripcion', function($q) use ($p) {
+            //         $q->where('id_pasantia', $p->id_pasantia);
+            //     })->count();
+
+            // return [
+            //     'id_pasantia' => $p->id_pasantia,
+            //     'nombre_pasantia' => $p->nombre_pas,
+            //     'total_informes' => $totalInformes,
+            // ];
         });
 
-        return Inertia::render('Jefe/Informes/Index', [
-            'pasantias' => $pasantias,
+        return response()->json([
+            'historial_pasantias' => $pasantias,
         ]);
     }
 
     /**
      * Paso 2: Muestra la tabla histórica filtrada por la pasantía seleccionada
      */
-    public function informesHistorial($id_pasantia)
+    public function informesHistorial($id_pasantia, $jefe)
     {
-        $jefe = Auth::user()->jefePas;
+        // $jefe = Auth::user()->jefePas;
         
         // Validamos la existencia de la pasantía
         $pasantia = Pasantia::findOrFail($id_pasantia);
@@ -125,12 +128,10 @@ class InformeFinController extends Controller
                 'id_inscripcion' => $inf->id_inscripcion,
             ]);
 
-        return Inertia::render('Jefe/Informes/Historial', [
-            'pasantia' => [
-                'id' => $pasantia->id_pasantia,
-                'nombre' => $pasantia->nombre_pas,
-            ],
+        return [
+            'id_pasantia' => $pasantia->id_pasantia,
+            'nombre_pasantia' => $pasantia->nombre_pas,
             'informes' => $informes,
-        ]);
+        ];
     }
 }

@@ -77,8 +77,9 @@ class MensajeJefeController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
-        $jefe = $user->jefePas; // Asumiendo relación en el modelo User
+        // $user = Auth::user();
+        // $jefe = $user->jefePas; // Asumiendo relación en el modelo User
+        $jefe = JefePas::with('user')->find(26); // Traer al jefe con ID = 26 para pruebas
 
         // Obtener inscripciones utilizando la sintaxis correcta whereIn
         $inscripciones = Inscripcion::with(['pasante.user', 'pasantia'])
@@ -138,7 +139,7 @@ class MensajeJefeController extends Controller
             return '0000-00-00 00:00:00';
         })->values();
 
-        return Inertia::render('Jefe/Mensajes/Index', [
+        return response()->json([
             'contactosIniciales' => $contactosOrdenados,
         ]);
     }
@@ -148,7 +149,8 @@ class MensajeJefeController extends Controller
      */
     public function getMensajes($idContacto)
     {
-        $jefe = Auth::user()->jefePas;
+        // $jefe = Auth::user()->jefePas;
+        $jefe = JefePas::with('user')->find(26); // Traer al jefe con ID = 26 para pruebas
 
         $mensajes = Mensaje::where('idU_jefe', $jefe->idU_jefe)
             ->where('idU_pasante', $idContacto)
@@ -225,7 +227,7 @@ class MensajeJefeController extends Controller
                 }
             } catch (\Throwable $eNotif) {
                 // El error se registra de forma silenciosa en storage/logs/laravel.log para revisión técnica
-                \Log::warning('Chat: Mensaje guardado, pero la notificación falló: ' . $eNotif->getMessage());
+                // \Log::warning('Chat: Mensaje guardado, pero la notificación falló: ' . $eNotif->getMessage());
             }
 
             // 3. Respuesta Exitosa limpia (Status 200)

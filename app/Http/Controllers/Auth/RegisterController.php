@@ -77,10 +77,8 @@ class RegisterController extends Controller
                 'ap_materno' => $request->ap_materno,
                 'fecha_nac' => $request->fecha_nac,
                 'fecha_registro' => now(),
-                // 'estado_cuenta' => false,        
-                'estado_cuenta' => true, // Para pruebas, luego cambiar a false para requerir aprobación
-                // 'estado_aprobacion' => 'pendiente',
-                'estado_aprobacion' => 'aprobado', // Para pruebas, luego cambiar a 'pendiente'
+                'estado_cuenta' => true,
+                'estado_aprobacion' => 'pendiente',
             ]);
 
             // Insertar en las tablas hijas según la herencia
@@ -136,12 +134,12 @@ class RegisterController extends Controller
 
             DB::commit();
 
-            return redirect()->route('registro.pendiente');
+            return response()->json(['message' => 'Usuario registrado exitosamente'], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
             // Recomendable durante desarrollo para ver qué falló exactamente:
-            return back()->withErrors(['error' => 'Error en el servidor: ' . $e->getMessage()]);
+            return response()->json(['error' => 'Error al registrar el usuario: ' . $e->getMessage()], 500);
         }
     }
 }

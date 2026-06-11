@@ -199,31 +199,38 @@ public function updatePerfil(Request $request)
     /**
      * Procesar la aprobación o rechazo de un usuario pendiente.
      */
-        public function procesarAprobacion(Request $request, User $user)
-        {
-            // 1. Validar que el estado enviado sea estrictamente 'aprobado' o 'rechazado'
-            $request->validate([
-                'estado' => 'required|in:aprobado,rechazado',
-            ]);
+    public function procesarAprobacion(Request $request, User $user)
+    {
+        // 1. Validar que el estado enviado sea estrictamente 'aprobado' o 'rechazado'
+        $request->validate([
+            'estado' => 'required|in:aprobado,rechazado',
+        ]);
 
-            // 2. Validar regla de negocio: El usuario DEBE estar en estado 'pendiente'
-            if ($user->estado_aprobacion !== 'pendiente') {
-                return redirect()->back()->with('error', 'El usuario ya no se encuentra en estado pendiente.');
-            }
-
-            // 3. Actualizar el estado
-            $user->update([
-                'estado_aprobacion' => $request->estado,
-                'estado_cuenta' => $request->estado === 'aprobado' ? true : false, // Solo activar si es aprobado
-            ]);
-
-            // 4. Redireccionar con un mensaje de éxito
-            $mensaje = $request->estado === 'aprobado' 
-                ? 'El usuario ha sido aprobado correctamente.' 
-                : 'El usuario ha sido rechazado.';
-
-            return redirect()->back()->with('success', $mensaje);
+        // 2. Validar regla de negocio: El usuario DEBE estar en estado 'pendiente'
+        if ($user->estado_aprobacion !== 'pendiente') {
+            return response()->json([
+                'error' => 'El usuario ya no se encuentra en estado pendiente.'
+            ], 400); // Código 400: Mala solicitud
         }
+
+        // 3. Actualizar el estado
+        $user->update([
+            'estado_aprobacion' => $request->estado,
+            'estado_cuenta' => $request->estado === 'aprobado' ? true : false,
+        ]);
+
+        // 4. Responder con JSON de éxito para la API Móvil
+        $mensaje = $request->estado === 'aprobado' 
+            ? 'El usuario ha sido aprobado correctamente.' 
+            : 'El usuario ha sido rechazado.';
+
+        return response()->json([
+            'success' => true,
+            'message' => $mensaje,
+            'user' => $user
+        ], 200); // Código 200: Éxito
+    }
+
 
     // ============================================
     // LISTAR SOLICITUDES PENDIENTES
